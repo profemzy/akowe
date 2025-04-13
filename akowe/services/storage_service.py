@@ -94,10 +94,14 @@ class StorageService:
             if not connection_string:
                 raise ValueError("Azure Storage connection string not found in environment variables")
             
-            # Create a BlobClient
-            blob_service_client = BlobServiceClient.from_connection_string(connection_string)
-            account_name = blob_service_client.account_name
-            account_key = blob_service_client._credential.account_key
+            # Extract account name and key from connection string
+            # Connection string format: DefaultEndpointsProtocol=https;AccountName=xxx;AccountKey=xxx;EndpointSuffix=core.windows.net
+            conn_parts = dict(part.split('=', 1) for part in connection_string.split(';') if '=' in part)
+            account_name = conn_parts.get('AccountName')
+            account_key = conn_parts.get('AccountKey')
+            
+            if not account_name or not account_key:
+                raise ValueError("Account name or key not found in connection string")
             
             # Generate SAS token
             sas_token = generate_blob_sas(
@@ -109,9 +113,9 @@ class StorageService:
                 expiry=datetime.utcnow() + timedelta(hours=expiry_hours)
             )
             
-            # Get blob URL
-            blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
-            blob_url = f"{blob_client.url}?{sas_token}"
+            # Create blob URL
+            endpoint = f"https://{account_name}.blob.core.windows.net"
+            blob_url = f"{endpoint}/{container_name}/{blob_name}?{sas_token}"
             
             return blob_url
         
