@@ -76,6 +76,12 @@ def create_app(test_config=None):
     from akowe.api.tax_dashboard import bp as tax_dashboard_bp
     app.register_blueprint(tax_dashboard_bp)
     
+    # Register timesheet and invoice blueprints
+    from akowe.api.timesheet import bp as timesheet_bp
+    from akowe.api.invoice import bp as invoice_bp
+    app.register_blueprint(timesheet_bp)
+    app.register_blueprint(invoice_bp)
+    
     # Register mobile API blueprint
     from akowe.api.mobile_api import bp as mobile_api_bp
     app.register_blueprint(mobile_api_bp)

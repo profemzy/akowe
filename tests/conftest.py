@@ -10,6 +10,8 @@ from akowe.models import db
 from akowe.models.user import User
 from akowe.models.income import Income
 from akowe.models.expense import Expense
+from akowe.models.timesheet import Timesheet
+from akowe.models.invoice import Invoice
 
 
 @pytest.fixture
@@ -52,9 +54,12 @@ def runner(app):
 
 
 @pytest.fixture
-def auth(client):
+def auth(client, test_user):
     """Authentication helper for tests."""
     class AuthActions:
+        def __init__(self, test_user):
+            self.test_user = test_user
+            
         def login(self, username='test', password='password'):
             return client.post(
                 '/login',
@@ -64,7 +69,7 @@ def auth(client):
         def logout(self):
             return client.get('/logout')
     
-    return AuthActions()
+    return AuthActions(test_user)
 
 
 @pytest.fixture
@@ -76,6 +81,7 @@ def test_user(app):
             email='test@example.com',
             first_name='Test',
             last_name='User',
+            hourly_rate=Decimal('120.00'),
             is_admin=False
         )
         user.password = 'password'
@@ -163,3 +169,83 @@ def sample_expense(app, test_user):
         db.session.commit()
         
         return expenses
+
+@pytest.fixture
+def sample_timesheet(app, test_user):
+    """Create sample timesheet entries."""
+    with app.app_context():
+        entries = [
+            Timesheet(
+                date=date(2025, 4, 15),
+                client='SearchLabs (RAVL)',
+                project='P2025001 - Interac Konek',
+                description='API development and testing',
+                hours=Decimal('8.5'),
+                hourly_rate=Decimal('125.00'),
+                status='pending',
+                user_id=test_user.id
+            ),
+            Timesheet(
+                date=date(2025, 4, 16),
+                client='SearchLabs (RAVL)',
+                project='P2025001 - Interac Konek',
+                description='Frontend integration',
+                hours=Decimal('6.0'),
+                hourly_rate=Decimal('125.00'),
+                status='pending',
+                user_id=test_user.id
+            ),
+            Timesheet(
+                date=date(2025, 4, 17),
+                client='TechCorp',
+                project='Website Redesign',
+                description='UI/UX improvements',
+                hours=Decimal('4.5'),
+                hourly_rate=Decimal('110.00'),
+                status='pending',
+                user_id=test_user.id
+            ),
+        ]
+        
+        for entry in entries:
+            db.session.add(entry)
+        
+        db.session.commit()
+        
+        return entries
+
+@pytest.fixture
+def sample_invoice(app, test_user, sample_timesheet):
+    """Create a sample invoice with timesheet entries."""
+    with app.app_context():
+        # Get the SearchLabs timesheet entries
+        entries = [entry for entry in sample_timesheet 
+                  if entry.client == 'SearchLabs (RAVL)' and entry.status == 'pending']
+        
+        # Create invoice
+        invoice = Invoice(
+            invoice_number='INV-202504-0001',
+            client='SearchLabs (RAVL)',
+            company_name='Akowe Test Company',
+            issue_date=date(2025, 4, 20),
+            due_date=date(2025, 5, 20),
+            notes='Payment due within 30 days',
+            tax_rate=Decimal('13.00'),
+            status='draft',
+            user_id=test_user.id
+        )
+        
+        db.session.add(invoice)
+        db.session.flush()  # Get the ID
+        
+        # Link timesheet entries to invoice
+        for entry in entries:
+            entry.invoice_id = invoice.id
+            entry.status = 'billed'
+        
+        # Calculate invoice totals
+        invoice.calculate_totals()
+        
+        db.session.commit()
+        
+        return invoice

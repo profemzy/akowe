@@ -1,11 +1,14 @@
 """Tests for database models."""
 import pytest
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
+from sqlalchemy import func
 
 from akowe.models.user import User
 from akowe.models.income import Income
 from akowe.models.expense import Expense
+from akowe.models.timesheet import Timesheet
+from akowe.models.invoice import Invoice
 
 
 def test_user_password_hashing(app):
@@ -167,3 +170,178 @@ def test_income_expense_relationship(app):
         assert total_income == Decimal('10000.00')
         assert total_expense == Decimal('3000.00')
         assert (total_income - total_expense) == Decimal('7000.00')
+
+
+def test_timesheet_model(app, test_user):
+    """Test the Timesheet model."""
+    with app.app_context():
+        timesheet = Timesheet(
+            date=date(2025, 4, 15),
+            client='TestClient',
+            project='Test Project',
+            description='Testing timesheet model',
+            hours=Decimal('8.5'),
+            hourly_rate=Decimal('125.00'),
+            status='pending',
+            user_id=test_user.id
+        )
+        
+        app.db.session.add(timesheet)
+        app.db.session.commit()
+        
+        saved_timesheet = Timesheet.query.first()
+        assert saved_timesheet is not None
+        assert saved_timesheet.date == date(2025, 4, 15)
+        assert saved_timesheet.client == 'TestClient'
+        assert saved_timesheet.project == 'Test Project'
+        assert saved_timesheet.description == 'Testing timesheet model'
+        assert saved_timesheet.hours == Decimal('8.5')
+        assert saved_timesheet.hourly_rate == Decimal('125.00')
+        assert saved_timesheet.status == 'pending'
+        assert saved_timesheet.user_id == test_user.id
+        
+        # Test amount property
+        assert saved_timesheet.amount == Decimal('8.5') * Decimal('125.00')
+
+
+def test_invoice_model(app, test_user):
+    """Test the Invoice model."""
+    with app.app_context():
+        # Create invoice
+        invoice = Invoice(
+            invoice_number='INV-TEST-001',
+            client='TestClient',
+            company_name='Test Company',
+            issue_date=date(2025, 4, 20),
+            due_date=date(2025, 5, 20),
+            notes='Test invoice notes',
+            tax_rate=Decimal('13.00'),
+            status='draft',
+            user_id=test_user.id
+        )
+        
+        app.db.session.add(invoice)
+        app.db.session.flush()  # Get invoice ID without committing
+        
+        # Create timesheet entries linked to invoice
+        entries = [
+            Timesheet(
+                date=date(2025, 4, 15),
+                client='TestClient',
+                project='Test Project',
+                description='Entry 1',
+                hours=Decimal('8.5'),
+                hourly_rate=Decimal('125.00'),
+                status='billed',
+                invoice_id=invoice.id,
+                user_id=test_user.id
+            ),
+            Timesheet(
+                date=date(2025, 4, 16),
+                client='TestClient',
+                project='Test Project',
+                description='Entry 2',
+                hours=Decimal('6.0'),
+                hourly_rate=Decimal('125.00'),
+                status='billed',
+                invoice_id=invoice.id,
+                user_id=test_user.id
+            )
+        ]
+        
+        for entry in entries:
+            app.db.session.add(entry)
+            
+        app.db.session.flush()
+        
+        # Calculate invoice totals
+        invoice.calculate_totals()
+        app.db.session.commit()
+        
+        # Verify invoice in database
+        saved_invoice = Invoice.query.first()
+        assert saved_invoice is not None
+        assert saved_invoice.invoice_number == 'INV-TEST-001'
+        assert saved_invoice.client == 'TestClient'
+        assert saved_invoice.company_name == 'Test Company'
+        assert saved_invoice.issue_date == date(2025, 4, 20)
+        assert saved_invoice.due_date == date(2025, 5, 20)
+        assert saved_invoice.notes == 'Test invoice notes'
+        assert saved_invoice.tax_rate == Decimal('13.00')
+        assert saved_invoice.status == 'draft'
+        assert saved_invoice.user_id == test_user.id
+        
+        # Verify timesheet entries relationship
+        assert len(saved_invoice.timesheet_entries) == 2
+        
+        # Verify calculations
+        expected_subtotal = Decimal('8.5') * Decimal('125.00') + Decimal('6.0') * Decimal('125.00')
+        expected_tax = expected_subtotal * Decimal('0.13')
+        expected_total = expected_subtotal + expected_tax
+        
+        assert saved_invoice.subtotal == expected_subtotal
+        assert saved_invoice.tax_amount == expected_tax
+        assert saved_invoice.total == expected_total
+
+
+def test_timesheet_invoice_relationship(app, test_user):
+    """Test the relationship between timesheet entries and invoices."""
+    with app.app_context():
+        # Create an invoice
+        invoice = Invoice(
+            invoice_number='INV-TEST-002',
+            client='RelationshipClient',
+            issue_date=date(2025, 4, 25),
+            due_date=date(2025, 5, 25),
+            tax_rate=Decimal('5.00'),
+            status='draft',
+            user_id=test_user.id
+        )
+        
+        app.db.session.add(invoice)
+        app.db.session.flush()
+        
+        # Create timesheet entries
+        timesheet1 = Timesheet(
+            date=date(2025, 4, 20),
+            client='RelationshipClient',
+            project='Relationship Project',
+            description='Testing relationships',
+            hours=Decimal('4.0'),
+            hourly_rate=Decimal('100.00'),
+            status='billed',
+            invoice_id=invoice.id,
+            user_id=test_user.id
+        )
+        
+        timesheet2 = Timesheet(
+            date=date(2025, 4, 21),
+            client='RelationshipClient',
+            project='Relationship Project',
+            description='More testing',
+            hours=Decimal('5.0'),
+            hourly_rate=Decimal('100.00'),
+            status='billed',
+            invoice_id=invoice.id,
+            user_id=test_user.id
+        )
+        
+        app.db.session.add_all([timesheet1, timesheet2])
+        app.db.session.flush()
+        
+        # Calculate invoice totals
+        invoice.calculate_totals()
+        app.db.session.commit()
+        
+        # Test the relationship in both directions
+        saved_invoice = Invoice.query.filter_by(invoice_number='INV-TEST-002').first()
+        assert len(saved_invoice.timesheet_entries) == 2
+        
+        saved_timesheet = Timesheet.query.filter_by(description='Testing relationships').first()
+        assert saved_timesheet.invoice is not None
+        assert saved_timesheet.invoice.invoice_number == 'INV-TEST-002'
+        
+        # Test invoice calculation
+        assert saved_invoice.subtotal == Decimal('900.00')  # 4*100 + 5*100
+        assert saved_invoice.tax_amount == Decimal('45.00')  # 900 * 0.05
+        assert saved_invoice.total == Decimal('945.00')  # 900 + 45

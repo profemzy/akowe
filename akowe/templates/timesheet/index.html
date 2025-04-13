@@ -1,0 +1,209 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Timesheets - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Timesheets</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('timesheet.new') }}" class="btn btn-sm btn-primary">
+                <i class="fas fa-plus"></i> New Timesheet Entry
+            </a>
+            <a href="{{ url_for('timesheet.weekly') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-calendar-week"></i> Weekly View
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Total Hours</h5>
+                <h3 class="card-text text-primary">{{ '{:.2f}'.format(total_hours) }}</h3>
+                <p class="text-muted mb-0">All time tracked</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Total Amount</h5>
+                <h3 class="card-text text-primary">${{ '{:,.2f}'.format(total_amount) }}</h3>
+                <p class="text-muted mb-0">Value of time tracked</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Unbilled Hours</h5>
+                <h3 class="card-text text-warning">{{ '{:.2f}'.format(unbilled_hours) }}</h3>
+                <p class="text-muted mb-0">Pending invoice</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Unbilled Amount</h5>
+                <h3 class="card-text text-warning">${{ '{:,.2f}'.format(unbilled_amount) }}</h3>
+                <p class="text-muted mb-0">Ready to invoice</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Form -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-filter me-1"></i> Filter Timesheet Entries
+    </div>
+    <div class="card-body">
+        <form method="get" action="{{ url_for('timesheet.index') }}" class="row g-3">
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="all" {% if status == 'all' %}selected{% endif %}>All</option>
+                    <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="billed" {% if status == 'billed' %}selected{% endif %}>Billed</option>
+                    <option value="paid" {% if status == 'paid' %}selected{% endif %}>Paid</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="client" class="form-label">Client</label>
+                <select class="form-select" id="client" name="client">
+                    <option value="all" {% if client_filter == 'all' %}selected{% endif %}>All</option>
+                    {% for c in clients %}
+                    <option value="{{ c }}" {% if client_filter == c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="from_date" class="form-label">From Date</label>
+                <input type="date" class="form-control" id="from_date" name="from_date" value="{{ from_date }}">
+            </div>
+            <div class="col-md-3">
+                <label for="to_date" class="form-label">To Date</label>
+                <input type="date" class="form-control" id="to_date" name="to_date" value="{{ to_date }}">
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <a href="{{ url_for('timesheet.index') }}" class="btn btn-outline-secondary">Clear Filters</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Timesheet Entries Table -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-clock me-1"></i> Timesheet Entries
+    </div>
+    <div class="card-body">
+        {% if entries %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th>Project</th>
+                        <th>Description</th>
+                        <th>Hours</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                    <tr>
+                        <td>{{ entry.date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ entry.client }}</td>
+                        <td>{{ entry.project }}</td>
+                        <td>{{ entry.description }}</td>
+                        <td>{{ '{:.2f}'.format(entry.hours) }}</td>
+                        <td>${{ '{:.2f}'.format(entry.hourly_rate) }}</td>
+                        <td>${{ '{:.2f}'.format(entry.amount) }}</td>
+                        <td>
+                            {% if entry.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                            {% elif entry.status == 'billed' %}
+                            <span class="badge bg-info">
+                                Billed
+                                {% if entry.invoice %}
+                                <a href="{{ url_for('invoice.view', id=entry.invoice_id) }}" class="text-white">
+                                    #{{ entry.invoice.invoice_number }}
+                                </a>
+                                {% endif %}
+                            </span>
+                            {% elif entry.status == 'paid' %}
+                            <span class="badge bg-success">Paid</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if entry.status == 'pending' %}
+                            <a href="{{ url_for('timesheet.edit', id=entry.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    onclick="confirmDelete({{ entry.id }}, '{{ entry.date.strftime('%Y-%m-%d') }} - {{ entry.project }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% else %}
+                            <button type="button" class="btn btn-sm btn-outline-secondary" disabled>
+                                <i class="fas fa-lock"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <p class="mb-0">No timesheet entries found. <a href="{{ url_for('timesheet.new') }}">Add a new entry</a>.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the timesheet entry for <span id="entryName"></span>?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" action="">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function confirmDelete(id, name) {
+        document.getElementById('entryName').textContent = name;
+        document.getElementById('deleteForm').action = "{{ url_for('timesheet.delete', id=0) }}".replace('/0', '/' + id);
+        var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        deleteModal.show();
+    }
+</script>
+{% endblock %}

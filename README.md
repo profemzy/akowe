@@ -147,6 +147,7 @@ WEB_REPLICAS=4 docker compose -f docker-compose.prod.yml up -d
 | ADMIN_FIRST_NAME | Initial admin first name | Admin |
 | ADMIN_LAST_NAME | Initial admin last name | User |
 | AZURE_STORAGE_CONNECTION_STRING | Azure Blob Storage connection string | - |
+| COMPANY_NAME | Your company name (used on invoices) | Akowe |
 
 ## Kubernetes Deployment
 

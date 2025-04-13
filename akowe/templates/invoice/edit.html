@@ -1,0 +1,200 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Edit Invoice - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Edit Invoice {{ invoice.invoice_number }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('invoice.view', id=invoice.id) }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Invoice
+            </a>
+        </div>
+    </div>
+</div>
+
+<form method="post" action="{{ url_for('invoice.edit', id=invoice.id) }}">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Invoice Details -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-file-invoice me-1"></i> Invoice Details
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="client" class="form-label">Client</label>
+                            <input type="text" class="form-control" id="client" name="client" value="{{ invoice.client }}" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="tax_rate" class="form-label">Tax Rate (%)</label>
+                            <input type="number" class="form-control" id="tax_rate" name="tax_rate" step="0.01" min="0" value="{{ invoice.tax_rate }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="issue_date" class="form-label">Issue Date</label>
+                            <input type="date" class="form-control" id="issue_date" name="issue_date" value="{{ invoice.issue_date.strftime('%Y-%m-%d') }}" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="due_date" class="form-label">Due Date</label>
+                            <input type="date" class="form-control" id="due_date" name="due_date" value="{{ invoice.due_date.strftime('%Y-%m-%d') }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3">{{ invoice.notes }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Invoice Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-calculator me-1"></i> Invoice Summary
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Subtotal:</span>
+                            <span id="subtotal">${{ '{:,.2f}'.format(invoice.subtotal) }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Tax (<span id="tax-rate-display">{{ '{:.2f}'.format(invoice.tax_rate) }}</span>%):</span>
+                            <span id="tax-amount">${{ '{:,.2f}'.format(invoice.tax_amount) }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold">Total:</span>
+                            <span class="fw-bold" id="total-amount">${{ '{:,.2f}'.format(invoice.total) }}</span>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Update Invoice
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timesheet Entries -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-clock me-1"></i> Select Timesheet Entries
+        </div>
+        <div class="card-body">
+            {% if all_entries %}
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%">
+                                <input type="checkbox" id="select-all" class="form-check-input">
+                            </th>
+                            <th style="width: 10%">Date</th>
+                            <th style="width: 20%">Client</th>
+                            <th style="width: 15%">Project</th>
+                            <th>Description</th>
+                            <th style="width: 8%">Hours</th>
+                            <th style="width: 10%">Rate</th>
+                            <th style="width: 10%">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in all_entries %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="timesheet_entries" value="{{ entry.id }}" 
+                                       class="form-check-input timesheet-entry" data-client="{{ entry.client }}"
+                                       data-amount="{{ entry.amount }}"
+                                       {% if entry.invoice_id == invoice.id %}checked{% endif %}>
+                            </td>
+                            <td>{{ entry.date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ entry.client }}</td>
+                            <td>{{ entry.project }}</td>
+                            <td>{{ entry.description }}</td>
+                            <td>{{ '{:.2f}'.format(entry.hours) }}</td>
+                            <td>${{ '{:.2f}'.format(entry.hourly_rate) }}</td>
+                            <td>${{ '{:.2f}'.format(entry.amount) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <p class="mb-0">No available timesheet entries found.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Select all checkbox
+    document.getElementById('select-all').addEventListener('change', function() {
+        const isChecked = this.checked;
+        document.querySelectorAll('.timesheet-entry').forEach(checkbox => {
+            checkbox.checked = isChecked;
+        });
+        updateTotals();
+    });
+    
+    // Individual checkboxes
+    document.querySelectorAll('.timesheet-entry').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateTotals();
+        });
+    });
+    
+    // Tax rate update
+    document.getElementById('tax_rate').addEventListener('input', function() {
+        document.getElementById('tax-rate-display').textContent = parseFloat(this.value).toFixed(2);
+        updateTotals();
+    });
+    
+    // Update totals based on selected entries
+    function updateTotals() {
+        let subtotal = 0;
+        
+        document.querySelectorAll('.timesheet-entry:checked').forEach(checkbox => {
+            subtotal += parseFloat(checkbox.dataset.amount);
+        });
+        
+        const taxRate = parseFloat(document.getElementById('tax_rate').value) || 0;
+        const taxAmount = subtotal * (taxRate / 100);
+        const total = subtotal + taxAmount;
+        
+        document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+        document.getElementById('tax-amount').textContent = '$' + taxAmount.toFixed(2);
+        document.getElementById('total-amount').textContent = '$' + total.toFixed(2);
+    }
+    
+    // Check if all checkboxes are selected on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxes = document.querySelectorAll('.timesheet-entry');
+        const checkedBoxes = document.querySelectorAll('.timesheet-entry:checked');
+        
+        if (checkboxes.length > 0 && checkboxes.length === checkedBoxes.length) {
+            document.getElementById('select-all').checked = true;
+        }
+        
+        updateTotals();
+    });
+</script>
+{% endblock %}

@@ -13,10 +13,15 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)  # Increased to 256 for PostgreSQL
     first_name = db.Column(db.String(64))
     last_name = db.Column(db.String(64))
+    hourly_rate = db.Column(db.Numeric(10, 2), nullable=True)  # Default hourly rate
     is_admin = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    timesheet_entries = db.relationship('Timesheet', back_populates='user', lazy='dynamic')
+    invoices = db.relationship('Invoice', back_populates='user', lazy='dynamic')
     
     @property
     def password(self):

@@ -210,6 +210,16 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('timesheet.index') }}">
+                            <i class="fas fa-clock me-1"></i>Timesheets
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('invoice.index') }}">
+                            <i class="fas fa-file-invoice me-1"></i>Invoices
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('income.index') }}">
                             <i class="fas fa-coins me-1"></i>Income
                         </a>
@@ -262,6 +272,37 @@
                                 <i class="fas fa-file-invoice-dollar"></i> Tax Dashboard
                             </a>
                         </li>
+                        
+                        <!-- Timesheet Section -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'timesheet.index' %}active{% endif %}" href="{{ url_for('timesheet.index') }}">
+                                <i class="fas fa-clock"></i> Timesheets
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'timesheet.new' %}active{% endif %}" href="{{ url_for('timesheet.new') }}">
+                                <i class="fas fa-plus"></i> Add Time Entry
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'timesheet.weekly' %}active{% endif %}" href="{{ url_for('timesheet.weekly') }}">
+                                <i class="fas fa-calendar-week"></i> Weekly View
+                            </a>
+                        </li>
+                        
+                        <!-- Invoice Section -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'invoice.index' %}active{% endif %}" href="{{ url_for('invoice.index') }}">
+                                <i class="fas fa-file-invoice"></i> Invoices
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'invoice.new' %}active{% endif %}" href="{{ url_for('invoice.new') }}">
+                                <i class="fas fa-plus"></i> New Invoice
+                            </a>
+                        </li>
+                        
+                        <!-- Income Section -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'income.index' %}active{% endif %}" href="{{ url_for('income.index') }}">
                                 <i class="fas fa-dollar-sign"></i> Income
@@ -277,6 +318,8 @@
                                 <i class="fas fa-file-import"></i> Import Income
                             </a>
                         </li>
+                        
+                        <!-- Expense Section -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'expense.index' %}active{% endif %}" href="{{ url_for('expense.index') }}">
                                 <i class="fas fa-credit-card"></i> Expenses
