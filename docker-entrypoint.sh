@@ -14,19 +14,31 @@ wait_for_postgres() {
 initialize_db() {
   echo "Setting up the database..."
   
-  # Run migrations
-  if [ ! -d "/app/migrations" ] || [ -z "$(ls -A /app/migrations/versions)" ]; then
-    echo "Initializing migrations..."
+  # Handle migrations
+  if [ ! -f "/app/migrations/env.py" ]; then
+    echo "Initializing migrations from scratch..."
+    rm -rf /app/migrations
+    export FLASK_APP=app.py
     flask db init
+    
+    echo "Creating initial migration..."
+    flask db migrate -m "Initial migration"
+    
+    echo "Applying migrations..."
+    flask db upgrade
+  else
+    echo "Using existing migrations directory..."
+    export FLASK_APP=app.py
+    
+    echo "Creating new migration if needed..."
+    flask db migrate -m "Migration $(date +%Y%m%d_%H%M%S)"
+    
+    echo "Applying migrations..."
+    flask db upgrade
   fi
   
-  echo "Creating migration..."
-  flask db migrate -m "Migration $(date +%Y%m%d_%H%M%S)"
-  
-  echo "Applying migrations..."
-  flask db upgrade
-  
   # Create admin user
+  echo "Creating admin user if needed..."
   python create_docker_admin.py
   
   # Import data if files exist
