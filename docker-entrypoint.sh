@@ -15,8 +15,15 @@ initialize_db() {
   echo "Setting up the database..."
   
   # Run migrations
-  flask db init || true
-  flask db migrate -m "Initial migration"
+  if [ ! -d "/app/migrations" ] || [ -z "$(ls -A /app/migrations/versions)" ]; then
+    echo "Initializing migrations..."
+    flask db init
+  fi
+  
+  echo "Creating migration..."
+  flask db migrate -m "Migration $(date +%Y%m%d_%H%M%S)"
+  
+  echo "Applying migrations..."
   flask db upgrade
   
   # Create admin user
@@ -25,12 +32,12 @@ initialize_db() {
   # Import data if files exist
   if [ -f "/app/data/income_export.csv" ]; then
     echo "Importing income data..."
-    python -c "from akowe.services.import_service import ImportService; ImportService.import_income_csv('/app/data/income_export.csv')"
+    python -c "from akowe import create_app; from akowe.services.import_service import ImportService; app = create_app(); with app.app_context(): ImportService.import_income_csv('/app/data/income_export.csv')"
   fi
   
   if [ -f "/app/data/expense_export.csv" ]; then
     echo "Importing expense data..."
-    python -c "from akowe.services.import_service import ImportService; ImportService.import_expense_csv('/app/data/expense_export.csv')"
+    python -c "from akowe import create_app; from akowe.services.import_service import ImportService; app = create_app(); with app.app_context(): ImportService.import_expense_csv('/app/data/expense_export.csv')"
   fi
   
   echo "Database setup complete!"
@@ -41,7 +48,7 @@ if [ "$1" = "gunicorn" ]; then
   wait_for_postgres
   initialize_db
   echo "Starting Akowe Financial Tracker..."
-  exec gunicorn -b 0.0.0.0:5000 --access-logfile - --error-logfile - "app:app"
+  exec gunicorn -b 0.0.0.0:5000 --access-logfile - --error-logfile - --workers 4 "app:app"
 elif [ "$1" = "init" ]; then
   wait_for_postgres
   initialize_db
