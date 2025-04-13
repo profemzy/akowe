@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+from decimal import Decimal
 from sqlalchemy.exc import SQLAlchemyError
 
 from akowe import create_app
@@ -38,11 +39,15 @@ def create_admin_from_env():
                     sys.exit(1)
                 
                 # Create the admin user
+                # Get hourly rate from environment or use default
+                default_hourly_rate = os.environ.get('DEFAULT_HOURLY_RATE', '0.00')
+                
                 admin = User(
                     username=admin_username,
                     email=admin_email,
                     first_name=admin_first_name,
                     last_name=admin_last_name,
+                    hourly_rate=Decimal(default_hourly_rate),
                     is_admin=True
                 )
                 admin.password = admin_password

@@ -14,22 +14,33 @@ wait_for_postgres() {
 initialize_db_fresh() {
   echo "Initializing database from scratch..."
   
-  # Remove migrations directory completely
-  rm -rf /app/migrations
-  
-  # Create tables directly without migrations
-  python -c "
+  # Check if migrations directory exists with version files
+  if [ -d "/app/migrations/versions" ] && [ "$(ls -A /app/migrations/versions)" ]; then
+    echo "Using migrations for database setup..."
+    
+    # Initialize migrations
+    export FLASK_APP=app.py
+    flask db upgrade
+    echo "Database migrations applied successfully!"
+  else
+    echo "No migrations found, creating tables directly..."
+    
+    # Create tables directly without migrations
+    python -c "
 from akowe import create_app
 from akowe.models import db
 from akowe.models.income import Income
 from akowe.models.expense import Expense
 from akowe.models.user import User
+from akowe.models.timesheet import Timesheet
+from akowe.models.invoice import Invoice
 
 app = create_app()
 with app.app_context():
     db.create_all()
     print('Database tables created successfully!')
-  "
+    "
+  fi
   
   # Create admin user
   echo "Creating admin user..."

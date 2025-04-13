@@ -8,8 +8,10 @@ Akowe is a financial tracking application built to help with business expense an
 - Track and categorize business expenses
 - Upload and manage receipts for expenses using Azure Blob Storage
 - Record client income with project tracking
+- Time tracking with timesheet system
+- Invoice generation from timesheet entries
 - Generate financial reports and summaries
-- Prepare data for tax season
+- Prepare data for tax season with Canadian tax support
 - User authentication and authorization
 - Admin portal for user management
 
@@ -148,6 +150,7 @@ WEB_REPLICAS=4 docker compose -f docker-compose.prod.yml up -d
 | ADMIN_LAST_NAME | Initial admin last name | User |
 | AZURE_STORAGE_CONNECTION_STRING | Azure Blob Storage connection string | - |
 | COMPANY_NAME | Your company name (used on invoices) | Akowe |
+| DEFAULT_HOURLY_RATE | Default hourly rate for timesheet entries | 120.00 |
 
 ## Kubernetes Deployment
 
@@ -156,6 +159,14 @@ For Kubernetes deployment, see the [k8s directory](./k8s/README.md).
 ## Receipt Upload
 
 Akowe now supports uploading and managing receipts for expense records. See the [detailed documentation](./docs/receipts.md) for setup and usage.
+
+## Timesheet System
+
+Track billable hours and generate invoices with the timesheet system. See the [timesheet documentation](./docs/timesheet.md) for usage details.
+
+## Invoice System
+
+Create professional invoices from timesheet entries. See the [invoice documentation](./docs/invoice.md) for setup and workflow information.
 
 ## Mobile API
 

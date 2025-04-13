@@ -49,7 +49,7 @@ RUN pip install --no-cache-dir /wheels/* \
     && rm -rf /wheels
 
 # Copy only necessary files
-COPY app.py docker-entrypoint.sh ./
+COPY app.py docker-entrypoint.sh create_docker_admin.py ./
 COPY akowe/ ./akowe/
 COPY migrations/ ./migrations/
 
