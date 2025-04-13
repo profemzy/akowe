@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
-from werkzeug.urls import url_parse
+from urllib.parse import urlparse
 
 from akowe.models import db
 from akowe.models.user import User
@@ -33,7 +33,7 @@ def login():
         
         # Redirect to the page the user was trying to access
         next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
+        if not next_page or urlparse(next_page).netloc != '':
             next_page = url_for('dashboard.index')
         
         return redirect(next_page)
