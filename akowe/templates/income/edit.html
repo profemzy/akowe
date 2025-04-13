@@ -1,0 +1,54 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Edit Income - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Edit Income</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('income.index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Income
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" action="{{ url_for('income.edit', id=income.id) }}">
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="date" name="date" value="{{ income.date.strftime('%Y-%m-%d') }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Amount ($)</label>
+                        <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0" value="{{ income.amount }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="client" class="form-label">Client</label>
+                        <input type="text" class="form-control" id="client" name="client" value="{{ income.client }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="project" class="form-label">Project</label>
+                        <input type="text" class="form-control" id="project" name="project" value="{{ income.project }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="invoice" class="form-label">Invoice</label>
+                        <input type="text" class="form-control" id="invoice" name="invoice" value="{{ income.invoice or '' }}">
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">Update Income</button>
+                        <a href="{{ url_for('income.index') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

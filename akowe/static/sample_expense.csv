@@ -1,0 +1,4 @@
+date,title,amount,category,payment_method,status,vendor
+2025-04-12,WD Red Plus 12TB NAS Hard Disk Drive,386.37,hardware,credit_card,pending,Newegg
+2025-04-11,TERRAMASTER F4-424 Max NAS Storage - 4Bay,1456.38,hardware,credit_card,paid,Newegg
+2025-03-30,Corsair MP600 Pro LPX 2TB M.2 NVMe PCI-e (Gen 4) Internal Solid State Drive,251.00,hardware,credit_card,paid,BestBuy

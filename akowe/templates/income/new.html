@@ -1,0 +1,69 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Add Income - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Add Income</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('income.index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Income
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" action="{{ url_for('income.new') }}">
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="date" name="date" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Amount ($)</label>
+                        <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="client" class="form-label">Client</label>
+                        <input type="text" class="form-control" id="client" name="client" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="project" class="form-label">Project</label>
+                        <input type="text" class="form-control" id="project" name="project" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="invoice" class="form-label">Invoice</label>
+                        <input type="text" class="form-control" id="invoice" name="invoice">
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">Save Income</button>
+                        <a href="{{ url_for('income.index') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Income Entry Help</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Date:</strong> The date the income was received or earned</p>
+                <p><strong>Amount:</strong> The amount in dollars (e.g., 1000.00)</p>
+                <p><strong>Client:</strong> The name of the client or source of income</p>
+                <p><strong>Project:</strong> The project code and name (e.g., P2023001 - Web Development)</p>
+                <p><strong>Invoice:</strong> The invoice number or reference (optional)</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

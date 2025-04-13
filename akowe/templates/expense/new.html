@@ -1,0 +1,96 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Add Expense - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Add Expense</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('expense.index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Expenses
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" action="{{ url_for('expense.new') }}">
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="date" name="date" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Amount ($)</label>
+                        <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" id="category" name="category" required>
+                            <option value="">Select a category</option>
+                            {% for category in categories %}
+                            <option value="{{ category }}">{{ category|replace('_', ' ')|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="payment_method" class="form-label">Payment Method</label>
+                        <select class="form-select" id="payment_method" name="payment_method" required>
+                            <option value="">Select a payment method</option>
+                            {% for method in payment_methods %}
+                            <option value="{{ method }}">{{ method|replace('_', ' ')|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="">Select a status</option>
+                            {% for status in statuses %}
+                            <option value="{{ status }}">{{ status|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="vendor" class="form-label">Vendor</label>
+                        <input type="text" class="form-control" id="vendor" name="vendor">
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">Save Expense</button>
+                        <a href="{{ url_for('expense.index') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Expense Entry Help</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Date:</strong> The date the expense was incurred</p>
+                <p><strong>Title:</strong> A descriptive title for the expense</p>
+                <p><strong>Amount:</strong> The amount in dollars (e.g., 100.00)</p>
+                <p><strong>Category:</strong> The expense category for tax purposes</p>
+                <p><strong>Payment Method:</strong> How the expense was paid</p>
+                <p><strong>Status:</strong> Whether the expense has been paid</p>
+                <p><strong>Vendor:</strong> The name of the vendor or supplier (optional)</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

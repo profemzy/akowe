@@ -1,0 +1,80 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Income - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Income</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('income.new') }}" class="btn btn-sm btn-outline-primary">Add Income</a>
+            <a href="{{ url_for('income.import') }}" class="btn btn-sm btn-outline-secondary">Import CSV</a>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Project</th>
+                <th>Invoice</th>
+                <th>Amount</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for income in incomes %}
+            <tr>
+                <td>{{ income.date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ income.client }}</td>
+                <td>{{ income.project }}</td>
+                <td>{{ income.invoice }}</td>
+                <td>${{ '{:,.2f}'.format(income.amount) }}</td>
+                <td>
+                    <div class="btn-group">
+                        <a href="{{ url_for('income.edit', id=income.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                data-bs-toggle="modal" data-bs-target="#deleteModal{{ income.id }}">
+                            Delete
+                        </button>
+                    </div>
+                    
+                    <!-- Delete Modal -->
+                    <div class="modal fade" id="deleteModal{{ income.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirm Delete</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to delete this income record?
+                                    <p class="mt-2">
+                                        <strong>Client:</strong> {{ income.client }}<br>
+                                        <strong>Amount:</strong> ${{ '{:,.2f}'.format(income.amount) }}<br>
+                                        <strong>Date:</strong> {{ income.date.strftime('%Y-%m-%d') }}
+                                    </p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form action="{{ url_for('income.delete', id=income.id) }}" method="post">
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center">No income records found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

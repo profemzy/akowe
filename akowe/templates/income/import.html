@@ -1,0 +1,54 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Import Income - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Import Income CSV</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('income.index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Income
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" action="{{ url_for('income.import_csv') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">CSV File</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary">Import File</button>
+                        <a href="{{ url_for('income.index') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">CSV Format</h5>
+            </div>
+            <div class="card-body">
+                <p>Your CSV file should have the following columns:</p>
+                <ul>
+                    <li><strong>date</strong>: YYYY-MM-DD format</li>
+                    <li><strong>amount</strong>: Numeric value</li>
+                    <li><strong>client</strong>: Text</li>
+                    <li><strong>project</strong>: Text</li>
+                    <li><strong>invoice</strong>: Text</li>
+                </ul>
+                <p>The first row should be column headers.</p>
+                <p><a href="/income_export.csv" download>Download Sample CSV</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
