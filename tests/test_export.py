@@ -21,7 +21,7 @@ def test_export_income_csv(app, sample_income):
         assert filename.endswith('.csv')
         
         # Read CSV data
-        reader = csv.reader(io.StringIO(csv_data.getvalue()))
+        reader = csv.reader(io.StringIO(csv_data.getvalue().decode('utf-8')))
         rows = list(reader)
         
         # Check header
@@ -44,7 +44,7 @@ def test_export_income_filtered_by_year(app, sample_income):
         assert filename.startswith('income_export_2025_')
         
         # Read CSV data
-        reader = csv.reader(io.StringIO(csv_data.getvalue()))
+        reader = csv.reader(io.StringIO(csv_data.getvalue().decode('utf-8')))
         rows = list(reader)
         
         # Check data (should include only 2025 records)
@@ -65,7 +65,7 @@ def test_export_income_filtered_by_year(app, sample_income):
         csv_data, filename = ExportService.export_income_csv(year=2024)
         
         # Read CSV data
-        reader = csv.reader(io.StringIO(csv_data.getvalue()))
+        reader = csv.reader(io.StringIO(csv_data.getvalue().decode('utf-8')))
         rows = list(reader)
         
         # Check that we only have the 2024 record
@@ -85,7 +85,7 @@ def test_export_expense_csv(app, sample_expense):
         assert filename.endswith('.csv')
         
         # Read CSV data
-        reader = csv.reader(io.StringIO(csv_data.getvalue()))
+        reader = csv.reader(io.StringIO(csv_data.getvalue().decode('utf-8')))
         rows = list(reader)
         
         # Check header
@@ -121,7 +121,7 @@ def test_export_expense_filtered_by_category(app, sample_expense):
         assert '_software_' in filename
         
         # Read CSV data
-        reader = csv.reader(io.StringIO(csv_data.getvalue()))
+        reader = csv.reader(io.StringIO(csv_data.getvalue().decode('utf-8')))
         rows = list(reader)
         
         # Check data (should include only software category)
@@ -141,7 +141,7 @@ def test_export_all_transactions(app, sample_income, sample_expense):
         assert filename.startswith('all_transactions_')
         
         # Read CSV data
-        reader = csv.reader(io.StringIO(csv_data.getvalue()))
+        reader = csv.reader(io.StringIO(csv_data.getvalue().decode('utf-8')))
         rows = list(reader)
         
         # Check header

@@ -12,18 +12,18 @@ class ExportService:
     """Service for exporting financial data to CSV."""
 
     @staticmethod
-    def export_income_csv(year: int = None) -> Tuple[io.StringIO, str]:
+    def export_income_csv(year: int = None) -> Tuple[io.BytesIO, str]:
         """Export income data to CSV.
         
         Args:
             year: Optional year to filter income records
             
         Returns:
-            Tuple containing the CSV data as StringIO and the filename
+            Tuple containing the CSV data as BytesIO and the filename
         """
-        # Create a string buffer to hold the CSV data
-        output = io.StringIO()
-        writer = csv.writer(output)
+        # Create a string buffer for building the CSV
+        string_buffer = io.StringIO()
+        writer = csv.writer(string_buffer)
         
         # Write header row
         writer.writerow(['date', 'amount', 'client', 'project', 'invoice'])
@@ -46,18 +46,20 @@ class ExportService:
                 income.invoice or ''
             ])
         
+        # Convert string buffer to bytes buffer
+        bytes_buffer = io.BytesIO()
+        bytes_buffer.write(string_buffer.getvalue().encode('utf-8'))
+        bytes_buffer.seek(0)
+        
         # Generate filename with timestamp
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         year_suffix = f"_{year}" if year else ""
         filename = f"income_export{year_suffix}_{timestamp}.csv"
         
-        # Rewind the buffer to the beginning
-        output.seek(0)
-        
-        return output, filename
+        return bytes_buffer, filename
 
     @staticmethod
-    def export_expense_csv(year: int = None, category: str = None) -> Tuple[io.StringIO, str]:
+    def export_expense_csv(year: int = None, category: str = None) -> Tuple[io.BytesIO, str]:
         """Export expense data to CSV.
         
         Args:
@@ -65,11 +67,11 @@ class ExportService:
             category: Optional category to filter expense records
             
         Returns:
-            Tuple containing the CSV data as StringIO and the filename
+            Tuple containing the CSV data as BytesIO and the filename
         """
-        # Create a string buffer to hold the CSV data
-        output = io.StringIO()
-        writer = csv.writer(output)
+        # Create a string buffer for building the CSV
+        string_buffer = io.StringIO()
+        writer = csv.writer(string_buffer)
         
         # Write header row
         writer.writerow(['date', 'title', 'amount', 'category', 'payment_method', 'status', 'vendor'])
@@ -96,30 +98,32 @@ class ExportService:
                 expense.vendor or ''
             ])
         
+        # Convert string buffer to bytes buffer
+        bytes_buffer = io.BytesIO()
+        bytes_buffer.write(string_buffer.getvalue().encode('utf-8'))
+        bytes_buffer.seek(0)
+        
         # Generate filename with timestamp
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         year_suffix = f"_{year}" if year else ""
         category_suffix = f"_{category}" if category else ""
         filename = f"expense_export{year_suffix}{category_suffix}_{timestamp}.csv"
         
-        # Rewind the buffer to the beginning
-        output.seek(0)
-        
-        return output, filename
+        return bytes_buffer, filename
 
     @staticmethod
-    def export_all_transactions_csv(year: int = None) -> Tuple[io.StringIO, str]:
+    def export_all_transactions_csv(year: int = None) -> Tuple[io.BytesIO, str]:
         """Export all financial transactions to CSV.
         
         Args:
             year: Optional year to filter transactions
             
         Returns:
-            Tuple containing the CSV data as StringIO and the filename
+            Tuple containing the CSV data as BytesIO and the filename
         """
-        # Create a string buffer to hold the CSV data
-        output = io.StringIO()
-        writer = csv.writer(output)
+        # Create a string buffer for building the CSV
+        string_buffer = io.StringIO()
+        writer = csv.writer(string_buffer)
         
         # Write header row
         writer.writerow(['date', 'type', 'description', 'amount', 'category', 'payment_method', 'status', 'reference'])
@@ -183,12 +187,14 @@ class ExportService:
                 transaction['reference']
             ])
         
+        # Convert string buffer to bytes buffer
+        bytes_buffer = io.BytesIO()
+        bytes_buffer.write(string_buffer.getvalue().encode('utf-8'))
+        bytes_buffer.seek(0)
+        
         # Generate filename with timestamp
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         year_suffix = f"_{year}" if year else ""
         filename = f"all_transactions{year_suffix}_{timestamp}.csv"
         
-        # Rewind the buffer to the beginning
-        output.seek(0)
-        
-        return output, filename
+        return bytes_buffer, filename
