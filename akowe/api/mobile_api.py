@@ -61,7 +61,11 @@ def token_required(f):
 # Authentication endpoints
 @bp.route('/login', methods=['POST'])
 def login():
-    auth = request.json
+    # Force return JSON for API auth, even if the global middleware doesn't catch it
+    if not request.is_json:
+        return jsonify({'message': 'Missing JSON data in request'}), 400
+    
+    auth = request.get_json()
     
     if not auth or not auth.get('username') or not auth.get('password'):
         return jsonify({'message': 'Missing username or password'}), 400
@@ -72,25 +76,33 @@ def login():
         return jsonify({'message': 'Invalid credentials'}), 401
     
     if check_password_hash(user.password_hash, auth.get('password')):
-        # Generate token
-        secret_key = current_app.config.get('SECRET_KEY', 'dev')
-        token = jwt.encode(
-            {'user_id': user.id, 'exp': datetime.utcnow() + datetime.timedelta(hours=24)},
-            secret_key,
-            algorithm='HS256'
-        )
+        # Generate token with datetime
+        from datetime import timedelta
+        expiry = datetime.utcnow() + timedelta(hours=24)
         
-        return jsonify({
-            'token': token,
-            'user': {
-                'id': user.id,
-                'username': user.username,
-                'email': user.email,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'is_admin': user.is_admin
-            }
-        })
+        try:
+            # Generate token
+            secret_key = current_app.config.get('SECRET_KEY', 'dev')
+            token = jwt.encode(
+                {'user_id': user.id, 'exp': expiry},
+                secret_key,
+                algorithm='HS256'
+            )
+            
+            return jsonify({
+                'token': token,
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'is_admin': user.is_admin
+                }
+            })
+        except Exception as e:
+            current_app.logger.error(f"Error generating token: {str(e)}")
+            return jsonify({'message': 'Server error during authentication'}), 500
     
     return jsonify({'message': 'Invalid credentials'}), 401
 
