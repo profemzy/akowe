@@ -46,6 +46,8 @@ app = create_app()
 with app.app_context():
     ImportService.import_income_csv('/app/data/income_export.csv')
 "
+  else
+    echo "No income data file found to import"
   fi
   
   if [ -f "/app/data/expense_export.csv" ]; then
@@ -58,6 +60,8 @@ app = create_app()
 with app.app_context():
     ImportService.import_expense_csv('/app/data/expense_export.csv')
 "
+  else
+    echo "No expense data file found to import"
   fi
 }
 

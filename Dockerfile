@@ -52,10 +52,13 @@ RUN pip install --no-cache-dir /wheels/* \
 COPY app.py docker-entrypoint.sh ./
 COPY akowe/ ./akowe/
 COPY migrations/ ./migrations/
-COPY alembic.ini pyproject.toml setup.cfg setup.py ./
 
-# Copy sample data files
-COPY data/ ./data/
+# Copy Python package files if they exist
+COPY pyproject.toml setup.cfg setup.py ./
+
+# Create data directory and copy sample data files
+RUN mkdir -p /app/data
+COPY data/*.csv ./data/
 
 # Make the entrypoint script executable
 RUN chmod +x /app/docker-entrypoint.sh
