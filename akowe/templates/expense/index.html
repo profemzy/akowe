@@ -1,92 +1,102 @@
-{% extends 'layouts/base.html' %}
-
-{% block title %}Expenses - Akowe{% endblock %}
-
-{% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Expenses</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <div class="btn-group me-2">
-            <a href="{{ url_for('expense.new') }}" class="btn btn-sm btn-outline-primary">Add Expense</a>
-            <a href="{{ url_for('expense.import_csv') }}" class="btn btn-sm btn-outline-secondary">Import CSV</a>
-        </div>
-    </div>
-</div>
-
-<div class="table-responsive">
-    <table class="table table-striped table-hover">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Vendor</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for expense in expenses %}
-            <tr>
-                <td>{{ expense.date.strftime('%Y-%m-%d') }}</td>
-                <td>{{ expense.title }}</td>
-                <td>
-                    <span class="badge bg-secondary">{{ expense.category }}</span>
-                </td>
-                <td>{{ expense.vendor or '-' }}</td>
-                <td>${{ '{:,.2f}'.format(expense.amount) }}</td>
-                <td>
-                    {% if expense.status == 'paid' %}
-                    <span class="badge bg-success">Paid</span>
-                    {% elif expense.status == 'pending' %}
-                    <span class="badge bg-warning text-dark">Pending</span>
-                    {% else %}
-                    <span class="badge bg-danger">{{ expense.status }}</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <div class="btn-group">
-                        <a href="{{ url_for('expense.edit', id=expense.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
-                        <button type="button" class="btn btn-sm btn-outline-danger" 
-                                data-bs-toggle="modal" data-bs-target="#deleteModal{{ expense.id }}">
-                            Delete
-                        </button>
-                    </div>
-                    
-                    <!-- Delete Modal -->
-                    <div class="modal fade" id="deleteModal{{ expense.id }}" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Confirm Delete</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    Are you sure you want to delete this expense record?
-                                    <p class="mt-2">
-                                        <strong>Title:</strong> {{ expense.title }}<br>
-                                        <strong>Amount:</strong> ${{ '{:,.2f}'.format(expense.amount) }}<br>
-                                        <strong>Date:</strong> {{ expense.date.strftime('%Y-%m-%d') }}
-                                    </p>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                    <form action="{{ url_for('expense.delete', id=expense.id) }}" method="post">
-                                        <button type="submit" class="btn btn-danger">Delete</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="7" class="text-center">No expense records found</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+{% extends 'layouts/base.html' %}
+
+{% block title %}Expenses - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Expenses</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('expense.new') }}" class="btn btn-sm btn-outline-primary">Add Expense</a>
+            <a href="{{ url_for('expense.import_csv') }}" class="btn btn-sm btn-outline-secondary">Import CSV</a>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Vendor</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Receipt</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for expense in expenses %}
+            <tr>
+                <td>{{ expense.date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ expense.title }}</td>
+                <td>
+                    <span class="badge bg-secondary">{{ expense.category }}</span>
+                </td>
+                <td>{{ expense.vendor or '-' }}</td>
+                <td>${{ '{:,.2f}'.format(expense.amount) }}</td>
+                <td>
+                    {% if expense.status == 'paid' %}
+                    <span class="badge bg-success">Paid</span>
+                    {% elif expense.status == 'pending' %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                    {% else %}
+                    <span class="badge bg-danger">{{ expense.status }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if expense.receipt_url %}
+                    <a href="{{ url_for('expense.view_receipt', id=expense.id) }}" target="_blank" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-file-image"></i>
+                    </a>
+                    {% else %}
+                    <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="btn-group">
+                        <a href="{{ url_for('expense.edit', id=expense.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                data-bs-toggle="modal" data-bs-target="#deleteModal{{ expense.id }}">
+                            Delete
+                        </button>
+                    </div>
+                    
+                    <!-- Delete Modal -->
+                    <div class="modal fade" id="deleteModal{{ expense.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirm Delete</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to delete this expense record?
+                                    <p class="mt-2">
+                                        <strong>Title:</strong> {{ expense.title }}<br>
+                                        <strong>Amount:</strong> ${{ '{:,.2f}'.format(expense.amount) }}<br>
+                                        <strong>Date:</strong> {{ expense.date.strftime('%Y-%m-%d') }}
+                                    </p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form action="{{ url_for('expense.delete', id=expense.id) }}" method="post">
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="text-center">No expense records found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

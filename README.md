@@ -6,6 +6,7 @@ Akowe is a financial tracking application built to help with business expense an
 
 - Import income and expense data from CSV files
 - Track and categorize business expenses
+- Upload and manage receipts for expenses using Azure Blob Storage
 - Record client income with project tracking
 - Generate financial reports and summaries
 - Prepare data for tax season
@@ -114,10 +115,15 @@ Akowe can be easily deployed to production using Docker and Docker Compose.
 | ADMIN_PASSWORD | Initial admin password | - |
 | ADMIN_FIRST_NAME | Initial admin first name | Admin |
 | ADMIN_LAST_NAME | Initial admin last name | User |
+| AZURE_STORAGE_CONNECTION_STRING | Azure Blob Storage connection string | - |
 
 ## Kubernetes Deployment
 
 For Kubernetes deployment, see the [k8s directory](./k8s/README.md).
+
+## Receipt Upload
+
+Akowe now supports uploading and managing receipts for expense records. See the [detailed documentation](./docs/receipts.md) for setup and usage.
 
 ## CSV Import Format
 

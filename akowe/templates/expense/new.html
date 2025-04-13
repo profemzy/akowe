@@ -16,7 +16,7 @@
     <div class="col-lg-8">
         <div class="card">
             <div class="card-body">
-                <form method="post" action="{{ url_for('expense.new') }}">
+                <form method="post" action="{{ url_for('expense.new') }}" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label for="date" class="form-label">Date</label>
                         <input type="date" class="form-control" id="date" name="date" required>
@@ -65,6 +65,12 @@
                     <div class="mb-3">
                         <label for="vendor" class="form-label">Vendor</label>
                         <input type="text" class="form-control" id="vendor" name="vendor">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="receipt" class="form-label">Receipt Image</label>
+                        <input type="file" class="form-control" id="receipt" name="receipt" accept="image/jpeg,image/png,image/gif,application/pdf">
+                        <div class="form-text">Upload a receipt image (JPEG, PNG, GIF) or PDF (max 5MB)</div>
                     </div>
                     
                     <div class="text-end">
