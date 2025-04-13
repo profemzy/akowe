@@ -1,5 +1,5 @@
 import os
-from flask import Flask, redirect, url_for, request
+from flask import Flask, redirect, url_for, request, jsonify
 from flask_migrate import Migrate
 from flask_login import LoginManager, current_user
 from dotenv import load_dotenv
@@ -72,11 +72,15 @@ def create_app(test_config=None):
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(export_bp)
     
+    # Register mobile API blueprint
+    from akowe.api.mobile_api import bp as mobile_api_bp
+    app.register_blueprint(mobile_api_bp)
+    
     # Protect all routes
     @app.before_request
     def check_authentication():
         # Define public endpoints that don't require authentication
-        public_endpoints = ['auth.login', 'auth.logout', 'static', 'ping']
+        public_endpoints = ['auth.login', 'auth.logout', 'static', 'ping', 'api.login']
         
         # Skip authentication check for None endpoints or public endpoints
         if not request.endpoint:
@@ -91,9 +95,21 @@ def create_app(test_config=None):
             ):
                 is_public = True
                 break
-                
-        # Redirect to login if not authenticated and not accessing public endpoint
-        if not current_user.is_authenticated and not is_public:
-            return redirect(url_for('auth.login'))
+        
+        # If it's a public endpoint, no need to check authentication
+        if is_public:
+            return None
+            
+        # Check if this is an API request
+        is_api_request = request.endpoint and isinstance(request.endpoint, str) and request.endpoint.startswith('api.')
+        
+        # Handle authentication for non-public endpoints
+        if not current_user.is_authenticated:
+            if is_api_request:
+                # Return JSON response for API endpoints
+                return jsonify({'message': 'Authentication required'}), 401
+            else:
+                # Redirect to login for web endpoints
+                return redirect(url_for('auth.login'))
     
     return app

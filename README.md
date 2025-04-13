@@ -125,6 +125,10 @@ For Kubernetes deployment, see the [k8s directory](./k8s/README.md).
 
 Akowe now supports uploading and managing receipts for expense records. See the [detailed documentation](./docs/receipts.md) for setup and usage.
 
+## Mobile API
+
+Akowe includes a comprehensive REST API that can be used to build mobile applications or integrate with other systems. See the [API documentation](./docs/api.md) for details.
+
 ## CSV Import Format
 
 ### Income CSV Format
