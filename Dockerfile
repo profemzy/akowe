@@ -56,9 +56,11 @@ COPY migrations/ ./migrations/
 # Copy Python package files if they exist
 COPY pyproject.toml setup.cfg setup.py ./
 
-# Create data directory and copy sample data files
+# Create data directory
 RUN mkdir -p /app/data
-COPY data/*.csv ./data/
+
+# Create empty placeholder files if needed
+RUN touch /app/data/.keep
 
 # Make the entrypoint script executable
 RUN chmod +x /app/docker-entrypoint.sh
