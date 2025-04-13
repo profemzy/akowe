@@ -21,8 +21,13 @@ def app():
         'TESTING': True,
         'SQLALCHEMY_DATABASE_URI': f'sqlite:///{db_path}',
         'WTF_CSRF_ENABLED': False,
+        'MAX_CONTENT_LENGTH': 5 * 1024 * 1024,  # 5MB max upload for tests
+        'AZURE_STORAGE_CONNECTION_STRING': 'DefaultEndpointsProtocol=https;AccountName=test;AccountKey=test;EndpointSuffix=core.windows.net'
     })
 
+    # Store db reference on app for test access
+    app.db = db
+    
     # Create the database and the tables
     with app.app_context():
         db.create_all()

@@ -3,6 +3,7 @@ import pytest
 from decimal import Decimal
 from datetime import date
 import io
+from unittest.mock import patch
 
 from akowe.models.expense import Expense
 
@@ -45,6 +46,47 @@ def test_expense_creation(client, auth, app):
         assert expense.payment_method == 'credit_card'
         assert expense.status == 'paid'
         assert expense.vendor == 'Test Vendor'
+        assert expense.receipt_blob_name is None
+        assert expense.receipt_url is None
+
+
+@patch('akowe.services.storage_service.StorageService.upload_file')
+def test_expense_creation_with_receipt(mock_upload_file, client, auth, app):
+    """Test creating a new expense record with receipt."""
+    auth.login()
+    
+    # Mock storage service response
+    mock_upload_file.return_value = ('test-blob-name.jpg', 'https://test.blob.core.windows.net/receipts/test-blob-name.jpg')
+    
+    # Prepare form data
+    form_data = {
+        'date': '2025-05-01',
+        'title': 'Expense With Receipt',
+        'amount': '350.00',
+        'category': 'hardware',
+        'payment_method': 'credit_card',
+        'status': 'paid',
+        'vendor': 'Receipt Vendor'
+    }
+    
+    # Create file data
+    file_data = io.BytesIO(b'test file content')
+    
+    # Submit the form with file
+    response = client.post('/expense/new', 
+                         data={**form_data, 'receipt': (file_data, 'receipt.jpg')},
+                         content_type='multipart/form-data',
+                         follow_redirects=True)
+    
+    assert b'Expense record added successfully' in response.data
+    
+    # Verify it's in the database with receipt information
+    with app.app_context():
+        expense = Expense.query.filter_by(title='Expense With Receipt').first()
+        assert expense is not None
+        assert expense.amount == Decimal('350.00')
+        assert expense.receipt_blob_name == 'test-blob-name.jpg'
+        assert expense.receipt_url == 'https://test.blob.core.windows.net/receipts/test-blob-name.jpg'
 
 
 def test_expense_edit(client, auth, app, sample_expense):
@@ -122,3 +164,58 @@ def test_expense_import(client, auth, app):
         assert expense.payment_method == 'debit_card'
         assert expense.status == 'pending'
         assert expense.vendor == 'ImportVendor'
+
+
+@patch('akowe.services.storage_service.StorageService.generate_sas_url')
+def test_view_receipt(mock_generate_sas_url, client, auth, app, sample_expense):
+    """Test viewing receipt."""
+    auth.login()
+    
+    with app.app_context():
+        # Get first expense and add receipt info
+        expense = Expense.query.first()
+        expense.receipt_blob_name = 'test-blob-name.jpg'
+        expense.receipt_url = 'https://test.blob.core.windows.net/receipts/test-blob-name.jpg'
+        app.db.session.commit()
+        expense_id = expense.id
+    
+    # Mock SAS URL generation
+    mock_generate_sas_url.return_value = 'https://test.blob.core.windows.net/receipts/test-blob-name.jpg?sastoken'
+    
+    # Request to view receipt
+    response = client.get(f'/expense/view-receipt/{expense_id}', follow_redirects=False)
+    
+    # Should redirect to the SAS URL
+    assert response.status_code == 302
+    assert response.location == 'https://test.blob.core.windows.net/receipts/test-blob-name.jpg?sastoken'
+    
+    # Verify SAS URL was generated with the correct parameters
+    mock_generate_sas_url.assert_called_once_with('test-blob-name.jpg', 'receipts')
+
+
+@patch('akowe.services.storage_service.StorageService.delete_file')
+def test_delete_receipt(mock_delete_file, client, auth, app, sample_expense):
+    """Test deleting a receipt from an expense."""
+    auth.login()
+    
+    with app.app_context():
+        # Get first expense and add receipt info
+        expense = Expense.query.first()
+        expense.receipt_blob_name = 'test-blob-name.jpg'
+        expense.receipt_url = 'https://test.blob.core.windows.net/receipts/test-blob-name.jpg'
+        app.db.session.commit()
+        expense_id = expense.id
+    
+    # Delete receipt
+    response = client.post(f'/expense/delete-receipt/{expense_id}', follow_redirects=True)
+    
+    assert b'Receipt deleted successfully' in response.data
+    
+    # Verify receipt information was removed
+    with app.app_context():
+        expense = Expense.query.get(expense_id)
+        assert expense.receipt_blob_name is None
+        assert expense.receipt_url is None
+    
+    # Verify file was deleted from storage
+    mock_delete_file.assert_called_once_with('test-blob-name.jpg', 'receipts')
