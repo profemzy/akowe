@@ -7,7 +7,16 @@
     <h1 class="h2">Dashboard</h1>
     <div class="btn-toolbar mb-2 mb-md-0">
         <div class="btn-group me-2">
-            <span class="btn btn-sm btn-outline-secondary">Year: {{ current_year }}</span>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Year: {{ selected_year }}
+                </button>
+                <ul class="dropdown-menu">
+                    {% for year in available_years %}
+                    <li><a class="dropdown-item {% if year == selected_year %}active{% endif %}" href="?year={{ year }}">{{ year }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
 </div>
@@ -16,24 +25,33 @@
     <div class="col-md-4 mb-4">
         <div class="card text-white bg-primary">
             <div class="card-body">
-                <h5 class="card-title">Total Income</h5>
-                <h2 class="card-text">${{ '{:,.2f}'.format(total_income) }}</h2>
+                <h5 class="card-title">Income ({{ selected_year }})</h5>
+                <h2 class="card-text">${{ '{:,.2f}'.format(year_income) }}</h2>
+                <p class="card-text">
+                    <small class="text-white">All time: ${{ '{:,.2f}'.format(all_time_income) }}</small>
+                </p>
             </div>
         </div>
     </div>
     <div class="col-md-4 mb-4">
         <div class="card text-white bg-danger">
             <div class="card-body">
-                <h5 class="card-title">Total Expenses</h5>
-                <h2 class="card-text">${{ '{:,.2f}'.format(total_expense) }}</h2>
+                <h5 class="card-title">Expenses ({{ selected_year }})</h5>
+                <h2 class="card-text">${{ '{:,.2f}'.format(year_expense) }}</h2>
+                <p class="card-text">
+                    <small class="text-white">All time: ${{ '{:,.2f}'.format(all_time_expense) }}</small>
+                </p>
             </div>
         </div>
     </div>
     <div class="col-md-4 mb-4">
-        <div class="card text-white {% if profit >= 0 %}bg-success{% else %}bg-warning{% endif %}">
+        <div class="card text-white {% if year_profit >= 0 %}bg-success{% else %}bg-warning{% endif %}">
             <div class="card-body">
-                <h5 class="card-title">Net Profit</h5>
-                <h2 class="card-text">${{ '{:,.2f}'.format(profit) }}</h2>
+                <h5 class="card-title">Net Profit ({{ selected_year }})</h5>
+                <h2 class="card-text">${{ '{:,.2f}'.format(year_profit) }}</h2>
+                <p class="card-text">
+                    <small class="text-white">All time: ${{ '{:,.2f}'.format(all_time_profit) }}</small>
+                </p>
             </div>
         </div>
     </div>
@@ -43,7 +61,7 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title">Monthly Income vs Expenses ({{ current_year }})</h5>
+                <h5 class="card-title">Monthly Income vs Expenses ({{ selected_year }})</h5>
             </div>
             <div class="card-body">
                 <canvas id="monthlyChart"></canvas>
@@ -53,7 +71,7 @@
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title">Expenses by Category</h5>
+                <h5 class="card-title">Expenses by Category ({{ selected_year }})</h5>
             </div>
             <div class="card-body">
                 <canvas id="categoryChart"></canvas>
