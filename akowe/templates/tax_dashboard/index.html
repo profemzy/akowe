@@ -169,7 +169,7 @@
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="fas fa-calculator me-2"></i>
-                    GST/HST ({{ selected_province }} - {{ (gst_hst_rate * 100)|round(1) }}%)
+                    GST/HST ({{ selected_province }} - {{ (gst_hst_rate|to_decimal * 100)|round(1) }}%)
                 </h5>
             </div>
             <div class="card-body">
@@ -245,7 +245,7 @@
                             <tr>
                                 <td>{{ quarter }}</td>
                                 <td>${{ '{:,.2f}'.format(data.income) }}</td>
-                                <td>${{ '{:,.2f}'.format(data.income * gst_hst_rate) }}</td>
+                                <td>${{ '{:,.2f}'.format(data.income * gst_hst_rate|to_decimal) }}</td>
                                 <td>
                                     {% set month = data.end_date.month %}
                                     {% set year = data.end_date.year %}
@@ -266,7 +266,7 @@
                 
                 {% if selected_province == 'Quebec' %}
                 <div class="alert alert-warning mt-3">
-                    <h6 class="alert-heading">Quebec Sales Tax (QST) - {{ (qst_rate * 100)|round(1) }}%</h6>
+                    <h6 class="alert-heading">Quebec Sales Tax (QST) - {{ (qst_rate|to_decimal * 100)|round(1) }}%</h6>
                     <p>In Quebec, you must also collect and remit QST:</p>
                     <ul class="mb-0">
                         <li>QST Collected: ${{ '{:,.2f}'.format(qst_collected) }}</li>
@@ -381,7 +381,7 @@
                                 <td>{{ item.title }}</td>
                                 <td>${{ '{:,.2f}'.format(item.amount) }}</td>
                                 <td>{{ item.cca_class }}</td>
-                                <td>{{ '{:.0f}%'.format(item.cca_rate * 100) }}</td>
+                                <td>{{ '{:.0f}%'.format(item.cca_rate|to_decimal * 100) }}</td>
                                 <td>${{ '{:,.2f}'.format(item.deduction) }}</td>
                             </tr>
                             {% endfor %}
@@ -403,7 +403,7 @@
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
                                         data-bs-target="#collapse{{ class_name|replace(' ', '') }}" aria-expanded="false" 
                                         aria-controls="collapse{{ class_name|replace(' ', '') }}">
-                                    {{ class_name }} ({{ '{:.0f}%'.format(class_info.rate * 100) }} Rate)
+                                    {{ class_name }} ({{ '{:.0f}%'.format(class_info.rate|to_decimal * 100) }} Rate)
                                 </button>
                             </h2>
                             <div id="collapse{{ class_name|replace(' ', '') }}" class="accordion-collapse collapse" 

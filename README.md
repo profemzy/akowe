@@ -75,28 +75,59 @@ make check
 
 ## Production Deployment with Docker
 
-Akowe can be easily deployed to production using Docker and Docker Compose.
+Akowe can be easily deployed to production using Docker and Docker Compose with optimized multi-stage builds.
 
 ### Prerequisites
 
-- Docker and Docker Compose installed
+- Docker and Docker Compose V2 installed
 - CSV data files (optional) placed in the `data/` directory
 
-### Configuration
+### Development Configuration
 
 1. Copy the example environment file: `cp .env.example .env`
-2. Edit the `.env` file with your production settings (especially update the SECRET_KEY and passwords)
+2. Edit the `.env` file with your settings (especially update the SECRET_KEY and passwords)
 
-### Deployment Steps
+### Development Deployment
 
-1. Build and start the services:
+1. Build and start the services including PgAdmin:
    ```
-   docker-compose up -d
+   docker compose up -d
    ```
 
 2. The application will be available at http://localhost:5000
 
 3. PgAdmin (database management) will be available at http://localhost:5050
+
+### Production Deployment
+
+For production environments, use the production-specific configuration:
+
+1. Create a production environment file:
+   ```
+   cp .env.production.example .env.production
+   ```
+
+2. Edit `.env.production` with secure passwords and configuration values
+
+3. Build and deploy using the production compose file:
+   ```
+   docker compose -f docker-compose.prod.yml up -d
+   ```
+
+4. For a secure production setup, consider:
+   - Using a reverse proxy (Nginx, Traefik) with HTTPS
+   - Setting up monitoring and log aggregation
+   - Configuring backups for database volumes
+   - Using Docker Swarm or Kubernetes for orchestration
+
+### Scaling in Production
+
+The production docker-compose file supports horizontal scaling:
+
+```bash
+# Scale up web services to 4 instances
+WEB_REPLICAS=4 docker compose -f docker-compose.prod.yml up -d
+```
 
 ### Environment Variables
 

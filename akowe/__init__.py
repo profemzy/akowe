@@ -80,6 +80,15 @@ def create_app(test_config=None):
     from akowe.api.mobile_api import bp as mobile_api_bp
     app.register_blueprint(mobile_api_bp)
     
+    # Add custom template filters
+    from decimal import Decimal
+    @app.template_filter('to_decimal')
+    def to_decimal(value):
+        """Convert a float value to Decimal for safe arithmetic operations."""
+        if value is None:
+            return Decimal('0')
+        return Decimal(str(value))
+    
     # Protect all routes
     @app.before_request
     def check_authentication():

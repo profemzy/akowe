@@ -94,7 +94,15 @@ if [ "$1" = "gunicorn" ]; then
   fi
   
   echo "Starting Akowe Financial Tracker..."
-  exec gunicorn -b 0.0.0.0:5000 --access-logfile - --error-logfile - --workers 4 "app:app"
+  # Calculate optimal number of workers based on CPU cores
+  WORKERS=${GUNICORN_WORKERS:-$(( 2 * $(nproc) + 1 ))}
+  
+  # Use environment variables if provided
+  BIND=${GUNICORN_BIND:-0.0.0.0:5000}
+  TIMEOUT=${GUNICORN_TIMEOUT:-120}
+  
+  echo "Starting Gunicorn with $WORKERS workers on $BIND..."
+  exec gunicorn -b $BIND --access-logfile - --error-logfile - --workers $WORKERS --timeout $TIMEOUT "app:app"
 elif [ "$1" = "init" ]; then
   wait_for_postgres
   initialize_db_fresh

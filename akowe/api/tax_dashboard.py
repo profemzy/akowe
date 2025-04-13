@@ -167,8 +167,8 @@ def index():
     
     # Calculate GST/HST paid on expenses (input tax credits)
     # This is a simplified calculation - in reality, not all expenses have GST/HST
-    gst_hst_paid = total_yearly_expense * Decimal(str(gst_hst_rate)) / (1 + Decimal(str(gst_hst_rate)))
-    qst_paid = total_yearly_expense * Decimal(str(qst_rate)) / (1 + Decimal(str(qst_rate))) if selected_province == 'Quebec' else Decimal('0')
+    gst_hst_paid = total_yearly_expense * Decimal(str(gst_hst_rate)) / (Decimal('1') + Decimal(str(gst_hst_rate)))
+    qst_paid = total_yearly_expense * Decimal(str(qst_rate)) / (Decimal('1') + Decimal(str(qst_rate))) if selected_province == 'Quebec' else Decimal('0')
     
     # Calculate net GST/HST and QST owing
     gst_hst_owing = gst_hst_collected - gst_hst_paid
