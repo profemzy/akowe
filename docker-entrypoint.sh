@@ -38,12 +38,26 @@ with app.app_context():
   # Import data if files exist
   if [ -f "/app/data/income_export.csv" ]; then
     echo "Importing income data..."
-    python -c "from akowe import create_app; from akowe.services.import_service import ImportService; app = create_app(); with app.app_context(): ImportService.import_income_csv('/app/data/income_export.csv')"
+    python -c "
+from akowe import create_app
+from akowe.services.import_service import ImportService
+
+app = create_app()
+with app.app_context():
+    ImportService.import_income_csv('/app/data/income_export.csv')
+"
   fi
   
   if [ -f "/app/data/expense_export.csv" ]; then
     echo "Importing expense data..."
-    python -c "from akowe import create_app; from akowe.services.import_service import ImportService; app = create_app(); with app.app_context(): ImportService.import_expense_csv('/app/data/expense_export.csv')"
+    python -c "
+from akowe import create_app
+from akowe.services.import_service import ImportService
+
+app = create_app()
+with app.app_context():
+    ImportService.import_expense_csv('/app/data/expense_export.csv')
+"
   fi
 }
 
