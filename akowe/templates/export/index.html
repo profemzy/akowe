@@ -1,0 +1,121 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Export Data - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Export Financial Data</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Export Income</h5>
+            </div>
+            <div class="card-body">
+                <p>Export all income transactions to a CSV file.</p>
+                <form action="{{ url_for('export.export_income') }}" method="get">
+                    <div class="mb-3">
+                        <label for="income-year" class="form-label">Year (optional)</label>
+                        <select class="form-select" id="income-year" name="year">
+                            <option value="">All Years</option>
+                            {% for year in range(2020, 2031) %}
+                            <option value="{{ year }}">{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-file-export"></i> Export Income
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">Export Expenses</h5>
+            </div>
+            <div class="card-body">
+                <p>Export all expense transactions to a CSV file.</p>
+                <form action="{{ url_for('export.export_expense') }}" method="get">
+                    <div class="mb-3">
+                        <label for="expense-year" class="form-label">Year (optional)</label>
+                        <select class="form-select" id="expense-year" name="year">
+                            <option value="">All Years</option>
+                            {% for year in range(2020, 2031) %}
+                            <option value="{{ year }}">{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="expense-category" class="form-label">Category (optional)</label>
+                        <select class="form-select" id="expense-category" name="category">
+                            <option value="">All Categories</option>
+                            <option value="hardware">Hardware</option>
+                            <option value="software">Software</option>
+                            <option value="office">Office</option>
+                            <option value="travel">Travel</option>
+                            <option value="rent">Rent</option>
+                            <option value="utilities">Utilities</option>
+                            <option value="insurance">Insurance</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="training">Training</option>
+                            <option value="professional">Professional Services</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-file-export"></i> Export Expenses
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">Export All Transactions</h5>
+            </div>
+            <div class="card-body">
+                <p>Export all financial transactions (income and expenses) to a single CSV file.</p>
+                <form action="{{ url_for('export.export_all') }}" method="get">
+                    <div class="mb-3">
+                        <label for="all-year" class="form-label">Year (optional)</label>
+                        <select class="form-select" id="all-year" name="year">
+                            <option value="">All Years</option>
+                            {% for year in range(2020, 2031) %}
+                            <option value="{{ year }}">{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-file-export"></i> Export All Transactions
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title">About Export Data</h5>
+    </div>
+    <div class="card-body">
+        <p>The exported CSV files can be used for:</p>
+        <ul>
+            <li>Importing into spreadsheet applications (Excel, Google Sheets, etc.)</li>
+            <li>Sharing with your accountant or tax preparer</li>
+            <li>Creating custom reports or analyses</li>
+            <li>Backing up your financial data</li>
+        </ul>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> All dates are in ISO 8601 format (YYYY-MM-DD) and monetary amounts include two decimal places.
+        </div>
+    </div>
+</div>
+{% endblock %}

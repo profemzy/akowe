@@ -66,10 +66,11 @@ def create_app(test_config=None):
     app.register_blueprint(admin.bp)
     
     # Register main blueprints
-    from akowe.api import income_bp, expense_bp, dashboard_bp
+    from akowe.api import income_bp, expense_bp, dashboard_bp, export_bp
     app.register_blueprint(income_bp)
     app.register_blueprint(expense_bp)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(export_bp)
     
     # Protect all routes
     @app.before_request

@@ -29,6 +29,49 @@ Akowe is a financial tracking application built to help with business expense an
 6. Create an admin user: `python create_admin.py`
 7. Run the application: `flask run` or `python app.py`
 
+## Using Make
+
+The project includes a Makefile with common tasks:
+
+```bash
+make install  # Install dependencies
+make setup    # Initialize the database
+make run      # Run the application
+make test     # Run tests
+make lint     # Run linting (flake8)
+make format   # Format code (black)
+make check    # Run lint and tests
+make clean    # Clean up build artifacts
+```
+
+## Testing
+
+Run the test suite:
+
+```bash
+pytest
+```
+
+For coverage report:
+
+```bash
+pytest --cov=akowe
+```
+
+## Code Quality
+
+We use the following tools to maintain code quality:
+
+- **black** for code formatting
+- **flake8** for linting
+- **mypy** for type checking
+
+Run all checks:
+
+```bash
+make check
+```
+
 ## Production Deployment with Docker
 
 Akowe can be easily deployed to production using Docker and Docker Compose.
@@ -71,8 +114,10 @@ Akowe can be easily deployed to production using Docker and Docker Compose.
 | ADMIN_PASSWORD | Initial admin password | - |
 | ADMIN_FIRST_NAME | Initial admin first name | Admin |
 | ADMIN_LAST_NAME | Initial admin last name | User |
-| PGADMIN_EMAIL | PgAdmin login email | admin@example.com |
-| PGADMIN_PASSWORD | PgAdmin login password | admin |
+
+## Kubernetes Deployment
+
+For Kubernetes deployment, see the [k8s directory](./k8s/README.md).
 
 ## CSV Import Format
 
