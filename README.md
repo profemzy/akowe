@@ -9,8 +9,10 @@ Akowe is a financial tracking application built to help with business expense an
 - Record client income with project tracking
 - Generate financial reports and summaries
 - Prepare data for tax season
+- User authentication and authorization
+- Admin portal for user management
 
-## Installation
+## Development Setup
 
 1. Clone the repository
 2. Create a virtual environment: `python -m venv venv`
@@ -24,14 +26,53 @@ Akowe is a financial tracking application built to help with business expense an
    flask db migrate -m "Initial migration"
    flask db upgrade
    ```
-6. Run the application: `flask run` or `python app.py`
+6. Create an admin user: `python create_admin.py`
+7. Run the application: `flask run` or `python app.py`
 
-## Usage
+## Production Deployment with Docker
 
-1. Access the application at http://localhost:5000
-2. Import your existing CSV data through the Import buttons
-3. Add new income and expense entries through the web interface
-4. View financial summaries on the dashboard
+Akowe can be easily deployed to production using Docker and Docker Compose.
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- CSV data files (optional) placed in the `data/` directory
+
+### Configuration
+
+1. Copy the example environment file: `cp .env.example .env`
+2. Edit the `.env` file with your production settings (especially update the SECRET_KEY and passwords)
+
+### Deployment Steps
+
+1. Build and start the services:
+   ```
+   docker-compose up -d
+   ```
+
+2. The application will be available at http://localhost:5000
+
+3. PgAdmin (database management) will be available at http://localhost:5050
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| FLASK_APP | Flask application entry point | app.py |
+| FLASK_ENV | Flask environment | production |
+| SECRET_KEY | Flask secret key for session security | - |
+| DB_USER | PostgreSQL username | akowe_user |
+| DB_PASSWORD | PostgreSQL password | akowe_password |
+| DB_HOST | PostgreSQL hostname | postgres |
+| DB_PORT | PostgreSQL port | 5432 |
+| DB_NAME | PostgreSQL database name | akowe |
+| ADMIN_USERNAME | Initial admin username | admin |
+| ADMIN_EMAIL | Initial admin email | admin@example.com |
+| ADMIN_PASSWORD | Initial admin password | - |
+| ADMIN_FIRST_NAME | Initial admin first name | Admin |
+| ADMIN_LAST_NAME | Initial admin last name | User |
+| PGADMIN_EMAIL | PgAdmin login email | admin@example.com |
+| PGADMIN_PASSWORD | PgAdmin login password | admin |
 
 ## CSV Import Format
 
@@ -45,4 +86,16 @@ date,amount,client,project,invoice
 ```
 date,title,amount,category,payment_method,status,vendor
 2025-04-12,WD Red Plus 12TB NAS Hard Disk Drive,386.37,hardware,credit_card,pending,Newegg
+```
+
+## Backup and Restore
+
+### Backup
+```
+docker exec -t akowe-postgres pg_dumpall -c -U akowe_user > backup/backup_$(date +%Y-%m-%d_%H-%M-%S).sql
+```
+
+### Restore
+```
+cat backup/your_backup_file.sql | docker exec -i akowe-postgres psql -U akowe_user -d akowe
 ```

@@ -1,0 +1,32 @@
+date,title,amount,category,payment_method,status,vendor
+2025-04-12,WD Red Plus 12TB NAS Hard Disk Drive,386.37,hardware,credit_card,pending,Newegg
+2025-04-11,WD Red Plus 12TB NAS Hard Disk Drive,386.37,hardware,credit_card,paid,Newegg
+2025-04-11,TERRAMASTER F4-424 Max NAS Storage - 4Bay,1456.38,hardware,credit_card,paid,Newegg
+2025-03-30,Corsair MP600 Pro LPX 2TB M.2 NVMe PCI-e (Gen 4) Internal Solid State Drive,251.00,hardware,credit_card,paid,BestBuy
+2025-03-28,Power Outlet Plug,58.20,hardware,credit_card,paid,Walmart
+2025-03-22,Plastic Wood Filler,36.97,maintenance,credit_card,pending,Home Depot
+2025-03-19,Canon Pixma 245XL Black Ink (8278B010),92.95,office,debit_card,paid,Best Buy
+2025-03-11,Ultimate Java Training Course,153.83,training,debit_card,paid,Code With Mosh
+2025-03-11,Spring Boot Course,21.98,training,debit_card,paid,Code With Mosh
+2025-03-06,Claude AI,28.00,software,debit_card,paid,Anthropic
+2025-03-05,Grok AI Subscription,44.72,software,debit_card,paid,xAI
+2025-02-28,Business Use of Home Expenses (Feb 2025),1009.32,rent,bank_transfer,paid,
+2025-02-16,Lunch Eat Out,117.92,other,credit_card,paid,Austin Fish n Chips
+2025-02-03,Claude AI Pro,28.00,software,debit_card,paid,Anthropic
+2025-02-01,GitHub Enterprise,89.25,software,credit_card,paid,GitHub
+2025-01-31,Transportation(Jan 2025),139.48,travel,credit_card,paid,
+2025-01-31,Business Use of Home Expenses (Jan 2025),1009.32,rent,bank_transfer,paid,
+2025-01-28,Company Name Change Filing,101.50,other,debit_card,paid,BC Registry Services
+2025-01-24,Heat Pump Service,329.19,maintenance,bank_transfer,paid,Class A Heating
+2025-01-23,Business Name Request,31.50,other,credit_card,paid,BC Registry Services
+2025-01-04,Winter Tire Purchase for Edmonton Trip,470.00,travel,credit_card,pending,
+2024-12-31,Christmas Gift(Clients),132.84,other,credit_card,paid,
+2024-12-31,Meals & Eatouts (Dec 2024),141.91,other,credit_card,paid,
+2024-12-31,Transportation (Dec 2024),94.21,travel,credit_card,paid,
+2024-12-31,Business Use of Home Expenses (Dec 2024),1009.32,rent,bank_transfer,paid,
+2024-12-31,Claude AI Pro,28.00,software,debit_card,paid,Anthropic
+2024-12-28,Workspace Paint,36.20,other,credit_card,pending,Home Depot
+2024-12-22,Ethernet Unmanaged Switch,153.99,hardware,debit_card,paid,Newegg
+2024-12-12,Business Registration Consultation,169.50,professional,bank_transfer,paid,Prabh Gulati CPA Professional Corp
+2024-12-10,BC Company Registration,351.50,other,credit_card,paid,BC Registry Services
+2024-12-06,Neptune HX99G/HX100G,1295.83,hardware,credit_card,paid,Minisforum
