@@ -1,0 +1,41 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{{ title }} - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Admin Dashboard</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">User Management</h5>
+                <p class="card-text">Manage users, create accounts, reset passwords, and control access permissions.</p>
+                <a href="{{ url_for('admin.users') }}" class="btn btn-primary">Manage Users</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">System Settings</h5>
+                <p class="card-text">Configure application settings, categories, and defaults.</p>
+                <a href="#" class="btn btn-primary disabled">Manage Settings</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Data Management</h5>
+                <p class="card-text">Backup and restore data, purge old records, and manage database.</p>
+                <a href="#" class="btn btn-primary disabled">Manage Data</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

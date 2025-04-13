@@ -17,6 +17,10 @@ pip install -r requirements.txt
 if [ ! -f "instance/akowe.db" ]; then
   echo "Setting up database..."
   python setup.py
+  
+  # Create admin user
+  echo "Creating admin user..."
+  python create_admin.py
 fi
 
 # Run the application

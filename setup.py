@@ -1,6 +1,6 @@
 import os
 import shutil
-from flask_migrate import upgrade
+from flask_migrate import Migrate, init, migrate, upgrade
 from akowe import create_app, db
 from akowe.models.income import Income
 from akowe.models.expense import Expense
@@ -11,8 +11,18 @@ def setup_db():
     app = create_app()
     
     with app.app_context():
-        # Create the database tables
-        db.create_all()
+        # Initialize migrations directory if it doesn't exist
+        if not os.path.exists('migrations'):
+            print("Initializing database migrations...")
+            init()
+        
+        # Create a migration for current models
+        print("Creating migration for current models...")
+        migrate(message='Initial migration')
+        
+        # Apply migrations
+        print("Applying migrations...")
+        upgrade()
         
         # Try to import initial data if CSV files exist
         try:
@@ -25,6 +35,7 @@ def setup_db():
                 print("✅ Imported expense data")
             
             print("\n✅ Database setup complete!")
+            print("To create an admin user, run: python create_admin.py")
             print("To start the application, run: python app.py")
         except Exception as e:
             print(f"❌ Error importing data: {str(e)}")
