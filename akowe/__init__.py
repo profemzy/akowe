@@ -72,6 +72,10 @@ def create_app(test_config=None):
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(export_bp)
     
+    # Register mobile API blueprint
+    from akowe.api.mobile_api import bp as mobile_api_bp
+    app.register_blueprint(mobile_api_bp)
+    
     # Protect all routes
     @app.before_request
     def check_authentication():
