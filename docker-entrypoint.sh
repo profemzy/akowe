@@ -10,35 +10,29 @@ wait_for_postgres() {
   echo "PostgreSQL is ready!"
 }
 
-# Initialize the database
-initialize_db() {
-  echo "Setting up the database..."
+# Initialize the database from scratch
+initialize_db_fresh() {
+  echo "Initializing database from scratch..."
   
-  # Handle migrations
-  if [ ! -f "/app/migrations/env.py" ]; then
-    echo "Initializing migrations from scratch..."
-    rm -rf /app/migrations
-    export FLASK_APP=app.py
-    flask db init
-    
-    echo "Creating initial migration..."
-    flask db migrate -m "Initial migration"
-    
-    echo "Applying migrations..."
-    flask db upgrade
-  else
-    echo "Using existing migrations directory..."
-    export FLASK_APP=app.py
-    
-    echo "Creating new migration if needed..."
-    flask db migrate -m "Migration $(date +%Y%m%d_%H%M%S)"
-    
-    echo "Applying migrations..."
-    flask db upgrade
-  fi
+  # Remove migrations directory completely
+  rm -rf /app/migrations
+  
+  # Create tables directly without migrations
+  python -c "
+from akowe import create_app
+from akowe.models import db
+from akowe.models.income import Income
+from akowe.models.expense import Expense
+from akowe.models.user import User
+
+app = create_app()
+with app.app_context():
+    db.create_all()
+    print('Database tables created successfully!')
+  "
   
   # Create admin user
-  echo "Creating admin user if needed..."
+  echo "Creating admin user..."
   python create_docker_admin.py
   
   # Import data if files exist
@@ -51,19 +45,45 @@ initialize_db() {
     echo "Importing expense data..."
     python -c "from akowe import create_app; from akowe.services.import_service import ImportService; app = create_app(); with app.app_context(): ImportService.import_expense_csv('/app/data/expense_export.csv')"
   fi
-  
-  echo "Database setup complete!"
+}
+
+# Check if database is already set up
+check_db() {
+  python -c "
+from akowe import create_app
+from akowe.models import db
+from akowe.models.user import User
+
+app = create_app()
+with app.app_context():
+    try:
+        # Try to query users table
+        user_count = User.query.count()
+        print(f'Database already set up with {user_count} users')
+        exit(0)  # Success - tables exist
+    except Exception as e:
+        print(f'Database not set up: {str(e)}')
+        exit(1)  # Failure - tables don't exist
+  "
 }
 
 # Main execution
 if [ "$1" = "gunicorn" ]; then
   wait_for_postgres
-  initialize_db
+  
+  # Check if database needs to be initialized
+  if check_db; then
+    echo "Database already set up, skipping initialization"
+  else
+    echo "Database not set up, initializing..."
+    initialize_db_fresh
+  fi
+  
   echo "Starting Akowe Financial Tracker..."
   exec gunicorn -b 0.0.0.0:5000 --access-logfile - --error-logfile - --workers 4 "app:app"
 elif [ "$1" = "init" ]; then
   wait_for_postgres
-  initialize_db
+  initialize_db_fresh
   echo "Initialization complete."
 else
   exec "$@"

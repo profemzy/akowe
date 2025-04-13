@@ -52,6 +52,11 @@ def create_app(test_config=None):
     # Register models
     from akowe.models import income, expense
     
+    # Add a health check endpoint that doesn't require authentication
+    @app.route('/ping')
+    def ping():
+        return {'status': 'ok', 'message': 'Akowe is running'}
+    
     # Register authentication blueprint
     from akowe import auth
     app.register_blueprint(auth.bp)
@@ -70,7 +75,7 @@ def create_app(test_config=None):
     @app.before_request
     def check_authentication():
         # Define public endpoints that don't require authentication
-        public_endpoints = ['auth.login', 'auth.logout', 'static']
+        public_endpoints = ['auth.login', 'auth.logout', 'static', 'ping']
         
         # Skip authentication check for None endpoints or public endpoints
         if not request.endpoint:
@@ -89,9 +94,5 @@ def create_app(test_config=None):
         # Redirect to login if not authenticated and not accessing public endpoint
         if not current_user.is_authenticated and not is_public:
             return redirect(url_for('auth.login'))
-    
-    @app.route('/ping')
-    def ping():
-        return {'status': 'ok', 'message': 'Akowe is running'}
     
     return app
