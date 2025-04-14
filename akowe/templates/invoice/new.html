@@ -163,12 +163,13 @@
                         <tr>
                             <td>
                                 <input type="checkbox" name="timesheet_entries" value="{{ entry.id }}" 
-                                       class="form-check-input timesheet-entry" data-client="{{ entry.client }}"
+                                       class="form-check-input timesheet-entry" data-client="{{ entry.client_ref.name if entry.client_ref else 'Unknown Client' }}"
+                                       data-client-id="{{ entry.client_id }}"
                                        data-amount="{{ entry.amount }}">
                             </td>
                             <td>{{ entry.date.strftime('%Y-%m-%d') }}</td>
-                            <td>{{ entry.client }}</td>
-                            <td>{{ entry.project }}</td>
+                            <td>{{ entry.client_ref.name if entry.client_ref else 'Unknown Client' }}</td>
+                            <td>{{ entry.project_ref.name if entry.project_ref else 'Unknown Project' }}</td>
                             <td>{{ entry.description }}</td>
                             <td>{{ '{:.2f}'.format(entry.hours) }}</td>
                             <td>${{ '{:.2f}'.format(entry.hourly_rate) }}</td>
@@ -209,13 +210,12 @@
     
     // Auto-filter by client
     document.getElementById('client').addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const selectedClientName = selectedOption.dataset.name;
+        const selectedClientId = this.value;
         
-        if (selectedClientName) {
+        if (selectedClientId) {
             // Select all entries for this client
             document.querySelectorAll('.timesheet-entry').forEach(checkbox => {
-                if (checkbox.dataset.client === selectedClientName) {
+                if (checkbox.dataset.clientId === selectedClientId) {
                     checkbox.checked = true;
                 } else {
                     checkbox.checked = false;
@@ -252,23 +252,16 @@
     function updateClientFilter() {
         const selectedEntries = document.querySelectorAll('.timesheet-entry:checked');
         if (selectedEntries.length > 0) {
-            // Get the client of the first selected entry
-            const firstClient = selectedEntries[0].dataset.client;
+            // Get the client id of the first selected entry
+            const firstClientId = selectedEntries[0].dataset.clientId;
             
             // Check if all selected entries have the same client
             const allSameClient = Array.from(selectedEntries).every(checkbox => 
-                checkbox.dataset.client === firstClient
+                checkbox.dataset.clientId === firstClientId
             );
             
-            if (allSameClient) {
-                // Find the option with matching data-name attribute
-                const options = document.querySelectorAll('#client option');
-                for (let i = 0; i < options.length; i++) {
-                    if (options[i].dataset.name === firstClient) {
-                        document.getElementById('client').value = options[i].value;
-                        break;
-                    }
-                }
+            if (allSameClient && firstClientId) {
+                document.getElementById('client').value = firstClientId;
             }
         }
     }

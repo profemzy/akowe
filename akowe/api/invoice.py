@@ -198,10 +198,15 @@ def new():
     # Group entries by client
     clients = {}
     for entry in unbilled_entries:
-        client_name = entry.client
-        if client_name not in clients:
-            clients[client_name] = []
-        clients[client_name].append(entry)
+        client_name = entry.client_ref.name if entry.client_ref else "Unknown Client"
+        client_id = entry.client_id
+        # Use client_id as key to avoid duplicates with different names
+        if client_id not in clients:
+            clients[client_id] = {
+                'name': client_name,
+                'entries': []
+            }
+        clients[client_id]['entries'].append(entry)
     
     # Get all clients from Client model
     clients_list = Client.query.filter_by(user_id=current_user.id).order_by(Client.name).all()
@@ -213,8 +218,13 @@ def new():
     today = datetime.now().date()
     default_due_date = today + timedelta(days=30)
     
+    # Reformat clients data for the template
+    client_entries = {}
+    for client_id, data in clients.items():
+        client_entries[data['name']] = data['entries']
+    
     return render_template('invoice/new.html',
-                          clients=clients,
+                          clients=client_entries,
                           clients_list=clients_list,
                           unbilled_entries=unbilled_entries,
                           issue_date=today,
