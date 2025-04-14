@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: akowe-migrate-db
+  namespace: wackops
+spec:
+  ttlSecondsAfterFinished: 86400  # Auto-delete after 24 hours
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: akowe-migrate
+        image: ${REGISTRY_URL}/akowe:latest  # Use the same image as main app
+        imagePullPolicy: Always
+        command: ["python", "init_db.py"]
+        envFrom:
+        - configMapRef:
+            name: akowe-config
+        - secretRef:
+            name: akowe-secrets
+        env:
+        - name: DATABASE_URL
+          value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"

@@ -3,6 +3,7 @@ from flask import Flask, redirect, url_for, request, jsonify
 from flask_migrate import Migrate
 from flask_login import LoginManager, current_user
 from dotenv import load_dotenv
+import os
 
 from akowe.models import db
 
@@ -39,7 +40,7 @@ def create_app(test_config=None):
     
     # Initialize extensions
     db.init_app(app)
-    migrate.init_app(app, db)
+    migrate.init_app(app, db, directory=os.path.join(os.path.dirname(app.root_path), 'migrations'))
     login_manager.init_app(app)
     
     # Register user loader for Flask-Login

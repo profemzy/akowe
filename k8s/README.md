@@ -44,17 +44,29 @@ docker build -t your-registry.azurecr.io/akowe:latest .
 docker push your-registry.azurecr.io/akowe:latest
 ```
 
-2. Update the image reference in the deployment file:
+2. Update the image reference in the deployment and migration job files:
 
 ```bash
 # Replace ${REGISTRY_URL} with your actual registry URL
-sed -i 's/${REGISTRY_URL}/your-registry.azurecr.io/g' k8s/02-deployment.yaml
+sed -i 's/${REGISTRY_URL}/your-registry.azurecr.io/g' k8s/02-deployment.yaml k8s/migrate-job.yaml
 ```
 
-3. Apply the Kubernetes manifests:
+3. Apply the configuration and run database migrations first:
 
 ```bash
 kubectl apply -f k8s/01-config.yaml
+kubectl apply -f k8s/migrate-job.yaml
+```
+
+4. Wait for the migration job to complete:
+
+```bash
+kubectl wait --for=condition=complete --timeout=120s job/akowe-migrate-db -n wackops
+```
+
+5. Apply the remaining Kubernetes manifests:
+
+```bash
 kubectl apply -f k8s/02-deployment.yaml
 kubectl apply -f k8s/03-service.yaml
 kubectl apply -f k8s/04-ingress.yaml
@@ -87,6 +99,13 @@ The following environment variables are required:
   - `ADMIN_EMAIL`: Initial admin email
   - `ADMIN_FIRST_NAME`: Initial admin first name
   - `ADMIN_LAST_NAME`: Initial admin last name
+
+- **Business Configuration**:
+  - `COMPANY_NAME`: Your company name (shown on invoices)
+  - `DEFAULT_HOURLY_RATE`: Default hourly rate for timesheet entries
+  
+- **Azure Storage Configuration** (for receipt uploads):
+  - `AZURE_STORAGE_CONNECTION_STRING`: Azure Blob Storage connection string
 
 ## Accessing the Application
 

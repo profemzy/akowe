@@ -27,25 +27,7 @@ def upgrade():
         op.add_column('users', 
                      sa.Column('hourly_rate', sa.Numeric(10, 2), nullable=True))
     
-    # Create Timesheet table
-    op.create_table(
-        'timesheet',
-        sa.Column('id', sa.Integer, primary_key=True),
-        sa.Column('date', sa.Date, nullable=False),
-        sa.Column('client', sa.String(255), nullable=False),
-        sa.Column('project', sa.String(255), nullable=False),
-        sa.Column('description', sa.Text, nullable=False),
-        sa.Column('hours', sa.Numeric(5, 2), nullable=False),
-        sa.Column('hourly_rate', sa.Numeric(10, 2), nullable=False),
-        sa.Column('status', sa.String(20), nullable=False, server_default='pending'),
-        sa.Column('invoice_id', sa.Integer, sa.ForeignKey('invoice.id'), nullable=True),
-        sa.Column('user_id', sa.Integer, sa.ForeignKey('users.id'), nullable=False),
-        sa.Column('created_at', sa.DateTime, server_default=sa.func.current_timestamp()),
-        sa.Column('updated_at', sa.DateTime, server_default=sa.func.current_timestamp(), 
-                 onupdate=sa.func.current_timestamp())
-    )
-    
-    # Create Invoice table
+    # Create Invoice table first (to avoid foreign key issues)
     op.create_table(
         'invoice',
         sa.Column('id', sa.Integer, primary_key=True),
@@ -67,6 +49,24 @@ def upgrade():
         sa.Column('user_id', sa.Integer, sa.ForeignKey('users.id'), nullable=False),
         sa.Column('created_at', sa.DateTime, server_default=sa.func.current_timestamp()),
         sa.Column('updated_at', sa.DateTime, server_default=sa.func.current_timestamp(),
+                 onupdate=sa.func.current_timestamp())
+    )
+    
+    # Create Timesheet table (now we can reference invoice.id)
+    op.create_table(
+        'timesheet',
+        sa.Column('id', sa.Integer, primary_key=True),
+        sa.Column('date', sa.Date, nullable=False),
+        sa.Column('client', sa.String(255), nullable=False),
+        sa.Column('project', sa.String(255), nullable=False),
+        sa.Column('description', sa.Text, nullable=False),
+        sa.Column('hours', sa.Numeric(5, 2), nullable=False),
+        sa.Column('hourly_rate', sa.Numeric(10, 2), nullable=False),
+        sa.Column('status', sa.String(20), nullable=False, server_default='pending'),
+        sa.Column('invoice_id', sa.Integer, sa.ForeignKey('invoice.id'), nullable=True),
+        sa.Column('user_id', sa.Integer, sa.ForeignKey('users.id'), nullable=False),
+        sa.Column('created_at', sa.DateTime, server_default=sa.func.current_timestamp()),
+        sa.Column('updated_at', sa.DateTime, server_default=sa.func.current_timestamp(), 
                  onupdate=sa.func.current_timestamp())
     )
     

@@ -14,37 +14,43 @@ wait_for_postgres() {
 initialize_db_fresh() {
   echo "Initializing database from scratch..."
   
-  # Check if migrations directory exists with version files
-  if [ -d "/app/migrations/versions" ] && [ "$(ls -A /app/migrations/versions)" ]; then
-    echo "Using migrations for database setup..."
-    
-    # Initialize migrations
-    export FLASK_APP=app.py
-    flask db upgrade
-    echo "Database migrations applied successfully!"
-  else
-    echo "No migrations found, creating tables directly..."
-    
-    # Create tables directly without migrations
+  # Use the Python script to initialize or update the database schema
+  python init_db.py
+  
+  if [ $? -ne 0 ]; then
+    echo "Database initialization failed!"
+    exit 1
+  fi
+  
+  # Import data if files exist
+  if [ -f "/app/data/income_export.csv" ]; then
+    echo "Importing income data..."
     python -c "
 from akowe import create_app
-from akowe.models import db
-from akowe.models.income import Income
-from akowe.models.expense import Expense
-from akowe.models.user import User
-from akowe.models.timesheet import Timesheet
-from akowe.models.invoice import Invoice
+from akowe.services.import_service import ImportService
 
 app = create_app()
 with app.app_context():
-    db.create_all()
-    print('Database tables created successfully!')
-    "
+    ImportService.import_income_csv('/app/data/income_export.csv')
+"
+  else
+    echo "No income data file found to import"
   fi
   
-  # Create admin user
-  echo "Creating admin user..."
-  python create_docker_admin.py
+  if [ -f "/app/data/expense_export.csv" ]; then
+    echo "Importing expense data..."
+    python -c "
+from akowe import create_app
+from akowe.services.import_service import ImportService
+
+app = create_app()
+with app.app_context():
+    ImportService.import_expense_csv('/app/data/expense_export.csv')
+"
+  else
+    echo "No expense data file found to import"
+  fi
+}
   
   # Import data if files exist
   if [ -f "/app/data/income_export.csv" ]; then

@@ -49,12 +49,15 @@ RUN pip install --no-cache-dir /wheels/* \
     && rm -rf /wheels
 
 # Copy only necessary files
-COPY app.py docker-entrypoint.sh create_docker_admin.py ./
+COPY app.py docker-entrypoint.sh init_db.py ./
 COPY akowe/ ./akowe/
+
+# Copy migrations and make sure directories exist
 COPY migrations/ ./migrations/
+RUN mkdir -p /app/migrations/versions
 
 # Copy Python package files if they exist
-COPY pyproject.toml setup.cfg setup.py ./
+COPY pyproject.toml setup.cfg setup.py alembic.ini ./
 
 # Create data directory
 RUN mkdir -p /app/data

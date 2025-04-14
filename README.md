@@ -156,6 +156,8 @@ WEB_REPLICAS=4 docker compose -f docker-compose.prod.yml up -d
 
 For Kubernetes deployment, see the [k8s directory](./k8s/README.md).
 
+When deploying to Kubernetes, be sure to run the migration job before deploying the application to ensure the database schema is updated correctly for the timesheet and invoice features. The migration job is defined in `k8s/migrate-job.yaml`.
+
 ## Receipt Upload
 
 Akowe now supports uploading and managing receipts for expense records. See the [detailed documentation](./docs/receipts.md) for setup and usage.
