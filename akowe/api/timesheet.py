@@ -6,6 +6,8 @@ from flask_login import current_user
 from akowe.models import db
 from akowe.models.timesheet import Timesheet
 from akowe.models.invoice import Invoice
+from akowe.models.client import Client
+from akowe.models.project import Project
 
 bp = Blueprint('timesheet', __name__, url_prefix='/timesheet')
 
@@ -73,17 +75,31 @@ def new():
     if request.method == 'POST':
         try:
             date = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
-            client = request.form['client']
-            project = request.form['project']
+            client_id = request.form.get('client_id')
+            project_id = request.form.get('project_id')
             description = request.form['description']
             hours = Decimal(request.form['hours'])
-            hourly_rate = Decimal(request.form['hourly_rate'] or current_user.hourly_rate or 0)
+            
+            # Validate client and project
+            if not client_id or not project_id:
+                flash('Client and project are required', 'error')
+                return redirect(url_for('timesheet.new'))
+            
+            # Get hourly rate from project if available
+            hourly_rate = None
+            project = Project.query.get(project_id)
+            if project:
+                hourly_rate = project.hourly_rate
+            
+            # If no hourly rate from project, use the one from the form or user default
+            if not hourly_rate:
+                hourly_rate = Decimal(request.form['hourly_rate'] or current_user.hourly_rate or 0)
             
             # Create new timesheet entry
             entry = Timesheet(
                 date=date,
-                client=client,
-                project=project,
+                client_id=client_id,
+                project_id=project_id,
                 description=description,
                 hours=hours,
                 hourly_rate=hourly_rate,
@@ -100,18 +116,20 @@ def new():
             db.session.rollback()
             flash(f'Error adding timesheet entry: {str(e)}', 'error')
     
-    # Get clients from existing entries for autocomplete
-    clients = db.session.query(Timesheet.client).distinct().all()
-    clients = [c[0] for c in clients]
+    # Get all clients
+    clients = Client.query.filter_by(user_id=current_user.id).order_by(Client.name).all()
     
-    # Get projects from existing entries for autocomplete
-    projects = db.session.query(Timesheet.project).distinct().all()
-    projects = [p[0] for p in projects]
+    # Get active projects
+    projects = Project.query.filter_by(
+        user_id=current_user.id,
+        status='active'
+    ).order_by(Project.name).all()
     
     return render_template('timesheet/new.html', 
                           clients=clients, 
                           projects=projects,
-                          default_hourly_rate=current_user.hourly_rate or "")
+                          default_hourly_rate=current_user.hourly_rate or "",
+                          today_date=datetime.now().strftime('%Y-%m-%d'))
 
 @bp.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id):
@@ -131,11 +149,32 @@ def edit(id):
     if request.method == 'POST':
         try:
             entry.date = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
-            entry.client = request.form['client']
-            entry.project = request.form['project']
+            
+            client_id = request.form.get('client_id')
+            project_id = request.form.get('project_id')
+            
+            # Validate client and project
+            if not client_id or not project_id:
+                flash('Client and project are required', 'error')
+                return render_template('timesheet/edit.html', entry=entry, clients=clients, projects=projects)
+            
+            entry.client_id = client_id
+            entry.project_id = project_id
+            
+            # Get hourly rate from project if available
+            hourly_rate = None
+            project = Project.query.get(project_id)
+            if project:
+                hourly_rate = project.hourly_rate
+            
             entry.description = request.form['description']
             entry.hours = Decimal(request.form['hours'])
-            entry.hourly_rate = Decimal(request.form['hourly_rate'])
+            
+            # Use project hourly rate if available, otherwise use form value
+            if hourly_rate:
+                entry.hourly_rate = hourly_rate
+            else:
+                entry.hourly_rate = Decimal(request.form['hourly_rate'])
             
             db.session.commit()
             
@@ -145,18 +184,27 @@ def edit(id):
             db.session.rollback()
             flash(f'Error updating timesheet entry: {str(e)}', 'error')
     
-    # Get clients from existing entries for autocomplete
-    clients = db.session.query(Timesheet.client).distinct().all()
-    clients = [c[0] for c in clients]
+    # Get all clients
+    clients = Client.query.filter_by(user_id=current_user.id).order_by(Client.name).all()
     
-    # Get projects from existing entries for autocomplete
-    projects = db.session.query(Timesheet.project).distinct().all()
-    projects = [p[0] for p in projects]
+    # Get all projects
+    projects = Project.query.filter_by(user_id=current_user.id).order_by(Project.name).all()
+    
+    # Get current client and project for pre-selection
+    selected_client = None
+    if entry.client_id:
+        selected_client = Client.query.get(entry.client_id)
+    
+    selected_project = None
+    if entry.project_id:
+        selected_project = Project.query.get(entry.project_id)
     
     return render_template('timesheet/edit.html', 
-                           entry=entry,
-                           clients=clients,
-                           projects=projects)
+                          entry=entry,
+                          clients=clients,
+                          projects=projects,
+                          selected_client=selected_client,
+                          selected_project=selected_project)
 
 @bp.route('/delete/<int:id>', methods=['POST'])
 def delete(id):

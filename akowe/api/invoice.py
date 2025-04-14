@@ -8,6 +8,7 @@ from sqlalchemy import and_, or_
 from akowe.models import db
 from akowe.models.invoice import Invoice
 from akowe.models.timesheet import Timesheet
+from akowe.models.client import Client
 
 bp = Blueprint('invoice', __name__, url_prefix='/invoice')
 
@@ -97,11 +98,20 @@ def new():
     if request.method == 'POST':
         try:
             # Get data from form
-            client = request.form['client']
+            client_id = request.form['client']
             issue_date = datetime.strptime(request.form['issue_date'], '%Y-%m-%d').date()
             due_date = datetime.strptime(request.form['due_date'], '%Y-%m-%d').date()
             notes = request.form['notes']
             tax_rate = Decimal(request.form['tax_rate'])
+            
+            # Get client
+            client = Client.query.get(client_id)
+            if not client:
+                flash('Selected client not found', 'error')
+                return redirect(url_for('invoice.new'))
+            
+            # Get custom line items
+            custom_items_json = request.form.get('custom_items', '[]')
             
             # Generate invoice number
             invoice_number = generate_invoice_number()
@@ -112,7 +122,7 @@ def new():
             # Create invoice
             invoice = Invoice(
                 invoice_number=invoice_number,
-                client=client,
+                client_id=client.id,
                 company_name=company_name,
                 issue_date=issue_date,
                 due_date=due_date,
@@ -138,6 +148,30 @@ def new():
                     entry.invoice_id = invoice.id
                     entry.status = 'billed'
             
+            # Process custom line items
+            import json
+            try:
+                custom_items = json.loads(custom_items_json)
+                if custom_items and isinstance(custom_items, list):
+                    for item in custom_items:
+                        # Create timesheet entry for each custom item
+                        if 'description' in item and 'hours' in item and 'rate' in item:
+                            custom_entry = Timesheet(
+                                date=issue_date,  # Use invoice date
+                                client=client_name,  # Keep for backward compatibility
+                                client_id=client.id,  # New foreign key
+                                project='Custom Item',
+                                description=item['description'],
+                                hours=Decimal(str(item['hours'])),
+                                hourly_rate=Decimal(str(item['rate'])),
+                                status='billed',
+                                invoice_id=invoice.id,
+                                user_id=current_user.id
+                            )
+                            db.session.add(custom_entry)
+            except (json.JSONDecodeError, ValueError) as e:
+                flash(f'Warning: Could not process custom items: {str(e)}', 'warning')
+            
             # Calculate totals
             invoice.calculate_totals()
             
@@ -157,9 +191,16 @@ def new():
     # Group entries by client
     clients = {}
     for entry in unbilled_entries:
-        if entry.client not in clients:
-            clients[entry.client] = []
-        clients[entry.client].append(entry)
+        client_name = entry.client
+        if client_name not in clients:
+            clients[client_name] = []
+        clients[client_name].append(entry)
+    
+    # Get all clients from Client model
+    clients_list = Client.query.filter_by(user_id=current_user.id).order_by(Client.name).all()
+    
+    # Default hourly rate
+    default_hourly_rate = current_user.hourly_rate or Decimal('0.00')
     
     # Default due date (30 days from today)
     today = datetime.now().date()
@@ -167,9 +208,11 @@ def new():
     
     return render_template('invoice/new.html',
                           clients=clients,
+                          clients_list=clients_list,
                           unbilled_entries=unbilled_entries,
                           issue_date=today,
-                          due_date=default_due_date)
+                          due_date=default_due_date,
+                          default_hourly_rate=default_hourly_rate)
 
 @bp.route('/view/<int:id>', methods=['GET'])
 def view(id):

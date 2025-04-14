@@ -7,7 +7,7 @@ class Invoice(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     invoice_number = db.Column(db.String(50), nullable=False, unique=True)
-    client = db.Column(db.String(255), nullable=False)
+    client_id = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=False)
     company_name = db.Column(db.String(255), nullable=True)  # Company name on invoice
     issue_date = db.Column(db.Date, nullable=False, default=datetime.utcnow().date)
     due_date = db.Column(db.Date, nullable=False)
@@ -28,6 +28,8 @@ class Invoice(db.Model):
     # Relationships
     timesheet_entries = db.relationship('Timesheet', back_populates='invoice', cascade='all, delete-orphan')
     user = db.relationship('User', back_populates='invoices')
+    client_ref = db.relationship('Client', back_populates='invoices')
+    
     
     def calculate_totals(self):
         """Calculate subtotal, tax, and total"""
@@ -43,4 +45,5 @@ class Invoice(db.Model):
         return self.total
     
     def __repr__(self):
-        return f"<Invoice {self.invoice_number}: ${self.total} to {self.client} ({self.status})>"
+        client_name = self.client_ref.name if self.client_ref else "Unknown Client"
+        return f"<Invoice {self.invoice_number}: ${self.total} to {client_name} ({self.status})>"

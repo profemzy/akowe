@@ -220,6 +220,16 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('client.index') }}">
+                            <i class="fas fa-building me-1"></i>Clients
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('project.index') }}">
+                            <i class="fas fa-project-diagram me-1"></i>Projects
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('income.index') }}">
                             <i class="fas fa-coins me-1"></i>Income
                         </a>
@@ -287,6 +297,30 @@
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'timesheet.weekly' %}active{% endif %}" href="{{ url_for('timesheet.weekly') }}">
                                 <i class="fas fa-calendar-week"></i> Weekly View
+                            </a>
+                        </li>
+                        
+                        <!-- Client Section -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'client.index' %}active{% endif %}" href="{{ url_for('client.index') }}">
+                                <i class="fas fa-building"></i> Clients
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'client.new' %}active{% endif %}" href="{{ url_for('client.new') }}">
+                                <i class="fas fa-plus"></i> New Client
+                            </a>
+                        </li>
+                        
+                        <!-- Project Section -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'project.index' %}active{% endif %}" href="{{ url_for('project.index') }}">
+                                <i class="fas fa-project-diagram"></i> Projects
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'project.new' %}active{% endif %}" href="{{ url_for('project.new') }}">
+                                <i class="fas fa-plus"></i> New Project
                             </a>
                         </li>
                         

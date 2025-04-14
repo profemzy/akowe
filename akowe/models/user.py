@@ -22,6 +22,7 @@ class User(UserMixin, db.Model):
     # Relationships
     timesheet_entries = db.relationship('Timesheet', back_populates='user', lazy='dynamic')
     invoices = db.relationship('Invoice', back_populates='user', lazy='dynamic')
+    projects = db.relationship('Project', back_populates='user', lazy='dynamic')
     
     @property
     def password(self):
