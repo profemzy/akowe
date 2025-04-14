@@ -3,6 +3,7 @@ from flask import Flask, redirect, url_for, request, jsonify
 from flask_migrate import Migrate
 from flask_login import LoginManager, current_user
 from dotenv import load_dotenv
+import os
 
 from akowe.models import db
 
@@ -39,7 +40,7 @@ def create_app(test_config=None):
     
     # Initialize extensions
     db.init_app(app)
-    migrate.init_app(app, db)
+    migrate.init_app(app, db, directory=os.path.join(os.path.dirname(app.root_path), 'migrations'))
     login_manager.init_app(app)
     
     # Register user loader for Flask-Login
@@ -72,9 +73,32 @@ def create_app(test_config=None):
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(export_bp)
     
+    # Register tax dashboard blueprint
+    from akowe.api.tax_dashboard import bp as tax_dashboard_bp
+    app.register_blueprint(tax_dashboard_bp)
+    
+    # Register timesheet, invoice, client, and project blueprints
+    from akowe.api.timesheet import bp as timesheet_bp
+    from akowe.api.invoice import bp as invoice_bp
+    from akowe.api.client import bp as client_bp
+    from akowe.api.project import bp as project_bp
+    app.register_blueprint(timesheet_bp)
+    app.register_blueprint(invoice_bp)
+    app.register_blueprint(client_bp)
+    app.register_blueprint(project_bp)
+    
     # Register mobile API blueprint
     from akowe.api.mobile_api import bp as mobile_api_bp
     app.register_blueprint(mobile_api_bp)
+    
+    # Add custom template filters
+    from decimal import Decimal
+    @app.template_filter('to_decimal')
+    def to_decimal(value):
+        """Convert a float value to Decimal for safe arithmetic operations."""
+        if value is None:
+            return Decimal('0')
+        return Decimal(str(value))
     
     # Protect all routes
     @app.before_request

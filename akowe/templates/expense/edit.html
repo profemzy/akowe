@@ -74,15 +74,17 @@
                         <label for="receipt" class="form-label">Receipt Image</label>
                         <input type="file" class="form-control" id="receipt" name="receipt" accept="image/jpeg,image/png,image/gif,application/pdf">
                         <div class="form-text">Upload a receipt image (JPEG, PNG, GIF) or PDF (max 5MB)</div>
-                        {% if expense.receipt_url %}
-                        <div class="mt-2">
+                        {% if expense.receipt_blob_name %}
+                        <div class="mt-2 border p-3 rounded bg-light">
                             <strong>Current Receipt:</strong>
-                            <a href="{{ url_for('expense.view_receipt', id=expense.id) }}" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
-                                <i class="fas fa-file-image"></i> View Receipt
-                            </a>
-                            <button type="button" class="btn btn-sm btn-outline-danger ms-2" data-bs-toggle="modal" data-bs-target="#deleteReceiptModal">
-                                <i class="fas fa-trash"></i> Delete Receipt
-                            </button>
+                            <div class="mt-2">
+                                <a href="{{ url_for('expense.view_receipt', id=expense.id) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-file-image"></i> View Receipt
+                                </a>
+                                <a href="javascript:void(0);" class="btn btn-sm btn-outline-danger" onclick="confirmDeleteReceipt()">
+                                    <i class="fas fa-trash"></i> Delete Receipt
+                                </a>
+                            </div>
                         </div>
                         {% endif %}
                     </div>
@@ -96,6 +98,11 @@
         </div>
     </div>
 </div>
+
+<!-- Delete Receipt Form (hidden) -->
+{% if expense.receipt_blob_name %}
+<form id="deleteReceiptForm" action="{{ url_for('expense.delete_receipt', id=expense.id) }}" method="post" style="display: none;"></form>
+{% endif %}
 {% endblock %}
 
 {% block styles %}
@@ -106,52 +113,34 @@
     }
     .modal {
         z-index: 1050 !important;
-        position: fixed !important;
+    }
+    .fixed-modal {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        overflow: hidden;
     }
     .modal-dialog {
-        margin: 10vh auto !important;
+        position: fixed;
+        margin: 0;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 500px;
+        max-width: 100%;
     }
 </style>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Ensure proper modal behavior for delete receipt
-        const deleteReceiptModal = document.getElementById('deleteReceiptModal');
-        if (deleteReceiptModal) {
-            deleteReceiptModal.addEventListener('shown.bs.modal', function() {
-                // This helps with focus issues that can cause flickering
-                document.body.style.overflow = 'hidden';
-            });
-            
-            deleteReceiptModal.addEventListener('hidden.bs.modal', function() {
-                document.body.style.overflow = '';
-            });
+    // Simple confirmation dialog for deleting receipt
+    function confirmDeleteReceipt() {
+        if (confirm('Are you sure you want to delete this receipt? This action cannot be undone.')) {
+            document.getElementById('deleteReceiptForm').submit();
         }
-    });
+    }
 </script>
 {% endblock %}
-
-<!-- Delete Receipt Modal, placed at the end of the document to prevent positioning issues -->
-{% if expense.receipt_url %}
-<div class="modal" id="deleteReceiptModal" tabindex="-1" aria-labelledby="deleteReceiptModalLabel" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteReceiptModalLabel">Confirm Delete Receipt</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete this receipt? This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form action="{{ url_for('expense.delete_receipt', id=expense.id) }}" method="post">
-                    <button type="submit" class="btn btn-danger">Delete Receipt</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}

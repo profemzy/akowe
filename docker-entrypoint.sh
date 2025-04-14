@@ -14,26 +14,13 @@ wait_for_postgres() {
 initialize_db_fresh() {
   echo "Initializing database from scratch..."
   
-  # Remove migrations directory completely
-  rm -rf /app/migrations
+  # Use the Python script to initialize or update the database schema
+  python init_db.py
   
-  # Create tables directly without migrations
-  python -c "
-from akowe import create_app
-from akowe.models import db
-from akowe.models.income import Income
-from akowe.models.expense import Expense
-from akowe.models.user import User
-
-app = create_app()
-with app.app_context():
-    db.create_all()
-    print('Database tables created successfully!')
-  "
-  
-  # Create admin user
-  echo "Creating admin user..."
-  python create_docker_admin.py
+  if [ $? -ne 0 ]; then
+    echo "Database initialization failed!"
+    exit 1
+  fi
   
   # Import data if files exist
   if [ -f "/app/data/income_export.csv" ]; then
@@ -46,6 +33,8 @@ app = create_app()
 with app.app_context():
     ImportService.import_income_csv('/app/data/income_export.csv')
 "
+  else
+    echo "No income data file found to import"
   fi
   
   if [ -f "/app/data/expense_export.csv" ]; then
@@ -58,6 +47,8 @@ app = create_app()
 with app.app_context():
     ImportService.import_expense_csv('/app/data/expense_export.csv')
 "
+  else
+    echo "No expense data file found to import"
   fi
 }
 
@@ -94,7 +85,15 @@ if [ "$1" = "gunicorn" ]; then
   fi
   
   echo "Starting Akowe Financial Tracker..."
-  exec gunicorn -b 0.0.0.0:5000 --access-logfile - --error-logfile - --workers 4 "app:app"
+  # Calculate optimal number of workers based on CPU cores
+  WORKERS=${GUNICORN_WORKERS:-$(( 2 * $(nproc) + 1 ))}
+  
+  # Use environment variables if provided
+  BIND=${GUNICORN_BIND:-0.0.0.0:5000}
+  TIMEOUT=${GUNICORN_TIMEOUT:-120}
+  
+  echo "Starting Gunicorn with $WORKERS workers on $BIND..."
+  exec gunicorn -b $BIND --access-logfile - --error-logfile - --workers $WORKERS --timeout $TIMEOUT "app:app"
 elif [ "$1" = "init" ]; then
   wait_for_postgres
   initialize_db_fresh

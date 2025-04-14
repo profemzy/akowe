@@ -1,0 +1,139 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Projects - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Projects</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('project.new') }}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-plus"></i> New Project
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-filter me-1"></i> Filter Projects
+            </div>
+            <div class="card-body">
+                <form method="get" action="{{ url_for('project.index') }}" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="client_id" class="form-label">Client</label>
+                        <select class="form-select" id="client_id" name="client_id">
+                            <option value="all" {% if client_id == 'all' %}selected{% endif %}>All Clients</option>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}" {% if client_id|string == client.id|string %}selected{% endif %}>{{ client.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="all" {% if status == 'all' %}selected{% endif %}>All Statuses</option>
+                            <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                            <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="archived" {% if status == 'archived' %}selected{% endif %}>Archived</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="search" class="form-label">Search</label>
+                        <input type="text" class="form-control" id="search" name="search" placeholder="Search projects..." value="{{ search }}">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary mb-3 w-100">Apply Filters</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Projects List -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-project-diagram me-1"></i> Your Projects
+    </div>
+    <div class="card-body">
+        {% if projects %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Project Name</th>
+                        <th>Client</th>
+                        <th>Status</th>
+                        <th>Hourly Rate</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in projects %}
+                    <tr>
+                        <td><a href="{{ url_for('project.view', id=project.id) }}">{{ project.name }}</a></td>
+                        <td>{{ project.client.name }}</td>
+                        <td>
+                            {% if project.status == 'active' %}
+                            <span class="badge bg-success">Active</span>
+                            {% elif project.status == 'completed' %}
+                            <span class="badge bg-primary">Completed</span>
+                            {% elif project.status == 'archived' %}
+                            <span class="badge bg-secondary">Archived</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ project.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{% if project.hourly_rate %}${{ '{:.2f}'.format(project.hourly_rate) }}{% else %}--{% endif %}</td>
+                        <td class="text-end">
+                            <a href="{{ url_for('project.view', id=project.id) }}" class="btn btn-sm btn-outline-primary" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ url_for('project.edit', id=project.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <!-- Delete Button -->
+                            <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" 
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal{{ project.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            
+                            <!-- Delete Confirmation Modal -->
+                            <div class="modal fade" id="deleteModal{{ project.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Delete Project</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete the project "{{ project.name }}"?</p>
+                                            <p class="text-danger">This action cannot be undone.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="{{ url_for('project.delete', id=project.id) }}" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <p class="mb-0">No projects found. <a href="{{ url_for('project.new') }}">Add your first project</a> to get started.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

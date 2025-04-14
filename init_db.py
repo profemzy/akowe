@@ -1,0 +1,137 @@
+"""Initialize or update the database schema."""
+import os
+import sys
+from flask import Flask
+from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.exc import SQLAlchemyError, ProgrammingError
+from decimal import Decimal
+
+from akowe.models import db
+from akowe.models.user import User
+from akowe.models.income import Income
+from akowe.models.expense import Expense
+from akowe.models.timesheet import Timesheet
+from akowe.models.invoice import Invoice
+
+def init_db():
+    """Initialize the database schema."""
+    # Create a Flask app with database configuration
+    app = Flask(__name__)
+    
+    # Get database configuration from environment
+    db_user = os.environ.get('DB_USER', 'akowe_user')
+    db_password = os.environ.get('DB_PASSWORD', 'akowe_password')
+    db_host = os.environ.get('DB_HOST', 'localhost')
+    db_port = os.environ.get('DB_PORT', '5432')
+    db_name = os.environ.get('DB_NAME', 'akowe')
+    
+    # Configure database
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    # Initialize SQLAlchemy with the Flask app
+    db.init_app(app)
+    
+    with app.app_context():
+        try:
+            # Get engine and inspector
+            engine = db.engine
+            inspector = inspect(engine)
+            
+            # Check if the users table exists
+            if 'users' in inspector.get_table_names():
+                # Check if hourly_rate column exists
+                columns = [column['name'] for column in inspector.get_columns('users')]
+                if 'hourly_rate' not in columns:
+                    print("Adding hourly_rate column to users table...")
+                    try:
+                        # Try to add the hourly_rate column
+                        with engine.begin() as conn:
+                            conn.execute(text("ALTER TABLE users ADD COLUMN hourly_rate NUMERIC(10, 2) DEFAULT 0.0"))
+                    except (SQLAlchemyError, ProgrammingError) as e:
+                        print(f"Error adding hourly_rate column: {str(e)}")
+                        print("Will continue and let create_all handle it...")
+            
+            # Create all tables that don't exist yet
+            db.create_all()
+            print("Database schema created/updated successfully!")
+            return True
+            
+        except SQLAlchemyError as e:
+            print(f"Database error: {str(e)}")
+            return False
+
+def create_admin():
+    """Create admin user from environment variables."""
+    # Create a Flask app with database configuration
+    app = Flask(__name__)
+    
+    # Get database configuration from environment
+    db_user = os.environ.get('DB_USER', 'akowe_user')
+    db_password = os.environ.get('DB_PASSWORD', 'akowe_password')
+    db_host = os.environ.get('DB_HOST', 'localhost')
+    db_port = os.environ.get('DB_PORT', '5432')
+    db_name = os.environ.get('DB_NAME', 'akowe')
+    
+    # Configure database
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    # Initialize SQLAlchemy with the Flask app
+    db.init_app(app)
+    
+    with app.app_context():
+        try:
+            # Check if admin user already exists
+            admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
+            if User.query.filter_by(username=admin_username).first():
+                print(f"Admin user '{admin_username}' already exists.")
+                return True
+            
+            # Get admin details from environment
+            admin_email = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
+            admin_password = os.environ.get('ADMIN_PASSWORD')
+            admin_first_name = os.environ.get('ADMIN_FIRST_NAME', 'Admin')
+            admin_last_name = os.environ.get('ADMIN_LAST_NAME', 'User')
+            
+            # Get hourly rate from environment or use default
+            default_hourly_rate = os.environ.get('DEFAULT_HOURLY_RATE', '0.00')
+            
+            # Validate admin password
+            if not admin_password or len(admin_password) < 8:
+                print("ERROR: Admin password not set or too short (min 8 characters).")
+                print("Please set ADMIN_PASSWORD environment variable.")
+                return False
+            
+            # Create admin user
+            admin = User(
+                username=admin_username,
+                email=admin_email,
+                first_name=admin_first_name,
+                last_name=admin_last_name,
+                hourly_rate=Decimal(default_hourly_rate),
+                is_admin=True
+            )
+            admin.password = admin_password
+            
+            # Add to database
+            db.session.add(admin)
+            db.session.commit()
+            
+            print(f"Admin user '{admin_username}' created successfully.")
+            return True
+            
+        except SQLAlchemyError as e:
+            print(f"Database error creating admin: {str(e)}")
+            return False
+
+if __name__ == "__main__":
+    # Initialize the database schema
+    if not init_db():
+        sys.exit(1)
+    
+    # Create admin user
+    if not create_admin():
+        sys.exit(1)
+    
+    sys.exit(0)

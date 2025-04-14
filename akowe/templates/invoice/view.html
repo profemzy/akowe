@@ -1,0 +1,295 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Invoice {{ invoice.invoice_number }} - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Invoice {{ invoice.invoice_number }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('invoice.index') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Invoices
+            </a>
+            <a href="{{ url_for('invoice.print_invoice', id=invoice.id) }}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                <i class="fas fa-print"></i> Print
+            </a>
+            
+            {% if invoice.status == 'draft' %}
+            <a href="{{ url_for('invoice.edit', id=invoice.id) }}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#markSentModal">
+                <i class="fas fa-paper-plane"></i> Mark as Sent
+            </button>
+            {% elif invoice.status in ['sent', 'overdue'] %}
+            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#markPaidModal">
+                <i class="fas fa-check-circle"></i> Mark as Paid
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <!-- Invoice Details -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-file-invoice me-1"></i> Invoice Details</span>
+                    <span class="badge {% if invoice.status == 'draft' %}bg-secondary{% elif invoice.status == 'sent' %}bg-primary{% elif invoice.status == 'paid' %}bg-success{% elif invoice.status == 'overdue' %}bg-danger{% endif %} fs-6">
+                        {{ invoice.status|title }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Invoice Number:</strong> {{ invoice.invoice_number }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Client:</strong> {{ invoice.client_ref.name if invoice.client_ref else "Unknown Client" }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Issue Date:</strong> {{ invoice.issue_date.strftime('%Y-%m-%d') }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Due Date:</strong> {{ invoice.due_date.strftime('%Y-%m-%d') }}
+                    </div>
+                </div>
+                
+                {% if invoice.status == 'paid' and invoice.paid_date %}
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Payment Date:</strong> {{ invoice.paid_date.strftime('%Y-%m-%d') }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Payment Method:</strong> {{ invoice.payment_method|default('Not specified') }}
+                    </div>
+                </div>
+                
+                {% if invoice.payment_reference %}
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <strong>Payment Reference:</strong> {{ invoice.payment_reference }}
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+                
+                {% if invoice.notes %}
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <strong>Notes:</strong><br>
+                        {{ invoice.notes }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Timesheet Entries -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-clock me-1"></i> Timesheet Entries
+            </div>
+            <div class="card-body">
+                {% if invoice.timesheet_entries %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Project</th>
+                                <th>Description</th>
+                                <th>Hours</th>
+                                <th>Rate</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in invoice.timesheet_entries %}
+                            <tr>
+                                <td>{{ entry.date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ entry.project_ref.name if entry.project_ref else "Unknown Project" }}</td>
+                                <td>{{ entry.description }}</td>
+                                <td>{{ '{:.2f}'.format(entry.hours) }}</td>
+                                <td>${{ '{:.2f}'.format(entry.hourly_rate) }}</td>
+                                <td>${{ '{:.2f}'.format(entry.amount) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-active">
+                                <th colspan="5" class="text-end">Subtotal:</th>
+                                <th>${{ '{:,.2f}'.format(invoice.subtotal) }}</th>
+                            </tr>
+                            <tr>
+                                <th colspan="5" class="text-end">Tax ({{ '{:.2f}'.format(invoice.tax_rate) }}%):</th>
+                                <th>${{ '{:,.2f}'.format(invoice.tax_amount) }}</th>
+                            </tr>
+                            <tr class="table-active">
+                                <th colspan="5" class="text-end">Total:</th>
+                                <th>${{ '{:,.2f}'.format(invoice.total) }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <p class="mb-0">No timesheet entries found for this invoice.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Invoice Summary -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-calculator me-1"></i> Invoice Summary
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Subtotal:</span>
+                        <span>${{ '{:,.2f}'.format(invoice.subtotal) }}</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Tax ({{ '{:.2f}'.format(invoice.tax_rate) }}%):</span>
+                        <span>${{ '{:,.2f}'.format(invoice.tax_amount) }}</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-bold fs-5">Total:</span>
+                        <span class="fw-bold fs-5">${{ '{:,.2f}'.format(invoice.total) }}</span>
+                    </div>
+                </div>
+                
+                {% if invoice.status == 'paid' %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-1"></i> This invoice has been paid.
+                </div>
+                {% elif invoice.status == 'sent' %}
+                <div class="alert alert-info">
+                    <i class="fas fa-paper-plane me-1"></i> This invoice has been sent.
+                </div>
+                {% elif invoice.status == 'overdue' %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-1"></i> This invoice is overdue.
+                </div>
+                {% elif invoice.status == 'draft' %}
+                <div class="alert alert-secondary">
+                    <i class="fas fa-pencil-alt me-1"></i> This invoice is in draft mode.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Timeline -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-history me-1"></i> Invoice Timeline
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-calendar-plus text-primary me-2"></i>
+                            <strong>Created</strong><br>
+                            <small class="text-muted">{{ invoice.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                    </li>
+                    
+                    {% if invoice.status != 'draft' %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-paper-plane text-info me-2"></i>
+                            <strong>Sent</strong><br>
+                            <small class="text-muted">{{ invoice.sent_date.strftime('%Y-%m-%d %H:%M') if invoice.sent_date else 'No date' }}</small>
+                        </div>
+                    </li>
+                    {% endif %}
+                    
+                    {% if invoice.status == 'paid' %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Paid</strong><br>
+                            <small class="text-muted">{{ invoice.paid_date.strftime('%Y-%m-%d %H:%M') if invoice.paid_date else 'No date' }}</small>
+                        </div>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mark as Sent Modal -->
+<div class="modal fade" id="markSentModal" tabindex="-1" aria-labelledby="markSentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="markSentModalLabel">Mark Invoice as Sent</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to mark this invoice as sent?</p>
+                <p>This will update the status of the invoice from "Draft" to "Sent".</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{{ url_for('invoice.mark_sent', id=invoice.id) }}">
+                    <button type="submit" class="btn btn-primary">Mark as Sent</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mark as Paid Modal -->
+<div class="modal fade" id="markPaidModal" tabindex="-1" aria-labelledby="markPaidModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="markPaidModalLabel">Mark Invoice as Paid</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{{ url_for('invoice.mark_paid', id=invoice.id) }}">
+                <div class="modal-body">
+                    <p>Please enter payment details:</p>
+                    
+                    <div class="mb-3">
+                        <label for="payment_method" class="form-label">Payment Method</label>
+                        <select class="form-select" id="payment_method" name="payment_method" required>
+                            <option value="bank_transfer">Bank Transfer</option>
+                            <option value="credit_card">Credit Card</option>
+                            <option value="paypal">PayPal</option>
+                            <option value="check">Check</option>
+                            <option value="cash">Cash</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="payment_reference" class="form-label">Payment Reference (Optional)</label>
+                        <input type="text" class="form-control" id="payment_reference" name="payment_reference" placeholder="e.g., Transaction ID, Check Number">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Mark as Paid</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

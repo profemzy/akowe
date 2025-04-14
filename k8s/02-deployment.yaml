@@ -6,7 +6,7 @@ metadata:
   labels:
     app: akowe
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: akowe
@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: akowe
-        image: ${REGISTRY_URL}/akowe:latest  # Replace with your container registry URL
+        image: wackopsprodacr.azurecr.io/akowe:v0.0.16
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
@@ -79,6 +79,7 @@ metadata:
   name: akowe-data-pvc
   namespace: wackops
 spec:
+  storageClassName: azurefile-csi 
   accessModes:
     - ReadWriteMany
   resources:
@@ -91,6 +92,7 @@ metadata:
   name: akowe-instance-pvc
   namespace: wackops
 spec:
+  storageClassName: azurefile-csi 
   accessModes:
     - ReadWriteMany
   resources:

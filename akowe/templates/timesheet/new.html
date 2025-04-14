@@ -1,0 +1,151 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}New Timesheet Entry - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">New Timesheet Entry</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('timesheet.index') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Timesheets
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-plus-circle me-1"></i> Add New Timesheet Entry
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('timesheet.new') }}">
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="date" name="date" value="{{ today_date }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="client_id" class="form-label">Client <span class="text-danger">*</span></label>
+                        <select class="form-select" id="client_id" name="client_id" required>
+                            <option value="">Select a client</option>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}">{{ client.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="hidden" id="client_name" name="client_name">
+                        <div class="form-text">
+                            <a href="{{ url_for('client.new') }}" class="text-primary" target="_blank">
+                                <i class="fas fa-plus-circle"></i> Add a new client
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="project_id" class="form-label">Project <span class="text-danger">*</span></label>
+                        <select class="form-select" id="project_id" name="project_id" required>
+                            <option value="">Select a project</option>
+                            {% for project in projects %}
+                            <option value="{{ project.id }}" data-client="{{ project.client_id }}" data-rate="{{ project.hourly_rate }}">{{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="hidden" id="project_name" name="project_name">
+                        <div class="form-text">
+                            <a href="{{ url_for('project.new') }}" class="text-primary" target="_blank">
+                                <i class="fas fa-plus-circle"></i> Add a new project
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="hours" class="form-label">Hours</label>
+                            <input type="number" class="form-control" id="hours" name="hours" step="0.25" min="0.25" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="hourly_rate" class="form-label">Hourly Rate ($)</label>
+                            <input type="number" class="form-control" id="hourly_rate" name="hourly_rate" step="0.01" value="{{ default_hourly_rate }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Save Timesheet Entry</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Set default date to today if not already set
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!document.getElementById('date').value) {
+            const today = new Date();
+            const dateString = today.toISOString().split('T')[0];
+            document.getElementById('date').value = dateString;
+        }
+    });
+    
+    // Filter projects by client
+    document.getElementById('client_id').addEventListener('change', function() {
+        const clientId = this.value;
+        const clientName = this.options[this.selectedIndex].text;
+        document.getElementById('client_name').value = clientName;
+        
+        // Set all projects to hidden initially
+        const projectOptions = document.querySelectorAll('#project_id option:not(:first-child)');
+        projectOptions.forEach(option => {
+            if (option.dataset.client === clientId) {
+                option.style.display = '';
+            } else {
+                option.style.display = 'none';
+            }
+        });
+        
+        // Reset project selection
+        document.getElementById('project_id').value = '';
+        document.getElementById('project_name').value = '';
+    });
+    
+    // Set project name and hourly rate when project is selected
+    document.getElementById('project_id').addEventListener('change', function() {
+        const projectOption = this.options[this.selectedIndex];
+        if (projectOption && projectOption.value) {
+            const projectName = projectOption.text;
+            document.getElementById('project_name').value = projectName;
+            
+            // Set hourly rate if project has one
+            const projectRate = projectOption.dataset.rate;
+            if (projectRate) {
+                document.getElementById('hourly_rate').value = projectRate;
+            }
+        }
+    });
+    
+    // Calculate amount as hours × rate
+    document.getElementById('hours').addEventListener('input', updateAmount);
+    document.getElementById('hourly_rate').addEventListener('input', updateAmount);
+    
+    function updateAmount() {
+        const hours = parseFloat(document.getElementById('hours').value) || 0;
+        const rate = parseFloat(document.getElementById('hourly_rate').value) || 0;
+        const amount = hours * rate;
+        
+        // Display the amount somewhere (optional)
+        if (document.getElementById('amount-preview')) {
+            document.getElementById('amount-preview').textContent = '$' + amount.toFixed(2);
+        }
+    }
+</script>
+{% endblock %}

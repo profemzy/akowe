@@ -8,8 +8,10 @@ Akowe is a financial tracking application built to help with business expense an
 - Track and categorize business expenses
 - Upload and manage receipts for expenses using Azure Blob Storage
 - Record client income with project tracking
+- Time tracking with timesheet system
+- Invoice generation from timesheet entries
 - Generate financial reports and summaries
-- Prepare data for tax season
+- Prepare data for tax season with Canadian tax support
 - User authentication and authorization
 - Admin portal for user management
 
@@ -75,28 +77,59 @@ make check
 
 ## Production Deployment with Docker
 
-Akowe can be easily deployed to production using Docker and Docker Compose.
+Akowe can be easily deployed to production using Docker and Docker Compose with optimized multi-stage builds.
 
 ### Prerequisites
 
-- Docker and Docker Compose installed
+- Docker and Docker Compose V2 installed
 - CSV data files (optional) placed in the `data/` directory
 
-### Configuration
+### Development Configuration
 
 1. Copy the example environment file: `cp .env.example .env`
-2. Edit the `.env` file with your production settings (especially update the SECRET_KEY and passwords)
+2. Edit the `.env` file with your settings (especially update the SECRET_KEY and passwords)
 
-### Deployment Steps
+### Development Deployment
 
-1. Build and start the services:
+1. Build and start the services including PgAdmin:
    ```
-   docker-compose up -d
+   docker compose up -d
    ```
 
 2. The application will be available at http://localhost:5000
 
 3. PgAdmin (database management) will be available at http://localhost:5050
+
+### Production Deployment
+
+For production environments, use the production-specific configuration:
+
+1. Create a production environment file:
+   ```
+   cp .env.production.example .env.production
+   ```
+
+2. Edit `.env.production` with secure passwords and configuration values
+
+3. Build and deploy using the production compose file:
+   ```
+   docker compose -f docker-compose.prod.yml up -d
+   ```
+
+4. For a secure production setup, consider:
+   - Using a reverse proxy (Nginx, Traefik) with HTTPS
+   - Setting up monitoring and log aggregation
+   - Configuring backups for database volumes
+   - Using Docker Swarm or Kubernetes for orchestration
+
+### Scaling in Production
+
+The production docker-compose file supports horizontal scaling:
+
+```bash
+# Scale up web services to 4 instances
+WEB_REPLICAS=4 docker compose -f docker-compose.prod.yml up -d
+```
 
 ### Environment Variables
 
@@ -116,14 +149,26 @@ Akowe can be easily deployed to production using Docker and Docker Compose.
 | ADMIN_FIRST_NAME | Initial admin first name | Admin |
 | ADMIN_LAST_NAME | Initial admin last name | User |
 | AZURE_STORAGE_CONNECTION_STRING | Azure Blob Storage connection string | - |
+| COMPANY_NAME | Your company name (used on invoices) | Akowe |
+| DEFAULT_HOURLY_RATE | Default hourly rate for timesheet entries | 120.00 |
 
 ## Kubernetes Deployment
 
 For Kubernetes deployment, see the [k8s directory](./k8s/README.md).
 
+When deploying to Kubernetes, be sure to run the migration job before deploying the application to ensure the database schema is updated correctly for the timesheet and invoice features. The migration job is defined in `k8s/migrate-job.yaml`.
+
 ## Receipt Upload
 
 Akowe now supports uploading and managing receipts for expense records. See the [detailed documentation](./docs/receipts.md) for setup and usage.
+
+## Timesheet System
+
+Track billable hours and generate invoices with the timesheet system. See the [timesheet documentation](./docs/timesheet.md) for usage details.
+
+## Invoice System
+
+Create professional invoices from timesheet entries. See the [invoice documentation](./docs/invoice.md) for setup and workflow information.
 
 ## Mobile API
 

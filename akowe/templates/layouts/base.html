@@ -100,6 +100,35 @@
             letter-spacing: 1px;
         }
         
+        /* Sidebar dropdown styles */
+        .sidebar .nav-link[data-bs-toggle="collapse"] {
+            position: relative;
+        }
+        
+        .sidebar .nav-link[data-bs-toggle="collapse"] .fa-chevron-down {
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar .nav-link[aria-expanded="true"] .fa-chevron-down {
+            transform: rotate(180deg);
+        }
+        
+        .sidebar .collapse .nav-link {
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar .collapse .nav-link:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .sidebar .collapse .nav-link.active {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary-color) !important;
+            font-weight: 500;
+        }
+        
         main {
             padding-top: 1.5rem;
             background-color: white;
@@ -205,6 +234,31 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('tax_dashboard.index') }}">
+                            <i class="fas fa-file-invoice-dollar me-1"></i>Tax Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('timesheet.index') }}">
+                            <i class="fas fa-clock me-1"></i>Timesheets
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('invoice.index') }}">
+                            <i class="fas fa-file-invoice me-1"></i>Invoices
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('client.index') }}">
+                            <i class="fas fa-building me-1"></i>Clients
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('project.index') }}">
+                            <i class="fas fa-project-diagram me-1"></i>Projects
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('income.index') }}">
                             <i class="fas fa-coins me-1"></i>Income
                         </a>
@@ -253,57 +307,238 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'income.index' %}active{% endif %}" href="{{ url_for('income.index') }}">
-                                <i class="fas fa-dollar-sign"></i> Income
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'income.new' %}active{% endif %}" href="{{ url_for('income.new') }}">
-                                <i class="fas fa-plus"></i> Add Income
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'income.import_csv' %}active{% endif %}" href="{{ url_for('income.import_csv') }}">
-                                <i class="fas fa-file-import"></i> Import Income
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'expense.index' %}active{% endif %}" href="{{ url_for('expense.index') }}">
-                                <i class="fas fa-credit-card"></i> Expenses
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'expense.new' %}active{% endif %}" href="{{ url_for('expense.new') }}">
-                                <i class="fas fa-plus"></i> Add Expense
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'expense.import_csv' %}active{% endif %}" href="{{ url_for('expense.import_csv') }}">
-                                <i class="fas fa-file-import"></i> Import Expenses
+                            <a class="nav-link {% if request.endpoint == 'tax_dashboard.index' %}active{% endif %}" href="{{ url_for('tax_dashboard.index') }}">
+                                <i class="fas fa-file-invoice-dollar"></i> Tax Dashboard
                             </a>
                         </li>
                         
+                        <!-- Timesheet Section -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('timesheet.') %}active{% endif %}" 
+                               data-bs-toggle="collapse" href="#timesheetSubmenu" role="button" 
+                               aria-expanded="{% if request.endpoint and request.endpoint.startswith('timesheet.') %}true{% else %}false{% endif %}" 
+                               aria-controls="timesheetSubmenu">
+                                <i class="fas fa-clock"></i> 
+                                <span>Timesheets</span>
+                                <i class="fas fa-chevron-down ms-1 float-end"></i>
+                            </a>
+                            <div class="collapse {% if request.endpoint and request.endpoint.startswith('timesheet.') %}show{% endif %}" id="timesheetSubmenu">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'timesheet.index' %}active{% endif %}" href="{{ url_for('timesheet.index') }}">
+                                            <i class="fas fa-list"></i> View All
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'timesheet.new' %}active{% endif %}" href="{{ url_for('timesheet.new') }}">
+                                            <i class="fas fa-plus"></i> Add Entry
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'timesheet.weekly' %}active{% endif %}" href="{{ url_for('timesheet.weekly') }}">
+                                            <i class="fas fa-calendar-week"></i> Weekly View
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        
+                        <!-- Client Section -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('client.') %}active{% endif %}" 
+                               data-bs-toggle="collapse" href="#clientSubmenu" role="button" 
+                               aria-expanded="{% if request.endpoint and request.endpoint.startswith('client.') %}true{% else %}false{% endif %}" 
+                               aria-controls="clientSubmenu">
+                                <i class="fas fa-building"></i> 
+                                <span>Clients</span>
+                                <i class="fas fa-chevron-down ms-1 float-end"></i>
+                            </a>
+                            <div class="collapse {% if request.endpoint and request.endpoint.startswith('client.') %}show{% endif %}" id="clientSubmenu">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'client.index' %}active{% endif %}" href="{{ url_for('client.index') }}">
+                                            <i class="fas fa-list"></i> View All
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'client.new' %}active{% endif %}" href="{{ url_for('client.new') }}">
+                                            <i class="fas fa-plus"></i> Add Client
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        
+                        <!-- Project Section -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('project.') %}active{% endif %}" 
+                               data-bs-toggle="collapse" href="#projectSubmenu" role="button" 
+                               aria-expanded="{% if request.endpoint and request.endpoint.startswith('project.') %}true{% else %}false{% endif %}" 
+                               aria-controls="projectSubmenu">
+                                <i class="fas fa-project-diagram"></i> 
+                                <span>Projects</span>
+                                <i class="fas fa-chevron-down ms-1 float-end"></i>
+                            </a>
+                            <div class="collapse {% if request.endpoint and request.endpoint.startswith('project.') %}show{% endif %}" id="projectSubmenu">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'project.index' %}active{% endif %}" href="{{ url_for('project.index') }}">
+                                            <i class="fas fa-list"></i> View All
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'project.new' %}active{% endif %}" href="{{ url_for('project.new') }}">
+                                            <i class="fas fa-plus"></i> Add Project
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        
+                        <!-- Invoice Section -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('invoice.') %}active{% endif %}" 
+                               data-bs-toggle="collapse" href="#invoiceSubmenu" role="button" 
+                               aria-expanded="{% if request.endpoint and request.endpoint.startswith('invoice.') %}true{% else %}false{% endif %}" 
+                               aria-controls="invoiceSubmenu">
+                                <i class="fas fa-file-invoice"></i> 
+                                <span>Invoices</span>
+                                <i class="fas fa-chevron-down ms-1 float-end"></i>
+                            </a>
+                            <div class="collapse {% if request.endpoint and request.endpoint.startswith('invoice.') %}show{% endif %}" id="invoiceSubmenu">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'invoice.index' %}active{% endif %}" href="{{ url_for('invoice.index') }}">
+                                            <i class="fas fa-list"></i> View All
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'invoice.new' %}active{% endif %}" href="{{ url_for('invoice.new') }}">
+                                            <i class="fas fa-plus"></i> Create Invoice
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        
+                        <!-- Income Section -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('income.') %}active{% endif %}" 
+                               data-bs-toggle="collapse" href="#incomeSubmenu" role="button" 
+                               aria-expanded="{% if request.endpoint and request.endpoint.startswith('income.') %}true{% else %}false{% endif %}" 
+                               aria-controls="incomeSubmenu">
+                                <i class="fas fa-dollar-sign"></i> 
+                                <span>Income</span>
+                                <i class="fas fa-chevron-down ms-1 float-end"></i>
+                            </a>
+                            <div class="collapse {% if request.endpoint and request.endpoint.startswith('income.') %}show{% endif %}" id="incomeSubmenu">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'income.index' %}active{% endif %}" href="{{ url_for('income.index') }}">
+                                            <i class="fas fa-list"></i> View All
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'income.new' %}active{% endif %}" href="{{ url_for('income.new') }}">
+                                            <i class="fas fa-plus"></i> Add Income
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'income.import_csv' %}active{% endif %}" href="{{ url_for('income.import_csv') }}">
+                                            <i class="fas fa-file-import"></i> Import Income
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        
+                        <!-- Expense Section -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('expense.') %}active{% endif %}" 
+                               data-bs-toggle="collapse" href="#expenseSubmenu" role="button" 
+                               aria-expanded="{% if request.endpoint and request.endpoint.startswith('expense.') %}true{% else %}false{% endif %}" 
+                               aria-controls="expenseSubmenu">
+                                <i class="fas fa-credit-card"></i> 
+                                <span>Expenses</span>
+                                <i class="fas fa-chevron-down ms-1 float-end"></i>
+                            </a>
+                            <div class="collapse {% if request.endpoint and request.endpoint.startswith('expense.') %}show{% endif %}" id="expenseSubmenu">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'expense.index' %}active{% endif %}" href="{{ url_for('expense.index') }}">
+                                            <i class="fas fa-list"></i> View All
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'expense.new' %}active{% endif %}" href="{{ url_for('expense.new') }}">
+                                            <i class="fas fa-plus"></i> Add Expense
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'expense.import_csv' %}active{% endif %}" href="{{ url_for('expense.import_csv') }}">
+                                            <i class="fas fa-file-import"></i> Import Expenses
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        
+                        <!-- Reports Section -->
                         <li class="nav-item mt-4">
                             <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mb-1">
                                 <span>Reports</span>
                             </h6>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'export.index' %}active{% endif %}" href="{{ url_for('export.index') }}">
-                                <i class="fas fa-file-export"></i> Export Data
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('export.') %}active{% endif %}" 
+                               data-bs-toggle="collapse" href="#reportsSubmenu" role="button" 
+                               aria-expanded="{% if request.endpoint and request.endpoint.startswith('export.') %}true{% else %}false{% endif %}" 
+                               aria-controls="reportsSubmenu">
+                                <i class="fas fa-chart-bar"></i> 
+                                <span>Reports & Exports</span>
+                                <i class="fas fa-chevron-down ms-1 float-end"></i>
                             </a>
+                            <div class="collapse {% if request.endpoint and request.endpoint.startswith('export.') %}show{% endif %}" id="reportsSubmenu">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'export.index' %}active{% endif %}" href="{{ url_for('export.index') }}">
+                                            <i class="fas fa-file-export"></i> Export Data
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
                         
                         {% if current_user.is_admin %}
+                        <!-- Admin Section -->
                         <li class="nav-item mt-4">
                             <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mb-1">
                                 <span>Admin</span>
                             </h6>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}" href="{{ url_for('admin.users') }}">
-                                <i class="fas fa-users"></i> Manage Users
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('admin.') %}active{% endif %}" 
+                               data-bs-toggle="collapse" href="#adminSubmenu" role="button" 
+                               aria-expanded="{% if request.endpoint and request.endpoint.startswith('admin.') %}true{% else %}false{% endif %}" 
+                               aria-controls="adminSubmenu">
+                                <i class="fas fa-shield-alt"></i> 
+                                <span>Administration</span>
+                                <i class="fas fa-chevron-down ms-1 float-end"></i>
                             </a>
+                            <div class="collapse {% if request.endpoint and request.endpoint.startswith('admin.') %}show{% endif %}" id="adminSubmenu">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}" href="{{ url_for('admin.users') }}">
+                                            <i class="fas fa-users"></i> Manage Users
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'admin.index' %}active{% endif %}" href="{{ url_for('admin.index') }}">
+                                            <i class="fas fa-cog"></i> System Settings
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
                         {% endif %}
                     </ul>

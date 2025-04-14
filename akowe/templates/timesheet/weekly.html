@@ -1,0 +1,217 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Weekly Timesheet - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Weekly Timesheet</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('timesheet.weekly', week_start=prev_week.strftime('%Y-%m-%d')) }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-chevron-left"></i> Previous Week
+            </a>
+            <a href="{{ url_for('timesheet.weekly', week_start=next_week.strftime('%Y-%m-%d')) }}" class="btn btn-sm btn-outline-secondary">
+                Next Week <i class="fas fa-chevron-right"></i>
+            </a>
+            <a href="{{ url_for('timesheet.index') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-list"></i> List View
+            </a>
+        </div>
+        <a href="{{ url_for('timesheet.new') }}" class="btn btn-sm btn-primary">
+            <i class="fas fa-plus"></i> New Entry
+        </a>
+    </div>
+</div>
+
+<!-- Week Summary -->
+<div class="card mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-calendar-week me-2"></i>
+                Week of {{ week_start.strftime('%B %d, %Y') }} to {{ week_end.strftime('%B %d, %Y') }}
+            </h5>
+            <div class="badge bg-primary p-2 fs-6">
+                Total Hours: {{ '{:.2f}'.format(total_hours) }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Weekly Calendar -->
+<div class="card mb-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-bordered mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 13%">Monday<br>{{ days[0]['date'].strftime('%m/%d') }}</th>
+                        <th style="width: 13%">Tuesday<br>{{ days[1]['date'].strftime('%m/%d') }}</th>
+                        <th style="width: 13%">Wednesday<br>{{ days[2]['date'].strftime('%m/%d') }}</th>
+                        <th style="width: 13%">Thursday<br>{{ days[3]['date'].strftime('%m/%d') }}</th>
+                        <th style="width: 13%">Friday<br>{{ days[4]['date'].strftime('%m/%d') }}</th>
+                        <th style="width: 13%">Saturday<br>{{ days[5]['date'].strftime('%m/%d') }}</th>
+                        <th style="width: 13%">Sunday<br>{{ days[6]['date'].strftime('%m/%d') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="bg-light text-center">
+                        {% for day in days %}
+                        <td class="py-2">
+                            <span class="badge bg-primary rounded-pill">{{ '{:.2f}'.format(day['total_hours']) }}</span>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        {% for day in days %}
+                        <td class="p-1" style="height: 250px; vertical-align: top;">
+                            <div class="d-flex justify-content-between mb-2">
+                                <small>{{ day['date'].strftime('%a, %b %d') }}</small>
+                                <a href="{{ url_for('timesheet.new') }}?date={{ day['date'].strftime('%Y-%m-%d') }}" class="text-primary">
+                                    <i class="fas fa-plus-circle"></i>
+                                </a>
+                            </div>
+                            
+                            <div class="timesheet-entries" style="max-height: 200px; overflow-y: auto;">
+                                {% for entry in day['entries'] %}
+                                <div class="card mb-2 border-left-primary">
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title mb-1">{{ entry.client }} - {{ entry.project }}</h6>
+                                        <p class="card-text small mb-1">{{ entry.description }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-primary fw-bold">{{ '{:.2f}'.format(entry.hours) }} hrs</span>
+                                            <div>
+                                                {% if entry.status == 'pending' %}
+                                                <a href="{{ url_for('timesheet.edit', id=entry.id) }}" class="btn btn-sm btn-link p-0 me-1">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Add Form -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-plus me-1"></i> Quick Add Timesheet Entry
+    </div>
+    <div class="card-body">
+        <form id="quickAddForm" class="row g-3">
+            <div class="col-md-2">
+                <label for="quick-date" class="form-label">Date</label>
+                <input type="date" class="form-control" id="quick-date" name="date" required>
+            </div>
+            <div class="col-md-2">
+                <label for="quick-client" class="form-label">Client</label>
+                <input type="text" class="form-control" id="quick-client" name="client" required>
+            </div>
+            <div class="col-md-2">
+                <label for="quick-project" class="form-label">Project</label>
+                <input type="text" class="form-control" id="quick-project" name="project" required>
+            </div>
+            <div class="col-md-3">
+                <label for="quick-description" class="form-label">Description</label>
+                <input type="text" class="form-control" id="quick-description" name="description" required>
+            </div>
+            <div class="col-md-1">
+                <label for="quick-hours" class="form-label">Hours</label>
+                <input type="number" class="form-control" id="quick-hours" name="hours" step="0.25" min="0.25" required>
+            </div>
+            <div class="col-md-2">
+                <label for="quick-hourly-rate" class="form-label">Rate ($)</label>
+                <input type="number" class="form-control" id="quick-hourly-rate" name="hourly_rate" step="0.01" value="{{ current_user.hourly_rate or '' }}">
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Add Entry</button>
+                <div id="quick-add-feedback" class="mt-2"></div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .border-left-primary {
+        border-left: 4px solid var(--primary-color) !important;
+    }
+    
+    .timesheet-entries .card {
+        transition: all 0.2s ease;
+    }
+    
+    .timesheet-entries .card:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Set default date to today
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date();
+        const dateString = today.toISOString().split('T')[0];
+        document.getElementById('quick-date').value = dateString;
+    });
+    
+    // Handle quick add form submission
+    document.getElementById('quickAddForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            date: document.getElementById('quick-date').value,
+            client: document.getElementById('quick-client').value,
+            project: document.getElementById('quick-project').value,
+            description: document.getElementById('quick-description').value,
+            hours: document.getElementById('quick-hours').value,
+            hourly_rate: document.getElementById('quick-hourly-rate').value
+        };
+        
+        // Submit via AJAX
+        fetch('{{ url_for("timesheet.quick_add") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('quick-add-feedback').innerHTML = 
+                    `<div class="alert alert-danger">${data.error}</div>`;
+            } else {
+                document.getElementById('quick-add-feedback').innerHTML = 
+                    `<div class="alert alert-success">Entry added successfully! Refreshing...</div>`;
+                
+                // Reset form
+                document.getElementById('quick-client').value = '';
+                document.getElementById('quick-project').value = '';
+                document.getElementById('quick-description').value = '';
+                document.getElementById('quick-hours').value = '';
+                
+                // Refresh the page after a short delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            }
+        })
+        .catch((error) => {
+            document.getElementById('quick-add-feedback').innerHTML = 
+                `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        });
+    });
+</script>
+{% endblock %}

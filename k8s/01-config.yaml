@@ -6,10 +6,12 @@ metadata:
 data:
   FLASK_APP: "app.py"
   FLASK_ENV: "production"
-  # These values should be changed to match your Azure Database for PostgreSQL
-  DB_HOST: "your-azure-postgres-server.postgres.database.azure.com"
+  DB_HOST: "wackops-prod-dbserver.postgres.database.azure.com"
   DB_PORT: "5432"
   DB_NAME: "akowe"
+  # Business settings
+  COMPANY_NAME: "InfoTitans"
+  DEFAULT_HOURLY_RATE: "120.00"
 ---
 apiVersion: v1
 kind: Secret
@@ -18,13 +20,12 @@ metadata:
   namespace: wackops
 type: Opaque
 stringData:
-  SECRET_KEY: "kfXpE0ZW7hfXP9KUlBnS8jK3yM6RgT2L"  # Change this in production!
-  # Update these with your Azure Database credentials
-  DB_USER: "akowe_user@your-azure-postgres-server"
-  DB_PASSWORD: "akowe_password"  # Change this in production!
+  SECRET_KEY: "Tr@Na5ti0e5ASt+!8B3+FRUJi+A!-DopRIfrOt74br9"
+  DB_USER: "wackadmin"
+  DB_PASSWORD: "Q(4*a!]Qf-vXiK5_"
   # Admin user settings
-  ADMIN_USERNAME: "admin"
-  ADMIN_EMAIL: "admin@example.com"
-  ADMIN_PASSWORD: "Admin123!"  # Change this in production!
-  ADMIN_FIRST_NAME: "Admin"
-  ADMIN_LAST_NAME: "User"
+  ADMIN_USERNAME: "profemzy"
+  ADMIN_EMAIL: "profemzy@gmail.com"
+  ADMIN_PASSWORD: "EbunOluwa22"
+  ADMIN_FIRST_NAME: "Femi"
+  ADMIN_LAST_NAME: "Oladele"

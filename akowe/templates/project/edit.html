@@ -1,0 +1,72 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Edit Project - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Edit Project</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('project.index') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Projects
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-project-diagram me-1"></i> Project Information
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('project.edit', id=project.id) }}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Project Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ project.name }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="client_id" class="form-label">Client <span class="text-danger">*</span></label>
+                        <select class="form-select" id="client_id" name="client_id" required>
+                            <option value="">Select a client</option>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}" {% if client.id == project.client_id %}selected{% endif %}>{{ client.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="hourly_rate" class="form-label">Default Hourly Rate</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="hourly_rate" name="hourly_rate" step="0.01" min="0" value="{% if project.hourly_rate %}{{ project.hourly_rate }}{% endif %}">
+                        </div>
+                        <div class="form-text">Leave blank to use client or user default rate</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="active" {% if project.status == 'active' %}selected{% endif %}>Active</option>
+                            <option value="completed" {% if project.status == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="archived" {% if project.status == 'archived' %}selected{% endif %}>Archived</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ project.description or '' }}</textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('project.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Update Project</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
