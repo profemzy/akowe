@@ -78,7 +78,7 @@
                 <select class="form-select" id="client" name="client">
                     <option value="all" {% if client_filter == 'all' %}selected{% endif %}>All</option>
                     {% for c in clients %}
-                    <option value="{{ c }}" {% if client_filter == c %}selected{% endif %}>{{ c }}</option>
+                    <option value="{{ c.id }}" {% if client_filter|string == c.id|string %}selected{% endif %}>{{ c.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -124,8 +124,8 @@
                     {% for entry in entries %}
                     <tr>
                         <td>{{ entry.date.strftime('%Y-%m-%d') }}</td>
-                        <td>{{ entry.client }}</td>
-                        <td>{{ entry.project }}</td>
+                        <td>{{ entry.client_ref.name if entry.client_ref else 'Unknown Client' }}</td>
+                        <td>{{ entry.project_ref.name if entry.project_ref else 'Unknown Project' }}</td>
                         <td>{{ entry.description }}</td>
                         <td>{{ '{:.2f}'.format(entry.hours) }}</td>
                         <td>${{ '{:.2f}'.format(entry.hourly_rate) }}</td>

@@ -53,7 +53,15 @@ def index():
         query = query.filter_by(status=status)
     
     if client != 'all':
-        query = query.filter_by(client=client)
+        # Try to find client by ID first, then fallback to name
+        try:
+            client_id = int(client)
+            query = query.filter_by(client_id=client_id)
+        except ValueError:
+            # Legacy support - look up client by name
+            client_obj = Client.query.filter_by(name=client, user_id=current_user.id).first()
+            if client_obj:
+                query = query.filter_by(client_id=client_obj.id)
     
     if from_date:
         try:
@@ -72,9 +80,8 @@ def index():
     # Get invoices ordered by issue date (most recent first)
     invoices = query.order_by(Invoice.issue_date.desc()).all()
     
-    # Get unique clients for filter dropdown
-    clients = db.session.query(Invoice.client).distinct().all()
-    clients = [c[0] for c in clients]
+    # Get unique clients for filter dropdown from Client model
+    clients = Client.query.filter_by(user_id=current_user.id).order_by(Client.name).all()
     
     # Calculate totals
     total_paid = sum(inv.total for inv in invoices if inv.status == 'paid')
