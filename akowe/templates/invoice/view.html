@@ -10,7 +10,7 @@
             <a href="{{ url_for('invoice.index') }}" class="btn btn-sm btn-outline-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Invoices
             </a>
-            <a href="{{ url_for('invoice.print', id=invoice.id) }}" class="btn btn-sm btn-outline-secondary" target="_blank">
+            <a href="{{ url_for('invoice.print_invoice', id=invoice.id) }}" class="btn btn-sm btn-outline-secondary" target="_blank">
                 <i class="fas fa-print"></i> Print
             </a>
             
@@ -48,7 +48,7 @@
                         <strong>Invoice Number:</strong> {{ invoice.invoice_number }}
                     </div>
                     <div class="col-md-6">
-                        <strong>Client:</strong> {{ invoice.client }}
+                        <strong>Client:</strong> {{ invoice.client_ref.name if invoice.client_ref else "Unknown Client" }}
                     </div>
                 </div>
                 
@@ -114,7 +114,7 @@
                             {% for entry in invoice.timesheet_entries %}
                             <tr>
                                 <td>{{ entry.date.strftime('%Y-%m-%d') }}</td>
-                                <td>{{ entry.project }}</td>
+                                <td>{{ entry.project_ref.name if entry.project_ref else "Unknown Project" }}</td>
                                 <td>{{ entry.description }}</td>
                                 <td>{{ '{:.2f}'.format(entry.hours) }}</td>
                                 <td>${{ '{:.2f}'.format(entry.hourly_rate) }}</td>

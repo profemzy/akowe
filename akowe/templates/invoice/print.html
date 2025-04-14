@@ -197,7 +197,7 @@
 
         <div class="client-info">
             <h3>Bill To:</h3>
-            <p><strong>{{ invoice.client }}</strong></p>
+            <p><strong>{{ invoice.client_ref.name if invoice.client_ref else "Unknown Client" }}</strong></p>
         </div>
 
         <table>
@@ -214,7 +214,7 @@
                 {% for entry in invoice.timesheet_entries %}
                 <tr>
                     <td>{{ entry.date.strftime('%Y-%m-%d') }}</td>
-                    <td>{{ entry.project }} - {{ entry.description }}</td>
+                    <td>{{ entry.project_ref.name if entry.project_ref else "Unknown Project" }} - {{ entry.description }}</td>
                     <td>{{ '{:.2f}'.format(entry.hours) }}</td>
                     <td>${{ '{:.2f}'.format(entry.hourly_rate) }}</td>
                     <td class="amount-col">${{ '{:.2f}'.format(entry.amount) }}</td>
