@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify
 from flask_login import current_user
@@ -258,7 +258,6 @@ def weekly():
         week_start = week_start - timedelta(days=week_start.weekday())
     
     # Calculate week end (Sunday)
-    from datetime import timedelta
     week_end = week_start + timedelta(days=6)
     
     # Get entries for the week
