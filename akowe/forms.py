@@ -3,11 +3,13 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, Email
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from akowe.models.user import User
 
+
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Log In')
+
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(2, 64)])
@@ -33,6 +35,7 @@ class RegistrationForm(FlaskForm):
         if User.query.filter_by(email=field.data).first():
             raise ValidationError('Email already registered.')
 
+
 class UserEditForm(FlaskForm):
     email = EmailField('Email', validators=[DataRequired(), Email()])
     first_name = StringField('First Name', validators=[Length(0, 64)])
@@ -48,6 +51,7 @@ class UserEditForm(FlaskForm):
     def validate_email(self, field):
         if field.data != self.user.email and User.query.filter_by(email=field.data).first():
             raise ValidationError('Email already registered.')
+
 
 class PasswordChangeForm(FlaskForm):
     current_password = PasswordField('Current Password', validators=[DataRequired()])

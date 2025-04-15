@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import Numeric
 from . import db
 
+
 class Income(db.Model):
     __tablename__ = 'income'
     

@@ -8,6 +8,7 @@ from akowe.forms import LoginForm, PasswordChangeForm
 
 bp = Blueprint('auth', __name__)
 
+
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     # If user is already logged in, redirect to dashboard
@@ -40,12 +41,14 @@ def login():
     
     return render_template('auth/login.html', form=form, title='Log In')
 
+
 @bp.route('/logout')
 @login_required
 def logout():
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))
+
 
 @bp.route('/change-password', methods=['GET', 'POST'])
 @login_required

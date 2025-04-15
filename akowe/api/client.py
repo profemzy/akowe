@@ -9,6 +9,7 @@ from akowe.models.timesheet import Timesheet
 
 bp = Blueprint('client', __name__, url_prefix='/client')
 
+
 @bp.route('/', methods=['GET'])
 @login_required
 def index():
@@ -28,6 +29,7 @@ def index():
     clients = query.order_by(Client.name).all()
     
     return render_template('client/index.html', clients=clients, search=search)
+
 
 @bp.route('/new', methods=['GET', 'POST'])
 @login_required
@@ -74,6 +76,7 @@ def new():
     
     return render_template('client/new.html')
 
+
 @bp.route('/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit(id):
@@ -104,6 +107,7 @@ def edit(id):
     
     return render_template('client/edit.html', client=client)
 
+
 @bp.route('/delete/<int:id>', methods=['POST'])
 @login_required
 def delete(id):
@@ -130,6 +134,7 @@ def delete(id):
     
     return redirect(url_for('client.index'))
 
+
 @bp.route('/view/<int:id>', methods=['GET'])
 @login_required
 def view(id):
@@ -152,6 +157,7 @@ def view(id):
                           invoices=invoices, 
                           timesheet_entries=timesheet_entries)
 
+
 @bp.route('/api/list', methods=['GET'])
 @login_required
 def api_list():
@@ -160,6 +166,7 @@ def api_list():
     return jsonify({
         'clients': [{'id': c.id, 'name': c.name} for c in clients]
     })
+
 
 @bp.route('/api/create', methods=['POST'])
 @login_required

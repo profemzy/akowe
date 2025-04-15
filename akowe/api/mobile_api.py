@@ -19,9 +19,11 @@ RECEIPT_CONTAINER = 'receipts'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
 MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB
 
+
 # Helper functions
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 def token_required(f):
     @wraps(f)
@@ -57,6 +59,7 @@ def token_required(f):
         return f(*args, **kwargs)
     
     return decorated
+
 
 # Authentication endpoints
 @bp.route('/login', methods=['POST'])
@@ -106,6 +109,7 @@ def login():
     
     return jsonify({'message': 'Invalid credentials'}), 401
 
+
 # User endpoints
 @bp.route('/user', methods=['GET'])
 @token_required
@@ -120,6 +124,7 @@ def get_user():
             'is_admin': g.current_user.is_admin
         }
     })
+
 
 @bp.route('/user/password', methods=['PUT'])
 @token_required
@@ -138,6 +143,7 @@ def change_password():
     db.session.commit()
     
     return jsonify({'message': 'Password changed successfully'})
+
 
 # Expense endpoints
 @bp.route('/expenses', methods=['GET'])
@@ -192,6 +198,7 @@ def get_expenses():
     
     return jsonify({'expenses': result})
 
+
 @bp.route('/expenses/<int:id>', methods=['GET'])
 @token_required
 def get_expense(id):
@@ -222,6 +229,7 @@ def get_expense(id):
         'created_at': expense.created_at.isoformat() if expense.created_at else None,
         'updated_at': expense.updated_at.isoformat() if expense.updated_at else None
     })
+
 
 @bp.route('/expenses', methods=['POST'])
 @token_required
@@ -305,6 +313,7 @@ def create_expense():
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': f'Error creating expense: {str(e)}'}), 500
+
 
 @bp.route('/expenses/<int:id>', methods=['PUT'])
 @token_required
@@ -405,6 +414,7 @@ def update_expense(id):
         db.session.rollback()
         return jsonify({'message': f'Error updating expense: {str(e)}'}), 500
 
+
 @bp.route('/expenses/<int:id>', methods=['DELETE'])
 @token_required
 def delete_expense(id):
@@ -427,6 +437,7 @@ def delete_expense(id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': f'Error deleting expense: {str(e)}'}), 500
+
 
 # Income endpoints
 @bp.route('/incomes', methods=['GET'])
@@ -475,6 +486,7 @@ def get_incomes():
     
     return jsonify({'incomes': result})
 
+
 @bp.route('/incomes/<int:id>', methods=['GET'])
 @token_required
 def get_income(id):
@@ -490,6 +502,7 @@ def get_income(id):
         'created_at': income.created_at.isoformat() if income.created_at else None,
         'updated_at': income.updated_at.isoformat() if income.updated_at else None
     })
+
 
 @bp.route('/incomes', methods=['POST'])
 @token_required
@@ -540,6 +553,7 @@ def create_income():
         db.session.rollback()
         return jsonify({'message': f'Error creating income: {str(e)}'}), 500
 
+
 @bp.route('/incomes/<int:id>', methods=['PUT'])
 @token_required
 def update_income(id):
@@ -587,6 +601,7 @@ def update_income(id):
         db.session.rollback()
         return jsonify({'message': f'Error updating income: {str(e)}'}), 500
 
+
 @bp.route('/incomes/<int:id>', methods=['DELETE'])
 @token_required
 def delete_income(id):
@@ -602,6 +617,7 @@ def delete_income(id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': f'Error deleting income: {str(e)}'}), 500
+
 
 # Dashboard endpoints
 @bp.route('/dashboard', methods=['GET'])
@@ -727,6 +743,7 @@ def get_dashboard():
         'recent_incomes': recent_income_list
     })
 
+
 # Export endpoints
 @bp.route('/export/expenses', methods=['GET'])
 @token_required
@@ -762,6 +779,7 @@ def export_expenses():
         csv_data += f"{expense.date.isoformat()},{expense.title},{expense.amount},{expense.category},{expense.payment_method},{expense.status},{vendor}\n"
     
     return jsonify({'csv_data': csv_data})
+
 
 @bp.route('/export/incomes', methods=['GET'])
 @token_required
@@ -799,6 +817,7 @@ def export_incomes():
     
     return jsonify({'csv_data': csv_data})
 
+
 # Reference data endpoints
 @bp.route('/references/categories', methods=['GET'])
 @token_required
@@ -806,11 +825,13 @@ def get_categories():
     from akowe.api.expense import CATEGORIES
     return jsonify({'categories': CATEGORIES})
 
+
 @bp.route('/references/payment-methods', methods=['GET'])
 @token_required
 def get_payment_methods():
     from akowe.api.expense import PAYMENT_METHODS
     return jsonify({'payment_methods': PAYMENT_METHODS})
+
 
 @bp.route('/references/statuses', methods=['GET'])
 @token_required

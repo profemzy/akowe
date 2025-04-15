@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
+
 from flask import Blueprint, render_template, request
-from sqlalchemy import func, extract
+from sqlalchemy import extract
 
 from akowe.models.expense import Expense
 from akowe.models.income import Income
@@ -77,6 +78,7 @@ CCA_CLASSES = {
         'examples': ['servers', 'desktops', 'laptops', 'operating systems'],
     }
 }
+
 
 @bp.route('/', methods=['GET'])
 def index():

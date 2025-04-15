@@ -1,12 +1,13 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 
+from akowe.decorators import admin_required
+from akowe.forms import RegistrationForm, UserEditForm
 from akowe.models import db
 from akowe.models.user import User
-from akowe.forms import RegistrationForm, UserEditForm
-from akowe.decorators import admin_required
 
 bp = Blueprint('admin', __name__, url_prefix='/admin')
+
 
 @bp.route('/')
 @login_required
@@ -14,12 +15,14 @@ bp = Blueprint('admin', __name__, url_prefix='/admin')
 def index():
     return render_template('admin/index.html', title='Admin Dashboard')
 
+
 @bp.route('/users')
 @login_required
 @admin_required
 def users():
     users = User.query.all()
     return render_template('admin/users.html', users=users, title='User Management')
+
 
 @bp.route('/users/new', methods=['GET', 'POST'])
 @login_required
@@ -44,6 +47,7 @@ def new_user():
         return redirect(url_for('admin.users'))
     
     return render_template('admin/new_user.html', form=form, title='Create User')
+
 
 @bp.route('/users/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -79,6 +83,7 @@ def edit_user(id):
     
     return render_template('admin/edit_user.html', form=form, user=user, title='Edit User')
 
+
 @bp.route('/users/<int:id>/delete', methods=['POST'])
 @login_required
 @admin_required
@@ -101,6 +106,7 @@ def delete_user(id):
     
     flash(f'User {username} has been deleted.', 'success')
     return redirect(url_for('admin.users'))
+
 
 @bp.route('/users/<int:id>/reset-password', methods=['POST'])
 @login_required

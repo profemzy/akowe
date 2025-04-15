@@ -1,6 +1,7 @@
 from datetime import datetime
 from . import db
 
+
 class Project(db.Model):
     __tablename__ = 'project'
     

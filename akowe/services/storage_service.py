@@ -1,8 +1,10 @@
 import os
 import uuid
-from typing import Optional, Tuple
 from datetime import datetime, timedelta
-from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient, generate_blob_sas, BlobSasPermissions
+from typing import Tuple
+
+from azure.storage.blob import BlobServiceClient, ContainerClient, generate_blob_sas, BlobSasPermissions
+
 
 class StorageService:
     """Service for handling file uploads to Azure Blob Storage"""

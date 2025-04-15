@@ -1,11 +1,11 @@
 """Service for exporting financial data to CSV."""
 import csv
 import io
-from typing import List, Dict, Any, Tuple
 from datetime import datetime
+from typing import Tuple
 
-from akowe.models.income import Income
 from akowe.models.expense import Expense
+from akowe.models.income import Income
 
 
 class ExportService:

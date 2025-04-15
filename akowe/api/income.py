@@ -10,10 +10,12 @@ from akowe.services.import_service import ImportService
 
 bp = Blueprint('income', __name__, url_prefix='/income')
 
+
 @bp.route('/', methods=['GET'])
 def index():
     incomes = Income.query.order_by(Income.date.desc()).all()
     return render_template('income/index.html', incomes=incomes)
+
 
 @bp.route('/new', methods=['GET', 'POST'])
 def new():
@@ -44,6 +46,7 @@ def new():
     
     return render_template('income/new.html')
 
+
 @bp.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id):
     income = Income.query.get_or_404(id)
@@ -66,6 +69,7 @@ def edit(id):
     
     return render_template('income/edit.html', income=income)
 
+
 @bp.route('/delete/<int:id>', methods=['POST'])
 def delete(id):
     income = Income.query.get_or_404(id)
@@ -79,6 +83,7 @@ def delete(id):
         flash(f'Error deleting income record: {str(e)}', 'error')
     
     return redirect(url_for('income.index'))
+
 
 @bp.route('/import', methods=['GET', 'POST'])
 def import_csv():

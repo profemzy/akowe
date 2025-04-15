@@ -1,16 +1,18 @@
-from datetime import datetime, timedelta
 import os
+from datetime import datetime, timedelta
 from decimal import Decimal
-from flask import Blueprint, request, render_template, redirect, url_for, flash, abort, jsonify, current_app
+
+from flask import Blueprint, request, render_template, redirect, url_for, flash
 from flask_login import current_user
 from sqlalchemy import and_, or_
 
 from akowe.models import db
+from akowe.models.client import Client
 from akowe.models.invoice import Invoice
 from akowe.models.timesheet import Timesheet
-from akowe.models.client import Client
 
 bp = Blueprint('invoice', __name__, url_prefix='/invoice')
+
 
 def generate_invoice_number():
     """Generate a unique invoice number"""
@@ -35,6 +37,7 @@ def generate_invoice_number():
     
     # Format with leading zeros (e.g., INV-202504-0001)
     return f'INV-{year_month}-{next_seq:04d}'
+
 
 @bp.route('/', methods=['GET'])
 def index():
@@ -98,6 +101,7 @@ def index():
                           total_paid=total_paid,
                           total_outstanding=total_outstanding,
                           total_draft=total_draft)
+
 
 @bp.route('/new', methods=['GET', 'POST'])
 def new():
@@ -165,7 +169,6 @@ def new():
                         if 'description' in item and 'hours' in item and 'rate' in item:
                             custom_entry = Timesheet(
                                 date=issue_date,  # Use invoice date
-                                client=client_name,  # Keep for backward compatibility
                                 client_id=client.id,  # New foreign key
                                 project='Custom Item',
                                 description=item['description'],
@@ -231,6 +234,7 @@ def new():
                           due_date=default_due_date,
                           default_hourly_rate=default_hourly_rate)
 
+
 @bp.route('/view/<int:id>', methods=['GET'])
 def view(id):
     """View an invoice"""
@@ -242,6 +246,7 @@ def view(id):
         return redirect(url_for('invoice.index'))
     
     return render_template('invoice/view.html', invoice=invoice)
+
 
 @bp.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id):
@@ -334,6 +339,7 @@ def edit(id):
                           clients=clients,
                           all_entries=all_available_entries)
 
+
 @bp.route('/delete/<int:id>', methods=['POST'])
 def delete(id):
     """Delete an invoice"""
@@ -365,6 +371,7 @@ def delete(id):
     
     return redirect(url_for('invoice.index'))
 
+
 @bp.route('/mark_sent/<int:id>', methods=['POST'])
 def mark_sent(id):
     """Mark an invoice as sent"""
@@ -390,6 +397,7 @@ def mark_sent(id):
         flash(f'Error updating invoice: {str(e)}', 'error')
     
     return redirect(url_for('invoice.view', id=invoice.id))
+
 
 @bp.route('/mark_paid/<int:id>', methods=['POST'])
 def mark_paid(id):
@@ -423,6 +431,7 @@ def mark_paid(id):
         flash(f'Error updating invoice: {str(e)}', 'error')
     
     return redirect(url_for('invoice.view', id=invoice.id))
+
 
 @bp.route('/print/<int:id>', methods=['GET'])
 def print_invoice(id):

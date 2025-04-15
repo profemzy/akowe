@@ -10,6 +10,7 @@ from akowe.models.timesheet import Timesheet
 
 bp = Blueprint('project', __name__, url_prefix='/project')
 
+
 @bp.route('/', methods=['GET'])
 @login_required
 def index():
@@ -47,6 +48,7 @@ def index():
                           client_id=client_id,
                           status=status,
                           search=search)
+
 
 @bp.route('/new', methods=['GET', 'POST'])
 @login_required
@@ -113,6 +115,7 @@ def new():
     
     return render_template('project/new.html', clients=clients)
 
+
 @bp.route('/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit(id):
@@ -151,6 +154,7 @@ def edit(id):
     
     return render_template('project/edit.html', project=project, clients=clients)
 
+
 @bp.route('/delete/<int:id>', methods=['POST'])
 @login_required
 def delete(id):
@@ -176,6 +180,7 @@ def delete(id):
         flash(f'Error deleting project: {str(e)}', 'error')
     
     return redirect(url_for('project.index'))
+
 
 @bp.route('/view/<int:id>', methods=['GET'])
 @login_required
@@ -207,6 +212,7 @@ def view(id):
                           billed_hours=billed_hours,
                           paid_hours=paid_hours)
 
+
 @bp.route('/api/list', methods=['GET'])
 @login_required
 def api_list():
@@ -229,6 +235,7 @@ def api_list():
     return jsonify({
         'projects': [{'id': p.id, 'name': p.name, 'client_id': p.client_id, 'hourly_rate': float(p.hourly_rate) if p.hourly_rate else None} for p in projects]
     })
+
 
 @bp.route('/api/create', methods=['POST'])
 @login_required

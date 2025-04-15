@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import Numeric
 from . import db
 
+
 class Invoice(db.Model):
     __tablename__ = 'invoice'
     
@@ -29,8 +30,7 @@ class Invoice(db.Model):
     timesheet_entries = db.relationship('Timesheet', back_populates='invoice', cascade='all, delete-orphan')
     user = db.relationship('User', back_populates='invoices')
     client_ref = db.relationship('Client', back_populates='invoices')
-    
-    
+
     def calculate_totals(self):
         """Calculate subtotal, tax, and total"""
         # Calculate subtotal from timesheet entries

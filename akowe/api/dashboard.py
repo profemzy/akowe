@@ -8,6 +8,7 @@ from akowe.models.expense import Expense
 
 bp = Blueprint('dashboard', __name__, url_prefix='/')
 
+
 @bp.route('/', methods=['GET'])
 def index():
     # Get current year and selected year from query param

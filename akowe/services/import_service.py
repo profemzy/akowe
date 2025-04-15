@@ -7,6 +7,7 @@ from akowe.models import db
 from akowe.models.income import Income
 from akowe.models.expense import Expense
 
+
 class ImportService:
     @staticmethod
     def import_income_csv(file_path: str) -> Tuple[List[Dict[str, Any]], int]:

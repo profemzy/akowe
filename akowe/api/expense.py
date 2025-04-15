@@ -1,7 +1,8 @@
 import os
 from datetime import datetime
 from decimal import Decimal
-from flask import Blueprint, request, render_template, redirect, url_for, flash, current_app, send_file, abort
+
+from flask import Blueprint, request, render_template, redirect, url_for, flash, current_app
 from werkzeug.utils import secure_filename
 
 from akowe.models import db
@@ -20,13 +21,16 @@ RECEIPT_CONTAINER = 'receipts'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
 MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB
 
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @bp.route('/', methods=['GET'])
 def index():
     expenses = Expense.query.order_by(Expense.date.desc()).all()
     return render_template('expense/index.html', expenses=expenses)
+
 
 @bp.route('/new', methods=['GET', 'POST'])
 def new():
@@ -90,6 +94,7 @@ def new():
                           statuses=STATUSES,
                           categories=CATEGORIES)
 
+
 @bp.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id):
     expense = Expense.query.get_or_404(id)
@@ -152,6 +157,7 @@ def edit(id):
                           statuses=STATUSES,
                           categories=CATEGORIES)
 
+
 @bp.route('/delete/<int:id>', methods=['POST'])
 def delete(id):
     expense = Expense.query.get_or_404(id)
@@ -173,6 +179,7 @@ def delete(id):
     
     return redirect(url_for('expense.index'))
 
+
 @bp.route('/view-receipt/<int:id>', methods=['GET'])
 def view_receipt(id):
     expense = Expense.query.get_or_404(id)
@@ -188,6 +195,7 @@ def view_receipt(id):
     except Exception as e:
         flash(f'Error accessing receipt: {str(e)}', 'error')
         return redirect(url_for('expense.edit', id=id))
+
 
 @bp.route('/delete-receipt/<int:id>', methods=['POST'])
 def delete_receipt(id):
@@ -212,6 +220,7 @@ def delete_receipt(id):
         flash(f'Error deleting receipt: {str(e)}', 'error')
     
     return redirect(url_for('expense.edit', id=id))
+
 
 @bp.route('/import', methods=['GET', 'POST'])
 def import_csv():
