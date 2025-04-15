@@ -4,8 +4,8 @@ from . import db
 
 
 class Expense(db.Model):
-    __tablename__ = 'expense'
-    
+    __tablename__ = "expense"
+
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
     title = db.Column(db.String(255), nullable=False)
@@ -18,10 +18,10 @@ class Expense(db.Model):
     receipt_url = db.Column(db.String(1024), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     def __repr__(self):
         return f"<Expense {self.id}: {self.amount} for {self.title} on {self.date}>"
-        
+
     def has_receipt(self) -> bool:
         """Check if the expense has a receipt attached"""
         return bool(self.receipt_blob_name)
