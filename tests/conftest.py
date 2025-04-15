@@ -1,4 +1,5 @@
 """Test configuration for Akowe Financial Tracker."""
+
 import os
 import tempfile
 import pytest
@@ -19,17 +20,19 @@ def app():
     """Create and configure a Flask app for testing."""
     # Create a temporary file to isolate the database for each test
     db_fd, db_path = tempfile.mkstemp()
-    app = create_app({
-        'TESTING': True,
-        'SQLALCHEMY_DATABASE_URI': f'sqlite:///{db_path}',
-        'WTF_CSRF_ENABLED': False,
-        'MAX_CONTENT_LENGTH': 5 * 1024 * 1024,  # 5MB max upload for tests
-        'AZURE_STORAGE_CONNECTION_STRING': 'DefaultEndpointsProtocol=https;AccountName=test;AccountKey=test;EndpointSuffix=core.windows.net'
-    })
+    app = create_app(
+        {
+            "TESTING": True,
+            "SQLALCHEMY_DATABASE_URI": f"sqlite:///{db_path}",
+            "WTF_CSRF_ENABLED": False,
+            "MAX_CONTENT_LENGTH": 5 * 1024 * 1024,  # 5MB max upload for tests
+            "AZURE_STORAGE_CONNECTION_STRING": "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=test;EndpointSuffix=core.windows.net",
+        }
+    )
 
     # Store db reference on app for test access
     app.db = db
-    
+
     # Create the database and the tables
     with app.app_context():
         db.create_all()
@@ -56,19 +59,17 @@ def runner(app):
 @pytest.fixture
 def auth(client, test_user):
     """Authentication helper for tests."""
+
     class AuthActions:
         def __init__(self, test_user):
             self.test_user = test_user
-            
-        def login(self, username='test', password='password'):
-            return client.post(
-                '/login',
-                data={'username': username, 'password': password}
-            )
-        
+
+        def login(self, username="test", password="password"):
+            return client.post("/login", data={"username": username, "password": password})
+
         def logout(self):
-            return client.get('/logout')
-    
+            return client.get("/logout")
+
     return AuthActions(test_user)
 
 
@@ -77,17 +78,17 @@ def test_user(app):
     """Create a test user in the database."""
     with app.app_context():
         user = User(
-            username='test',
-            email='test@example.com',
-            first_name='Test',
-            last_name='User',
-            hourly_rate=Decimal('120.00'),
-            is_admin=False
+            username="test",
+            email="test@example.com",
+            first_name="Test",
+            last_name="User",
+            hourly_rate=Decimal("120.00"),
+            is_admin=False,
         )
-        user.password = 'password'
+        user.password = "password"
         db.session.add(user)
         db.session.commit()
-        
+
         return user
 
 
@@ -96,16 +97,16 @@ def admin_user(app):
     """Create an admin user in the database."""
     with app.app_context():
         user = User(
-            username='admin',
-            email='admin@example.com',
-            first_name='Admin',
-            last_name='User',
-            is_admin=True
+            username="admin",
+            email="admin@example.com",
+            first_name="Admin",
+            last_name="User",
+            is_admin=True,
         )
-        user.password = 'password'
+        user.password = "password"
         db.session.add(user)
         db.session.commit()
-        
+
         return user
 
 
@@ -116,25 +117,25 @@ def sample_income(app, test_user):
         incomes = [
             Income(
                 date=date(2025, 3, 21),
-                amount=Decimal('9040.00'),
-                client='SearchLabs (RAVL)',
-                project='P2025001 - Interac Konek',
-                invoice='Invoice #INV-202503-0002 - SearchLabs'
+                amount=Decimal("9040.00"),
+                client="SearchLabs (RAVL)",
+                project="P2025001 - Interac Konek",
+                invoice="Invoice #INV-202503-0002 - SearchLabs",
             ),
             Income(
                 date=date(2025, 2, 21),
-                amount=Decimal('9040.00'),
-                client='SearchLabs (RAVL)',
-                project='P2025001 - Interac Konek',
-                invoice='Invoice #INV-202502-0001 - SearchLabs'
+                amount=Decimal("9040.00"),
+                client="SearchLabs (RAVL)",
+                project="P2025001 - Interac Konek",
+                invoice="Invoice #INV-202502-0001 - SearchLabs",
             ),
         ]
-        
+
         for income in incomes:
             db.session.add(income)
-        
+
         db.session.commit()
-        
+
         return incomes
 
 
@@ -145,29 +146,29 @@ def sample_expense(app, test_user):
         expenses = [
             Expense(
                 date=date(2025, 4, 12),
-                title='WD Red Plus 12TB NAS Hard Disk Drive',
-                amount=Decimal('386.37'),
-                category='hardware',
-                payment_method='credit_card',
-                status='pending',
-                vendor='Newegg'
+                title="WD Red Plus 12TB NAS Hard Disk Drive",
+                amount=Decimal("386.37"),
+                category="hardware",
+                payment_method="credit_card",
+                status="pending",
+                vendor="Newegg",
             ),
             Expense(
                 date=date(2025, 3, 30),
-                title='Corsair MP600 Pro LPX 2TB M.2 NVMe PCI-e (Gen 4) Internal Solid State Drive',
-                amount=Decimal('251.00'),
-                category='hardware',
-                payment_method='credit_card',
-                status='paid',
-                vendor='BestBuy'
+                title="Corsair MP600 Pro LPX 2TB M.2 NVMe PCI-e (Gen 4) Internal Solid State Drive",
+                amount=Decimal("251.00"),
+                category="hardware",
+                payment_method="credit_card",
+                status="paid",
+                vendor="BestBuy",
             ),
         ]
-        
+
         for expense in expenses:
             db.session.add(expense)
-        
+
         db.session.commit()
-        
+
         return expenses
 
 
@@ -178,41 +179,41 @@ def sample_timesheet(app, test_user):
         entries = [
             Timesheet(
                 date=date(2025, 4, 15),
-                client='SearchLabs (RAVL)',
-                project='P2025001 - Interac Konek',
-                description='API development and testing',
-                hours=Decimal('8.5'),
-                hourly_rate=Decimal('125.00'),
-                status='pending',
-                user_id=test_user.id
+                client="SearchLabs (RAVL)",
+                project="P2025001 - Interac Konek",
+                description="API development and testing",
+                hours=Decimal("8.5"),
+                hourly_rate=Decimal("125.00"),
+                status="pending",
+                user_id=test_user.id,
             ),
             Timesheet(
                 date=date(2025, 4, 16),
-                client='SearchLabs (RAVL)',
-                project='P2025001 - Interac Konek',
-                description='Frontend integration',
-                hours=Decimal('6.0'),
-                hourly_rate=Decimal('125.00'),
-                status='pending',
-                user_id=test_user.id
+                client="SearchLabs (RAVL)",
+                project="P2025001 - Interac Konek",
+                description="Frontend integration",
+                hours=Decimal("6.0"),
+                hourly_rate=Decimal("125.00"),
+                status="pending",
+                user_id=test_user.id,
             ),
             Timesheet(
                 date=date(2025, 4, 17),
-                client='TechCorp',
-                project='Website Redesign',
-                description='UI/UX improvements',
-                hours=Decimal('4.5'),
-                hourly_rate=Decimal('110.00'),
-                status='pending',
-                user_id=test_user.id
+                client="TechCorp",
+                project="Website Redesign",
+                description="UI/UX improvements",
+                hours=Decimal("4.5"),
+                hourly_rate=Decimal("110.00"),
+                status="pending",
+                user_id=test_user.id,
             ),
         ]
-        
+
         for entry in entries:
             db.session.add(entry)
-        
+
         db.session.commit()
-        
+
         return entries
 
 
@@ -221,33 +222,36 @@ def sample_invoice(app, test_user, sample_timesheet):
     """Create a sample invoice with timesheet entries."""
     with app.app_context():
         # Get the SearchLabs timesheet entries
-        entries = [entry for entry in sample_timesheet 
-                  if entry.client == 'SearchLabs (RAVL)' and entry.status == 'pending']
-        
+        entries = [
+            entry
+            for entry in sample_timesheet
+            if entry.client == "SearchLabs (RAVL)" and entry.status == "pending"
+        ]
+
         # Create invoice
         invoice = Invoice(
-            invoice_number='INV-202504-0001',
-            client='SearchLabs (RAVL)',
-            company_name='Akowe Test Company',
+            invoice_number="INV-202504-0001",
+            client="SearchLabs (RAVL)",
+            company_name="Akowe Test Company",
             issue_date=date(2025, 4, 20),
             due_date=date(2025, 5, 20),
-            notes='Payment due within 30 days',
-            tax_rate=Decimal('13.00'),
-            status='draft',
-            user_id=test_user.id
+            notes="Payment due within 30 days",
+            tax_rate=Decimal("13.00"),
+            status="draft",
+            user_id=test_user.id,
         )
-        
+
         db.session.add(invoice)
         db.session.flush()  # Get the ID
-        
+
         # Link timesheet entries to invoice
         for entry in entries:
             entry.invoice_id = invoice.id
-            entry.status = 'billed'
-        
+            entry.status = "billed"
+
         # Calculate invoice totals
         invoice.calculate_totals()
-        
+
         db.session.commit()
-        
+
         return invoice
