@@ -170,6 +170,7 @@ def sample_expense(app, test_user):
         
         return expenses
 
+
 @pytest.fixture
 def sample_timesheet(app, test_user):
     """Create sample timesheet entries."""
@@ -213,6 +214,7 @@ def sample_timesheet(app, test_user):
         db.session.commit()
         
         return entries
+
 
 @pytest.fixture
 def sample_invoice(app, test_user, sample_timesheet):

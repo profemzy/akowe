@@ -8,6 +8,7 @@ from akowe import create_app
 from akowe.models import db
 from akowe.models.user import User
 
+
 def create_admin_from_env():
     """Create admin user from environment variables."""
     app = create_app()
@@ -67,6 +68,7 @@ def create_admin_from_env():
             else:
                 print("Failed to create admin user after maximum attempts.")
                 sys.exit(1)
+
 
 if __name__ == "__main__":
     create_admin_from_env()

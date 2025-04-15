@@ -163,7 +163,7 @@ def test_timesheet_quick_add(client, auth, test_user, app):
                              'hours': '2.5',
                              'hourly_rate': '95.00'
                          },
-                         content_type='application/json')
+        content_type='application/json')
     
     assert response.status_code == 201
     data = response.get_json()

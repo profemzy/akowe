@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch, MagicMock
 from io import BytesIO
 from akowe.services.storage_service import StorageService
 
+
 class MockBlobClient:
     def __init__(self, url='https://test.blob.core.windows.net/test/test.jpg'):
         self.url = url
@@ -14,6 +15,7 @@ class MockBlobClient:
     def delete_blob(self):
         return None
 
+
 class MockContainerClient:
     def __init__(self, container_name='test'):
         self.container_name = container_name
@@ -23,6 +25,7 @@ class MockContainerClient:
     
     def get_container_properties(self):
         return {}
+
 
 class MockBlobServiceClient:
     def __init__(self, account_name='testaccount'):
@@ -38,6 +41,7 @@ class MockBlobServiceClient:
     
     def create_container(self, container_name):
         return MockContainerClient(container_name)
+
 
 class TestStorageService(unittest.TestCase):
     
