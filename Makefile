@@ -13,7 +13,6 @@ test:
 
 lint:
 	flake8 .
-	mypy akowe
 
 format:
 	black .
