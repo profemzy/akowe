@@ -1,17 +1,15 @@
 """Initialize or update the database schema."""
 import os
 import sys
-from flask import Flask
-from sqlalchemy import create_engine, inspect, text
-from sqlalchemy.exc import SQLAlchemyError, ProgrammingError
 from decimal import Decimal
+
+from flask import Flask
+from sqlalchemy import inspect, text
+from sqlalchemy.exc import SQLAlchemyError, ProgrammingError
 
 from akowe.models import db
 from akowe.models.user import User
-from akowe.models.income import Income
-from akowe.models.expense import Expense
-from akowe.models.timesheet import Timesheet
-from akowe.models.invoice import Invoice
+
 
 def init_db():
     """Initialize the database schema."""

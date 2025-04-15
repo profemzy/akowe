@@ -1,10 +1,10 @@
 import os
-import shutil
-from flask_migrate import Migrate, init, migrate, upgrade
-from akowe import create_app, db
-from akowe.models.income import Income
-from akowe.models.expense import Expense
+
+from flask_migrate import init, migrate, upgrade
+
+from akowe import create_app
 from akowe.services.import_service import ImportService
+
 
 def setup_db():
     """Set up the database and import initial data."""
