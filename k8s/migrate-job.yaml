@@ -11,7 +11,7 @@ spec:
       restartPolicy: Never
       containers:
       - name: akowe-migrate
-        image: wackopsprodacr.azurecr.io/akowe:v0.0.16
+        image: wackopsprodacr.azurecr.io/akowe:v1.0.0
         imagePullPolicy: Always
         command: ["python", "init_db.py"]
         envFrom:
