@@ -31,12 +31,15 @@ def new_user():
     form = RegistrationForm()
 
     if form.validate_on_submit():
+        # Handle the is_admin boolean explicitly from form data
+        is_admin_value = request.form.get('is_admin', '') == 'y'
+        
         user = User(
             username=form.username.data,
             email=form.email.data,
             first_name=form.first_name.data,
             last_name=form.last_name.data,
-            is_admin=form.is_admin.data,
+            is_admin=is_admin_value,
         )
         user.password = form.password.data
 
@@ -70,11 +73,15 @@ def edit_user(id):
         form.is_active.data = user.is_active
 
     if form.validate_on_submit():
+        # Handle boolean values explicitly
+        is_admin_value = request.form.get('is_admin', '') == 'y'
+        is_active_value = request.form.get('is_active', '') == 'y'
+        
         user.email = form.email.data
         user.first_name = form.first_name.data
         user.last_name = form.last_name.data
-        user.is_admin = form.is_admin.data
-        user.is_active = form.is_active.data
+        user.is_admin = is_admin_value
+        user.is_active = is_active_value
 
         db.session.commit()
 

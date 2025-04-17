@@ -12,6 +12,7 @@ Akowe is a financial tracking application built to help with business expense an
 - Invoice generation from timesheet entries
 - Generate financial reports and summaries
 - Prepare data for tax season with Canadian tax support
+- AI-powered tax category suggestions and optimization
 - User authentication and authorization
 - Admin portal for user management
 
@@ -169,6 +170,35 @@ Track billable hours and generate invoices with the timesheet system. See the [t
 ## Invoice System
 
 Create professional invoices from timesheet entries. See the [invoice documentation](./docs/invoice.md) for setup and workflow information.
+
+## AI-Powered Tax Features
+
+Akowe includes comprehensive AI-powered tax features to optimize your tax position:
+
+### 1. Smart Tax Categorization
+
+- **Smart Tax Category Recommendations**: Get intelligent suggestions for expense categories based on title and vendor information
+- **Tax Implications Analysis**: View CRA tax category mapping, deduction rates, and special tax rules for each expense category
+- **Expense Analysis Dashboard**: Access the AI Tax Analysis page to identify potential tax optimization opportunities
+- **Missing Receipt Detection**: Automatically identify expenses over $100 missing receipts that could be problematic during audits
+- **Tax Optimization Suggestions**: Get personalized recommendations to maximize deductions
+
+Access these features:
+- From the expense list page, click the "AI Tax Analysis" button in the top toolbar
+- When creating or editing an expense, use the "Get AI Category Suggestions" button 
+- Visit `/expense/analyze-expenses` directly to see the full analysis dashboard
+
+### 2. AI Tax Planning & Prediction
+
+- **Income & Expense Projections**: Get year-end projections based on current data
+- **Tax Bracket Analysis**: See which federal tax bracket you're in and how close you are to the next one
+- **Monthly Breakdown**: View month-by-month income and expense projections
+- **Strategic Tax Planning**: Receive timely suggestions for tax optimization strategies
+- **Effective Tax Rate Calculation**: Understand your real tax burden percentage
+
+Access these features:
+- From the tax dashboard, click the "AI Tax Planning" button (only available for current year)
+- Visit `/tax/prediction` directly to see the full planning dashboard
 
 ## Mobile API
 

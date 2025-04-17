@@ -36,18 +36,21 @@ def test_user_creation(client, auth, admin_user, app):
     """Test creating a new user as admin."""
     auth.login("admin", "password")
 
-    # Submit the form
+    # Submit the form - note that HTML checkboxes only send values when checked
+    form_data = {
+        "username": "newuser",
+        "email": "newuser@example.com",
+        "first_name": "New",
+        "last_name": "User",
+        "password": "newpassword",
+        "confirm_password": "newpassword",
+        "submit": "Register",
+        # Not including is_admin will make it False
+    }
+    
     response = client.post(
         "/admin/users/new",
-        data={
-            "username": "newuser",
-            "email": "newuser@example.com",
-            "first_name": "New",
-            "last_name": "User",
-            "password": "newpassword",
-            "confirm_password": "newpassword",
-            "is_admin": False,
-        },
+        data=form_data,
         follow_redirects=True,
     )
 
@@ -78,8 +81,9 @@ def test_user_edit(client, auth, admin_user, test_user, app):
             "email": "updated@example.com",
             "first_name": "Updated",
             "last_name": "User",
-            "is_admin": True,
-            "is_active": True,
+            "is_admin": "y",  # When checkbox is checked, it sends 'y'
+            "is_active": "y",  # When checkbox is checked, it sends 'y'
+            "submit": "Update User",
         },
         follow_redirects=True,
     )

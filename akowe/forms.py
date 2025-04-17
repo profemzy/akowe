@@ -47,12 +47,12 @@ class UserEditForm(FlaskForm):
     is_active = BooleanField("Active")
     submit = SubmitField("Update User")
 
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
         super(UserEditForm, self).__init__(*args, **kwargs)
-        self.user = user
 
     def validate_email(self, field):
-        if field.data != self.user.email and User.query.filter_by(email=field.data).first():
+        if self.user and field.data != self.user.email and User.query.filter_by(email=field.data).first():
             raise ValidationError("Email already registered.")
 
 
