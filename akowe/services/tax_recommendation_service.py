@@ -344,7 +344,6 @@ class TaxRecommendationService:
             
         return suggestions
 
-
     @classmethod
     def analyze_expenses(cls, expenses: List[Expense]) -> Dict:
         """
