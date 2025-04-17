@@ -1,14 +1,16 @@
 import os
 from datetime import datetime
 from decimal import Decimal
+import json
 
-from flask import Blueprint, request, render_template, redirect, url_for, flash, current_app
+from flask import Blueprint, request, render_template, redirect, url_for, flash, current_app, jsonify
 from werkzeug.utils import secure_filename
 
 from akowe.models import db
 from akowe.models.expense import Expense
 from akowe.services.import_service import ImportService
 from akowe.services.storage_service import StorageService
+from akowe.services.tax_recommendation_service import TaxRecommendationService
 
 bp = Blueprint("expense", __name__, url_prefix="/expense")
 
@@ -245,6 +247,70 @@ def delete_receipt(id):
         flash(f"Error deleting receipt: {str(e)}", "error")
 
     return redirect(url_for("expense.edit", id=id))
+
+
+@bp.route("/suggest-category", methods=["POST"])
+def suggest_category():
+    """API endpoint to suggest expense categories based on title and vendor"""
+    data = request.get_json()
+    title = data.get("title", "")
+    vendor = data.get("vendor", "")
+    
+    if not title:
+        return jsonify({"error": "Title is required"}), 400
+    
+    # Get suggestions from the TaxRecommendationService
+    suggestions = TaxRecommendationService.suggest_category(title, vendor)
+    
+    # Get tax implications for the top suggestion
+    top_category = suggestions[0][0] if suggestions else "other"
+    tax_implications = TaxRecommendationService.get_tax_implications(top_category)
+    
+    response = {
+        "suggestions": [
+            {
+                "category": category,
+                "confidence": round(confidence * 100),
+                "display_name": category.replace("_", " ").title()
+            }
+            for category, confidence in suggestions
+        ],
+        "tax_implications": tax_implications
+    }
+    
+    return jsonify(response)
+
+
+@bp.route("/analyze-expenses", methods=["GET"])
+def analyze_expenses():
+    """Analyze expenses for tax optimization opportunities"""
+    expenses = Expense.query.all()
+    analysis = TaxRecommendationService.analyze_expenses(expenses)
+    
+    return render_template(
+        "expense/analysis.html",
+        analysis=analysis,
+        categories=CATEGORIES,
+    )
+
+
+@bp.route("/tax-implications/<category>", methods=["GET"])
+def tax_implications(category):
+    """Get tax implications for a specific expense category"""
+    if category not in CATEGORIES:
+        return jsonify({"error": "Invalid category"}), 400
+    
+    implications = TaxRecommendationService.get_tax_implications(category)
+    return jsonify(implications)
+
+
+@bp.route("/expense-optimization/<int:id>", methods=["GET"])
+def expense_optimization(id):
+    """Get optimization suggestions for a specific expense"""
+    expense = Expense.query.get_or_404(id)
+    suggestions = TaxRecommendationService.get_optimization_suggestions(expense)
+    
+    return jsonify({"suggestions": suggestions})
 
 
 @bp.route("/import", methods=["GET", "POST"])

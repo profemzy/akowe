@@ -479,6 +479,11 @@
                                             <i class="fas fa-file-import"></i> Import Expenses
                                         </a>
                                     </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'expense.analyze_expenses' %}active{% endif %}" href="{{ url_for('expense.analyze_expenses') }}">
+                                            <i class="fas fa-chart-pie"></i> Analyze Expenses
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                         </li>

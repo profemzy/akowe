@@ -1,10 +1,11 @@
-from flask import Blueprint, render_template, request
-from sqlalchemy import func, extract
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 
-from akowe.models.income import Income
+from flask import Blueprint, render_template, request
+from sqlalchemy import func, extract
+
 from akowe.models.expense import Expense
+from akowe.models.income import Income
 
 bp = Blueprint("dashboard", __name__, url_prefix="/")
 
