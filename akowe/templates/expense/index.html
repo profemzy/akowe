@@ -9,6 +9,9 @@
         <div class="btn-group me-2">
             <a href="{{ url_for('expense.new') }}" class="btn btn-sm btn-outline-primary">Add Expense</a>
             <a href="{{ url_for('expense.import_csv') }}" class="btn btn-sm btn-outline-secondary">Import CSV</a>
+            <a href="{{ url_for('expense.analyze_expenses') }}" class="btn btn-sm btn-outline-info">
+                <i class="fas fa-robot me-1"></i> AI Tax Analysis
+            </a>
         </div>
     </div>
 </div>

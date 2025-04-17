@@ -68,6 +68,39 @@
                     <div class="mb-3">
                         <label for="vendor" class="form-label">Vendor</label>
                         <input type="text" class="form-control" id="vendor" name="vendor" value="{{ expense.vendor or '' }}">
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="suggest-category-btn">
+                            <i class="fas fa-robot me-1"></i> Get AI Category Suggestions
+                        </button>
+                    </div>
+                    
+                    <div id="category-suggestions" class="mb-3 d-none">
+                        <h6><i class="fas fa-lightbulb text-warning me-1"></i> AI Suggestions:</h6>
+                        <div id="suggestion-buttons" class="mb-2"></div>
+                        <div id="tax-info-card" class="card mb-3 d-none">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-robot me-2"></i>
+                                    AI Tax Insights
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <h6 id="tax-cra-category" class="mb-2">CRA Category: <span></span></h6>
+                                <p id="tax-deduction-rate" class="mb-2">Deduction Rate: <span></span></p>
+                                <p id="tax-special-rules" class="mb-2">Special Rules: <span></span></p>
+                                
+                                <div id="tax-documentation-required" class="alert alert-warning mt-3 d-none">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Documentation Required:</strong>
+                                    <span id="tax-documentation-note"></span>
+                                </div>
+                                
+                                <div id="tax-cca-class" class="alert alert-info mt-3 d-none">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>CCA Class:</strong>
+                                    <span></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="mb-3">
@@ -142,5 +175,129 @@
             document.getElementById('deleteReceiptForm').submit();
         }
     }
+    
+    // AI Category suggestions functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const titleInput = document.getElementById('title');
+        const vendorInput = document.getElementById('vendor');
+        const suggestButton = document.getElementById('suggest-category-btn');
+        const categorySelect = document.getElementById('category');
+        const suggestionDiv = document.getElementById('category-suggestions');
+        const suggestionButtons = document.getElementById('suggestion-buttons');
+        const taxInfoCard = document.getElementById('tax-info-card');
+        
+        // Function to get tax implications when a category is selected
+        function updateTaxInfo(category) {
+            if (!category) return;
+            
+            fetch(`/expense/tax-implications/${category}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Show the tax info card
+                    taxInfoCard.classList.remove('d-none');
+                    
+                    // Update fields
+                    document.querySelector('#tax-cra-category span').textContent = data.cra_category;
+                    document.querySelector('#tax-deduction-rate span').textContent = data.deduction_rate;
+                    document.querySelector('#tax-special-rules span').textContent = data.special_rules;
+                    
+                    // Documentation required alert
+                    const docRequired = document.getElementById('tax-documentation-required');
+                    if (data.documentation_required) {
+                        docRequired.classList.remove('d-none');
+                        document.getElementById('tax-documentation-note').textContent = data.documentation_note;
+                    } else {
+                        docRequired.classList.add('d-none');
+                    }
+                    
+                    // CCA class info
+                    const ccaClass = document.getElementById('tax-cca-class');
+                    if (data.cca_class) {
+                        ccaClass.classList.remove('d-none');
+                        document.querySelector('#tax-cca-class span').textContent = data.cca_class;
+                    } else {
+                        ccaClass.classList.add('d-none');
+                    }
+                })
+                .catch(error => console.error('Error fetching tax info:', error));
+        }
+        
+        // Listen for category select changes
+        categorySelect.addEventListener('change', function() {
+            updateTaxInfo(this.value);
+        });
+        
+        // Get AI suggestions when the button is clicked
+        suggestButton.addEventListener('click', function() {
+            const title = titleInput.value.trim();
+            const vendor = vendorInput.value.trim();
+            
+            if (!title) {
+                alert('Please enter an expense title first');
+                return;
+            }
+            
+            // Show loading state
+            suggestButton.disabled = true;
+            suggestButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Getting suggestions...';
+            
+            // Call the API
+            fetch('/expense/suggest-category', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ title, vendor }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Reset button
+                suggestButton.disabled = false;
+                suggestButton.innerHTML = '<i class="fas fa-robot me-1"></i> Get AI Category Suggestions';
+                
+                // Show suggestions
+                suggestionDiv.classList.remove('d-none');
+                suggestionButtons.innerHTML = '';
+                
+                // Create buttons for each suggestion
+                data.suggestions.forEach(suggestion => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = `btn btn-outline-success me-2 mb-2`;
+                    btn.innerHTML = `${suggestion.display_name} <span class="badge bg-secondary">${suggestion.confidence}%</span>`;
+                    btn.setAttribute('data-category', suggestion.category);
+                    
+                    // When a suggestion is clicked, select it in the dropdown
+                    btn.addEventListener('click', function() {
+                        const category = this.getAttribute('data-category');
+                        categorySelect.value = category;
+                        
+                        // Trigger the change event
+                        const event = new Event('change');
+                        categorySelect.dispatchEvent(event);
+                        
+                        // Update tax information
+                        updateTaxInfo(category);
+                    });
+                    
+                    suggestionButtons.appendChild(btn);
+                });
+                
+                // Show tax implications for the top suggestion
+                if (data.suggestions.length > 0) {
+                    updateTaxInfo(data.suggestions[0].category);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                suggestButton.disabled = false;
+                suggestButton.innerHTML = '<i class="fas fa-robot me-1"></i> Get AI Category Suggestions';
+                alert('Error getting category suggestions. Please try again.');
+            });
+        });
+        
+        // Load tax implications for the current category on page load
+        updateTaxInfo(categorySelect.value);
+    });
 </script>
 {% endblock %}

@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, jsonify
 from sqlalchemy import extract
 
 from akowe.models.expense import Expense
 from akowe.models.income import Income
+from akowe.services.tax_prediction_service import TaxPredictionService
 
 bp = Blueprint("tax_dashboard", __name__, url_prefix="/tax")
 
@@ -106,6 +107,13 @@ def index():
     total_yearly_expense = sum(expense.amount for expense in yearly_expenses)
     total_yearly_income = sum(income.amount for income in yearly_income)
     yearly_net_income = total_yearly_income - total_yearly_expense
+    
+    # Get tax prediction data if it's the current year
+    tax_prediction = None
+    if selected_year == current_year:
+        tax_prediction = TaxPredictionService.predict_tax_obligation(
+            yearly_income, yearly_expenses, selected_province, selected_year
+        )
 
     # Prepare expense data by tax categories for CRA
     cra_expense_categories = {}
@@ -368,4 +376,76 @@ def index():
         estimated_total_tax=estimated_total_tax,
         estimated_cpp=estimated_cpp,
         tax_deadlines=tax_deadlines,
+        tax_prediction=tax_prediction,
     )
+    
+    
+@bp.route("/prediction", methods=["GET"])
+def prediction():
+    """AI-powered tax prediction and planning page"""
+    # Get current year and selected year from query param
+    current_year = datetime.now().year
+    selected_year = request.args.get("year", type=int, default=current_year)
+    
+    # Only allow prediction for current year
+    if selected_year != current_year:
+        selected_year = current_year
+    
+    # Get selected province for tax calculations
+    selected_province = request.args.get("province", default="Ontario")
+    
+    # Calculate year date range
+    year_start_date = datetime(selected_year, 1, 1).date()
+    year_end_date = datetime(selected_year, 12, 31).date()
+    
+    # Get expenses and income for the year
+    yearly_expenses = Expense.query.filter(
+        Expense.date >= year_start_date, Expense.date <= year_end_date
+    ).all()
+    
+    yearly_income = Income.query.filter(
+        Income.date >= year_start_date, Income.date <= year_end_date
+    ).all()
+    
+    # Get tax prediction
+    tax_prediction = TaxPredictionService.predict_tax_obligation(
+        yearly_income, yearly_expenses, selected_province, selected_year
+    )
+    
+    return render_template(
+        "tax_dashboard/prediction.html",
+        selected_year=selected_year,
+        selected_province=selected_province,
+        provinces=sorted(GST_HST_RATES.keys()),
+        tax_prediction=tax_prediction,
+    )
+
+
+@bp.route("/api/prediction", methods=["GET"])
+def api_prediction():
+    """API endpoint for tax prediction data"""
+    # Get current year
+    current_year = datetime.now().year
+    
+    # Get selected province for tax calculations
+    selected_province = request.args.get("province", default="Ontario")
+    
+    # Calculate year date range
+    year_start_date = datetime(current_year, 1, 1).date()
+    year_end_date = datetime(current_year, 12, 31).date()
+    
+    # Get expenses and income for the year
+    yearly_expenses = Expense.query.filter(
+        Expense.date >= year_start_date, Expense.date <= year_end_date
+    ).all()
+    
+    yearly_income = Income.query.filter(
+        Income.date >= year_start_date, Income.date <= year_end_date
+    ).all()
+    
+    # Get tax prediction
+    tax_prediction = TaxPredictionService.predict_tax_obligation(
+        yearly_income, yearly_expenses, selected_province, current_year
+    )
+    
+    return jsonify(tax_prediction)

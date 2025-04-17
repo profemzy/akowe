@@ -6,6 +6,13 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Canadian Tax Dashboard</h1>
     <div class="btn-toolbar mb-2 mb-md-0">
+        {% if selected_year == tax_prediction.year|default(0) %}
+        <div class="btn-group me-2">
+            <a href="{{ url_for('tax_dashboard.prediction', province=selected_province) }}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-robot me-1"></i> AI Tax Planning
+            </a>
+        </div>
+        {% endif %}
         <div class="btn-group me-2">
             <div class="dropdown">
                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -74,6 +81,107 @@
         </div>
     </div>
 </div>
+
+{% if tax_prediction %}
+<!-- AI Tax Prediction Summary -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-robot me-2"></i>
+                    AI Tax Prediction
+                </h5>
+                <a href="{{ url_for('tax_dashboard.prediction', province=selected_province) }}" class="btn btn-sm btn-light">
+                    <i class="fas fa-chart-line me-1"></i> 
+                    View Detailed Projection
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="progress bg-light mb-3" style="height: 25px">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ tax_prediction.year_progress }}%;" aria-valuenow="{{ tax_prediction.year_progress }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ tax_prediction.year_progress }}% of Year Complete
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card border-0 bg-light mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-subtitle mb-2 text-muted">Projected Annual Income</h6>
+                                        <h4 class="card-title text-primary">${{ '{:,.2f}'.format(tax_prediction.projected_income) }}</h4>
+                                        <p class="card-text small mb-0">
+                                            <span class="text-muted">Currently:</span> ${{ '{:,.2f}'.format(tax_prediction.income_to_date) }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border-0 bg-light mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-subtitle mb-2 text-muted">Projected Annual Expenses</h6>
+                                        <h4 class="card-title text-danger">${{ '{:,.2f}'.format(tax_prediction.projected_expenses) }}</h4>
+                                        <p class="card-text small mb-0">
+                                            <span class="text-muted">Currently:</span> ${{ '{:,.2f}'.format(tax_prediction.expenses_to_date) }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border-0 {% if tax_prediction.estimated_tax_rate > 25 %}bg-warning{% else %}bg-light{% endif %} mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-subtitle mb-2 {% if tax_prediction.estimated_tax_rate > 25 %}text-dark{% else %}text-muted{% endif %}">
+                                            Projected Tax Rate
+                                        </h6>
+                                        <h4 class="card-title {% if tax_prediction.estimated_tax_rate > 25 %}text-dark{% else %}text-danger{% endif %}">
+                                            {{ tax_prediction.estimated_tax_rate }}%
+                                        </h4>
+                                        <p class="card-text small mb-0">
+                                            <span class="{% if tax_prediction.estimated_tax_rate > 25 %}text-dark{% else %}text-muted{% endif %}">
+                                                Est. Tax: ${{ '{:,.2f}'.format(tax_prediction.estimated_total_tax) }}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="mb-2"><i class="fas fa-lightbulb text-warning me-1"></i> Planning Suggestions</h6>
+                        {% if tax_prediction.tax_planning_suggestions %}
+                            <ul class="list-group">
+                                {% for suggestion in tax_prediction.tax_planning_suggestions[:2] %}
+                                <li class="list-group-item list-group-item-action p-2">
+                                    <span class="badge {% if suggestion.priority == 'high' %}bg-danger{% elif suggestion.priority == 'medium' %}bg-warning text-dark{% else %}bg-info{% endif %} float-end">
+                                        {{ suggestion.priority|title }}
+                                    </span>
+                                    <strong>{{ suggestion.title }}</strong><br>
+                                    <small>{{ suggestion.description }}</small>
+                                </li>
+                                {% endfor %}
+                                {% if tax_prediction.tax_planning_suggestions|length > 2 %}
+                                <li class="list-group-item list-group-item-action p-2 text-center">
+                                    <a href="{{ url_for('tax_dashboard.prediction', province=selected_province) }}" class="text-primary">
+                                        <i class="fas fa-plus-circle me-1"></i>
+                                        {{ tax_prediction.tax_planning_suggestions|length - 2 }} more suggestions
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        {% else %}
+                            <div class="alert alert-success p-2">
+                                <i class="fas fa-check-circle me-2"></i>
+                                No tax planning suggestions at this time.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Tax Deadlines -->
 <div class="row mb-4">
