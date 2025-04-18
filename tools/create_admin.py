@@ -1,6 +1,6 @@
 from getpass import getpass
 
-from akowe import create_app
+from akowe.akowe import create_app
 from akowe.models import db
 from akowe.models.user import User
 

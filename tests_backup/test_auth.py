@@ -1,7 +1,12 @@
 """Tests for authentication functionality."""
 
 import pytest
+import os
+import sys
 from flask import g, session
+
+# Add the project root directory to sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from akowe.models.user import User
 

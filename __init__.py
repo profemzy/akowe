@@ -1,1 +1,1 @@
-"""This file is blank."""
+"""Akowe Financial Tracker module initialization."""

@@ -1,4 +1,4 @@
-from akowe import create_app
+from akowe.akowe import create_app
 
 app = create_app()
 

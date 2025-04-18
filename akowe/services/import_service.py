@@ -391,9 +391,7 @@ class ImportService:
                 for _, row in df.iterrows():
                     # Determine if income or expense
                     transaction_type = str(row[type_col]).lower()
-                    is_income = ('income' in transaction_type or 
-                                transaction_type == 'i' or 
-                                (amount_col in row and float(row[amount_col]) > 0))
+                    is_income = ('income' in transaction_type or transaction_type == 'i' or (amount_col in row and float(row[amount_col]) > 0))
                     
                     amount_val = row[amount_col]
                     if isinstance(amount_val, str) and amount_val.startswith('-'):

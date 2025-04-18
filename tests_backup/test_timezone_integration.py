@@ -14,6 +14,7 @@ from akowe.models.timesheet import Timesheet
 from akowe.models.client import Client
 from akowe.models.project import Project
 
+
 # Simple test for timezone utility in app context
 def test_timezone_init(app):
     """Test that timezone initialization works in application context."""
@@ -28,6 +29,7 @@ def test_timezone_init(app):
         local_time = get_current_local_datetime()
         assert local_time is not None
         assert local_time.tzinfo is not None
+
 
 # Test datetime conversion in database context
 def test_datetime_conversion(app):
@@ -52,6 +54,7 @@ def test_datetime_conversion(app):
         today = date.today()
         parsed_date = local_date_input(today.strftime("%Y-%m-%d"))
         assert parsed_date == today
+
 
 # Test model operations with timezones
 def test_model_timezone_handling(app):

@@ -1,0 +1,32 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ error }} - Akowe{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card border-danger mb-3">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="m-0">{{ error }} ({{ status_code }})</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        {{ message }}
+                    </div>
+                    <p>Please try one of the following:</p>
+                    <ul>
+                        <li>Return to the <a href="{{ url_for('dashboard.index') }}">dashboard</a></li>
+                        <li>Try your action again</li>
+                        <li><a href="{{ url_for('auth.login') }}">Sign in again</a></li>
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="javascript:history.back()" class="btn btn-secondary">Go Back</a>
+                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">Go to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

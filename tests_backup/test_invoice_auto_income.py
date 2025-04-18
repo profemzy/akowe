@@ -1,19 +1,30 @@
 """Tests for automatic income generation when invoices are marked as paid."""
 
 import unittest
+import os
+import sys
+import importlib.util
 from datetime import datetime, timedelta
 from decimal import Decimal
 
 from flask import url_for
 from flask_login import current_user
 
-from akowe import create_app
+# Load create_app directly from the file
+spec = importlib.util.spec_from_file_location(
+    "akowe_app", 
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "akowe", "akowe.py"))
+)
+akowe_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(akowe_module)
+create_app = akowe_module.create_app
 from akowe.models import db
 from akowe.models.invoice import Invoice
 from akowe.models.income import Income
 from akowe.models.client import Client
 from akowe.models.user import User
 from akowe.models.timesheet import Timesheet
+
 
 class InvoiceAutoIncomeTestCase(unittest.TestCase):
     """Test the automatic income generation when invoices are marked as paid."""
@@ -117,6 +128,7 @@ class InvoiceAutoIncomeTestCase(unittest.TestCase):
             },
             follow_redirects=True
         )
+        self.assertEqual(response.status_code, 200)  # Verify the request was successful
         
         # Check that the invoice was marked as paid
         invoice = Invoice.query.get(invoice.id)
@@ -181,6 +193,7 @@ class InvoiceAutoIncomeTestCase(unittest.TestCase):
             },
             follow_redirects=True
         )
+        self.assertEqual(response.status_code, 200)  # Verify the request was successful
         
         # Check that the invoice was marked as paid
         invoice = Invoice.query.get(invoice.id)
