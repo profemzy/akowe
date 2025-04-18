@@ -17,6 +17,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger('migrations')
 
+
 def run_migrations():
     """Run all migrations in sequence."""
     logger.info("Starting consolidated migrations")
@@ -57,6 +58,7 @@ def run_migrations():
         return False
     
     return True
+
 
 def run_last_login_migration():
     """Apply the migration to add last_login column to users table."""
@@ -144,8 +146,8 @@ def run_last_login_migration():
                 else:
                     # For other databases, try information_schema
                     result = conn.execute(text(
-                        "SELECT table_name FROM information_schema.tables " +
-                        "WHERE table_schema = 'public' AND table_name IN ('users', 'user');"
+                        "SELECT table_name FROM information_schema.tables "
+                        + "WHERE table_schema = 'public' AND table_name IN ('users', 'user');"
                     ))
                     tables = [row[0] for row in result]
                     logger.info(f"Found user tables in schema: {tables}")
@@ -158,13 +160,13 @@ def run_last_login_migration():
                 logger.info("Falling back to default user table name")
                 user_table = 'users'  # Default for SQLite/others
         
-        logger.info(f"Using user table name: {user_table}")
+        logger.info("Using user table name: {}".format(user_table))
         
         # Add the last_login column with appropriate SQL for the dialect
         try:
             if dialect == 'postgresql':
                 # PostgreSQL-specific approach with schema handling
-                sql = f"""
+                sql = """
                 DO $$
                 BEGIN
                     -- Try with schema-qualified table
@@ -184,11 +186,9 @@ def run_last_login_migration():
                 """
             else:
                 # Generic SQL for SQLite and others
-                sql = f"""
-                ALTER TABLE {user_table} ADD COLUMN last_login TIMESTAMP;
-                """
+                sql = "ALTER TABLE {} ADD COLUMN last_login TIMESTAMP;".format(user_table)
                 
-            logger.info(f"Executing SQL: {sql}")
+            logger.info("Executing SQL: {}".format(sql))
             conn.execute(text(sql))
             conn.commit()
             logger.info("SQL executed successfully")
@@ -207,12 +207,12 @@ def run_last_login_migration():
                     # Method 1: Check using information_schema if available
                     for table_name in ['user', 'users']:
                         result = conn.execute(text(
-                            f"SELECT column_name FROM information_schema.columns " +
-                            f"WHERE table_schema = 'public' AND table_name='{table_name}' " +
-                            f"AND column_name='last_login';"
+                            "SELECT column_name FROM information_schema.columns "
+                            + "WHERE table_schema = 'public' AND table_name='{}' ".format(table_name)
+                            + "AND column_name='last_login';"
                         ))
                         if result.rowcount > 0:
-                            logger.info(f"Migration verified via information_schema: last_login column found in {table_name}")
+                            logger.info("Migration verified via information_schema: last_login column found in {}".format(table_name))
                             column_added = True
                             break
                 except Exception:
@@ -224,9 +224,9 @@ def run_last_login_migration():
                         for table_name in ['user', 'users']:
                             try:
                                 conn.execute(text(
-                                    f'SELECT last_login FROM public."{table_name}" LIMIT 0;'
+                                    'SELECT last_login FROM public."{}" LIMIT 0;'.format(table_name)
                                 ))
-                                logger.info(f"Migration verified via direct query: last_login column found in {table_name}")
+                                logger.info("Migration verified via direct query: last_login column found in {}".format(table_name))
                                 column_added = True
                                 break
                             except Exception:
@@ -237,15 +237,15 @@ def run_last_login_migration():
                 # For SQLite and others, try direct table query
                 try:
                     conn.execute(text(f'SELECT last_login FROM {user_table} LIMIT 0;'))
-                    logger.info(f"Migration verified: last_login column found in {user_table}")
+                    logger.info("Migration verified: last_login column found in {}".format(user_table))
                     column_added = True
                 except Exception as e:
                     logger.warning(f"Column verification failed: {str(e)}")
                     # Try the other table as fallback
                     other_table = 'users' if user_table == 'user' else 'user'
                     try:
-                        conn.execute(text(f'SELECT last_login FROM {other_table} LIMIT 0;'))
-                        logger.info(f"Migration verified: last_login column found in {other_table}")
+                        conn.execute(text('SELECT last_login FROM {} LIMIT 0;'.format(other_table)))
+                        logger.info("Migration verified: last_login column found in {}".format(other_table))
                         column_added = True
                     except Exception:
                         pass
@@ -260,6 +260,7 @@ def run_last_login_migration():
         else:
             logger.error("Migration failed: last_login column not found after migration")
             raise Exception("Migration verification failed")
+
 
 def run_expense_user_id_migration():
     """Apply the migration to add user_id column to expense table."""
@@ -398,13 +399,13 @@ def run_expense_user_id_migration():
                     # For other databases, try information_schema
                     try:
                         expense_result = conn.execute(text(
-                            "SELECT table_name FROM information_schema.tables " +
-                            "WHERE table_schema = 'public' AND table_name IN ('expense', 'expenses');"
+                            "SELECT table_name FROM information_schema.tables "
+                            + "WHERE table_schema = 'public' AND table_name IN ('expense', 'expenses');"
                         ))
                         
                         user_result = conn.execute(text(
-                            "SELECT table_name FROM information_schema.tables " +
-                            "WHERE table_schema = 'public' AND table_name IN ('user', 'users');"
+                            "SELECT table_name FROM information_schema.tables "
+                            + "WHERE table_schema = 'public' AND table_name IN ('user', 'users');"
                         ))
                         
                         expense_tables = [row[0] for row in expense_result]
@@ -428,14 +429,14 @@ def run_expense_user_id_migration():
                 expense_table = 'expenses'  # Default for SQLite
                 user_table = 'users'  # Default for SQLite
         
-        logger.info(f"Using expense table name: {expense_table}")
-        logger.info(f"Using user table name: {user_table}")
+        logger.info("Using expense table name: {}".format(expense_table))
+        logger.info("Using user table name: {}".format(user_table))
         
         # Add the user_id column with appropriate SQL for the dialect
         try:
             if dialect == 'postgresql':
                 # PostgreSQL-specific approach with schema handling and robust error handling
-                sql = f"""
+                sql = """
                 DO $$
                 BEGIN
                     -- Try to add column to expense table with schema qualification
@@ -477,11 +478,9 @@ def run_expense_user_id_migration():
             else:
                 # Generic SQL for SQLite and others
                 # Note: SQLite has limited ALTER TABLE support
-                sql = f"""
-                ALTER TABLE {expense_table} ADD COLUMN user_id INTEGER REFERENCES {user_table}(id);
-                """
+                sql = "ALTER TABLE {} ADD COLUMN user_id INTEGER REFERENCES {}(id);".format(expense_table, user_table)
                 
-            logger.info(f"Executing SQL: {sql}")
+            logger.info("Executing SQL: {}".format(sql))
             conn.execute(text(sql))
             conn.commit()
             logger.info("SQL executed successfully")
@@ -500,12 +499,12 @@ def run_expense_user_id_migration():
                     # Method 1: Check using information_schema if available
                     for table_name in ['expense', 'expenses']:
                         result = conn.execute(text(
-                            f"SELECT column_name FROM information_schema.columns " +
-                            f"WHERE table_schema = 'public' AND table_name='{table_name}' " +
-                            f"AND column_name='user_id';"
+                            "SELECT column_name FROM information_schema.columns "
+                            + "WHERE table_schema = 'public' AND table_name='{}' ".format(table_name)
+                            + "AND column_name='user_id';"
                         ))
                         if result.rowcount > 0:
-                            logger.info(f"Migration verified via information_schema: user_id column found in {table_name}")
+                            logger.info("Migration verified via information_schema: user_id column found in {}".format(table_name))
                             column_added = True
                             break
                 except Exception:
@@ -517,9 +516,9 @@ def run_expense_user_id_migration():
                         for table_name in ['expense', 'expenses']:
                             try:
                                 conn.execute(text(
-                                    f'SELECT user_id FROM public."{table_name}" LIMIT 0;'
+                                    'SELECT user_id FROM public."{}" LIMIT 0;'.format(table_name)
                                 ))
-                                logger.info(f"Migration verified via direct query: user_id column found in {table_name}")
+                                logger.info("Migration verified via direct query: user_id column found in {}".format(table_name))
                                 column_added = True
                                 break
                             except Exception:
@@ -530,15 +529,15 @@ def run_expense_user_id_migration():
                 # For SQLite and others, try direct table query
                 try:
                     conn.execute(text(f'SELECT user_id FROM {expense_table} LIMIT 0;'))
-                    logger.info(f"Migration verified: user_id column found in {expense_table}")
+                    logger.info("Migration verified: user_id column found in {}".format(expense_table))
                     column_added = True
                 except Exception as e:
                     logger.warning(f"Column verification failed: {str(e)}")
                     # Try the other table as fallback
                     other_table = 'expenses' if expense_table == 'expense' else 'expense'
                     try:
-                        conn.execute(text(f'SELECT user_id FROM {other_table} LIMIT 0;'))
-                        logger.info(f"Migration verified: user_id column found in {other_table}")
+                        conn.execute(text('SELECT user_id FROM {} LIMIT 0;'.format(other_table)))
+                        logger.info("Migration verified: user_id column found in {}".format(other_table))
                         column_added = True
                     except Exception:
                         pass
@@ -553,7 +552,8 @@ def run_expense_user_id_migration():
         else:
             logger.error("Migration failed: user_id column not found after migration")
             raise Exception("Migration verification failed")
+   
     
 if __name__ == "__main__":
     success = run_migrations()
-    sys.exit(0 if success else 1)  # Exit with appropriate code for CI/CD systems
+    sys.exit(0 if success else 1)
