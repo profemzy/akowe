@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
 
 from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify
@@ -8,7 +8,7 @@ from akowe.models import db
 from akowe.models.client import Client
 from akowe.models.project import Project
 from akowe.models.timesheet import Timesheet
-from akowe.utils.timezone import convert_to_utc, convert_from_utc, local_date_input, to_local_time
+from akowe.utils.timezone import convert_to_utc, convert_from_utc, local_date_input
 
 bp = Blueprint("timesheet", __name__, url_prefix="/timesheet")
 

@@ -1,17 +1,17 @@
 import os
-from datetime import datetime
 from decimal import Decimal
+
 from flask import Blueprint, request, render_template, redirect, url_for, flash, current_app
 from flask_login import current_user
 from werkzeug.utils import secure_filename
 
 from akowe.models import db
-from akowe.models.income import Income
 from akowe.models.client import Client
-from akowe.models.project import Project
+from akowe.models.income import Income
 from akowe.models.invoice import Invoice
+from akowe.models.project import Project
 from akowe.services.import_service import ImportService
-from akowe.utils.timezone import convert_to_utc, convert_from_utc, local_date_input, get_current_local_datetime
+from akowe.utils.timezone import convert_to_utc, convert_from_utc, local_date_input
 
 bp = Blueprint("income", __name__, url_prefix="/income")
 

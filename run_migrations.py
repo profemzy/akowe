@@ -3,10 +3,10 @@
 This script runs all required database migrations in the proper sequence.
 """
 import logging
-import importlib
 import sys
-import os
-from sqlalchemy import text, inspect
+
+from sqlalchemy import text
+
 from akowe.akowe import create_app
 from akowe.models import db
 
