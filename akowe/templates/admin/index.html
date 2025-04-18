@@ -153,37 +153,28 @@
     <div class="col-lg-8">
         <div class="card mb-4">
             <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <ul class="nav nav-tabs card-header-tabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active text-dark" id="users-tab" data-bs-toggle="tab" 
-                                    data-bs-target="#users-data" type="button" role="tab" 
-                                    aria-controls="users-data" aria-selected="true">
-                                <i class="fas fa-users me-1"></i> Users
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link text-dark" id="finance-tab" data-bs-toggle="tab" 
-                                    data-bs-target="#finance-data" type="button" role="tab" 
-                                    aria-controls="finance-data" aria-selected="false">
-                                <i class="fas fa-dollar-sign me-1"></i> Finance
-                            </button>
-                        </li>
-                    </ul>
-                    <div class="me-2">
-                        <select class="form-select form-select-sm" id="yearSelector" onchange="filterByYear(this.value)">
-                            {% for year in range(datetime.now().year - 2, datetime.now().year + 1) %}
-                                <option value="{{ year }}" {% if year == datetime.now().year %}selected{% endif %}>{{ year }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active text-dark" id="users-tab" data-bs-toggle="tab" 
+                                data-bs-target="#users-data" type="button" role="tab" 
+                                aria-controls="users-data" aria-selected="true">
+                            <i class="fas fa-users me-1"></i> Users
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link text-dark" id="finance-tab" data-bs-toggle="tab" 
+                                data-bs-target="#finance-data" type="button" role="tab" 
+                                aria-controls="finance-data" aria-selected="false">
+                            <i class="fas fa-dollar-sign me-1"></i> Finance
+                        </button>
+                    </li>
+                </ul>
             </div>
             <div class="card-body">
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="users-data" role="tabpanel" 
                          aria-labelledby="users-tab">
-                        <h5 class="card-title">User Registration <span class="year-display">{{ datetime.now().year }}</span></h5>
+                        <h5 class="card-title">User Registration</h5>
                         <div class="table-responsive">
                             <table class="table table-bordered table-striped">
                                 <thead>
@@ -205,7 +196,7 @@
                     </div>
                     <div class="tab-pane fade" id="finance-data" role="tabpanel" 
                          aria-labelledby="finance-tab">
-                        <h5 class="card-title">Monthly Financial Data <span class="year-display">{{ datetime.now().year }}</span></h5>
+                        <h5 class="card-title">Monthly Financial Data</h5>
                         <div class="table-responsive">
                             <table class="table table-bordered table-striped">
                                 <thead>
@@ -514,58 +505,6 @@
 {% block scripts %}
 {{ super() }}
 <script>
-    // Function to filter data by year
-    function filterByYear(year) {
-        // Update year display in titles
-        document.querySelectorAll('.year-display').forEach(function(el) {
-            el.textContent = year;
-        });
-        
-        // Here you would typically make an AJAX call to fetch data for the selected year
-        // For demonstration, we'll just show an alert
-        alert('In a real implementation, this would fetch data for year: ' + year);
-        
-        // In a real implementation, you would update the table data with the response
-        // Example:
-        // fetch('/api/admin/data?year=' + year)
-        //   .then(response => response.json())
-        //   .then(data => {
-        //     updateUserRegistrationTable(data.registration_data);
-        //     updateFinancialDataTable(data.income_data, data.expense_data);
-        //   });
-    }
-    
-    // Example function to update the user registration table
-    function updateUserRegistrationTable(data) {
-        const tbody = document.querySelector('#users-data table tbody');
-        tbody.innerHTML = '';
-        
-        for (let i = 0; i < data.months.length; i++) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${data.months[i]}</td>
-                <td>${data.registration_data[i]}</td>
-            `;
-            tbody.appendChild(tr);
-        }
-    }
-    
-    // Example function to update the financial data table
-    function updateFinancialDataTable(incomeData, expenseData) {
-        const tbody = document.querySelector('#finance-data table tbody');
-        tbody.innerHTML = '';
-        
-        for (let i = 0; i < incomeData.months.length; i++) {
-            const tr = document.createElement('tr');
-            const net = incomeData.values[i] - expenseData.values[i];
-            tr.innerHTML = `
-                <td>${incomeData.months[i]}</td>
-                <td>$${incomeData.values[i]}</td>
-                <td>$${expenseData.values[i]}</td>
-                <td>$${net}</td>
-            `;
-            tbody.appendChild(tr);
-        }
-    }
+    // No custom scripts needed
 </script>
 {% endblock %}
