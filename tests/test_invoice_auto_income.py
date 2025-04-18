@@ -15,6 +15,7 @@ from akowe.models.client import Client
 from akowe.models.user import User
 from akowe.models.timesheet import Timesheet
 
+
 class InvoiceAutoIncomeTestCase(unittest.TestCase):
     """Test the automatic income generation when invoices are marked as paid."""
     
@@ -117,6 +118,7 @@ class InvoiceAutoIncomeTestCase(unittest.TestCase):
             },
             follow_redirects=True
         )
+        self.assertEqual(response.status_code, 200)  # Verify the request was successful
         
         # Check that the invoice was marked as paid
         invoice = Invoice.query.get(invoice.id)
@@ -181,6 +183,7 @@ class InvoiceAutoIncomeTestCase(unittest.TestCase):
             },
             follow_redirects=True
         )
+        self.assertEqual(response.status_code, 200)  # Verify the request was successful
         
         # Check that the invoice was marked as paid
         invoice = Invoice.query.get(invoice.id)

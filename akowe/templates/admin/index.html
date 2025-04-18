@@ -4,7 +4,6 @@
 
 {% block head %}
 {{ super() }}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -150,38 +149,85 @@
 </div>
 
 <div class="row">
-    <!-- Data Activity Chart -->
+    <!-- Data Activity Tables -->
     <div class="col-lg-8">
         <div class="card mb-4">
             <div class="card-header">
-                <ul class="nav nav-tabs card-header-tabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="users-chart-tab" data-bs-toggle="tab" 
-                                data-bs-target="#users-chart" type="button" role="tab" 
-                                aria-controls="users-chart" aria-selected="true">
-                            <i class="fas fa-users me-1"></i> Users
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="finance-chart-tab" data-bs-toggle="tab" 
-                                data-bs-target="#finance-chart" type="button" role="tab" 
-                                aria-controls="finance-chart" aria-selected="false">
-                            <i class="fas fa-dollar-sign me-1"></i> Finance
-                        </button>
-                    </li>
-                </ul>
+                <div class="d-flex justify-content-between align-items-center">
+                    <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active text-dark" id="users-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#users-data" type="button" role="tab" 
+                                    aria-controls="users-data" aria-selected="true">
+                                <i class="fas fa-users me-1"></i> Users
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link text-dark" id="finance-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#finance-data" type="button" role="tab" 
+                                    aria-controls="finance-data" aria-selected="false">
+                                <i class="fas fa-dollar-sign me-1"></i> Finance
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="me-2">
+                        <select class="form-select form-select-sm" id="yearSelector" onchange="filterByYear(this.value)">
+                            {% for year in range(datetime.now().year - 2, datetime.now().year + 1) %}
+                                <option value="{{ year }}" {% if year == datetime.now().year %}selected{% endif %}>{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
             </div>
             <div class="card-body">
                 <div class="tab-content">
-                    <div class="tab-pane fade show active" id="users-chart" role="tabpanel" 
-                         aria-labelledby="users-chart-tab">
-                        <h5 class="card-title">User Registration ({{ datetime.now().year }})</h5>
-                        <canvas id="monthlyRegistrationsChart" width="100%" height="50"></canvas>
+                    <div class="tab-pane fade show active" id="users-data" role="tabpanel" 
+                         aria-labelledby="users-tab">
+                        <h5 class="card-title">User Registration <span class="year-display">{{ datetime.now().year }}</span></h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Registrations</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for i in range(months|length) %}
+                                    <tr>
+                                        <td>{{ months[i] }}</td>
+                                        <td>{{ registration_data[i] }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="tab-pane fade" id="finance-chart" role="tabpanel" 
-                         aria-labelledby="finance-chart-tab">
-                        <h5 class="card-title">Monthly Financial Data ({{ datetime.now().year }})</h5>
-                        <canvas id="monthlyFinanceChart" width="100%" height="50"></canvas>
+                    <div class="tab-pane fade" id="finance-data" role="tabpanel" 
+                         aria-labelledby="finance-tab">
+                        <h5 class="card-title">Monthly Financial Data <span class="year-display">{{ datetime.now().year }}</span></h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Income</th>
+                                        <th>Expenses</th>
+                                        <th>Net</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for i in range(months|length) %}
+                                    <tr>
+                                        <td>{{ months[i] }}</td>
+                                        <td>${{ income_data[i] }}</td>
+                                        <td>${{ expense_data[i] }}</td>
+                                        <td>${{ income_data[i] - expense_data[i] }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -200,14 +246,38 @@
                     <h6 class="mb-1">Active Users Today</h6>
                     <p class="h4">{{ active_today }}</p>
                 </div>
-                <canvas id="userStatsChart" width="100%" height="50"></canvas>
-            </div>
-            <div class="card-footer small text-muted">
-                <div class="row">
-                    <div class="col-6">Active: {{ active_users }}</div>
-                    <div class="col-6">Inactive: {{ inactive_users }}</div>
-                    <div class="col-6">Admins: {{ admins }}</div>
-                    <div class="col-6">Standard Users: {{ total_users - admins }}</div>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-success">Active</span></td>
+                                <td>{{ active_users }}</td>
+                                <td>{{ (active_users / total_users * 100)|round|int if total_users > 0 else 0 }}%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-danger">Inactive</span></td>
+                                <td>{{ inactive_users }}</td>
+                                <td>{{ (inactive_users / total_users * 100)|round|int if total_users > 0 else 0 }}%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-warning">Admin</span></td>
+                                <td>{{ admins }}</td>
+                                <td>{{ (admins / total_users * 100)|round|int if total_users > 0 else 0 }}%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-primary">Standard</span></td>
+                                <td>{{ total_users - admins }}</td>
+                                <td>{{ ((total_users - admins) / total_users * 100)|round|int if total_users > 0 else 0 }}%</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -265,14 +335,14 @@
             <div class="card-header">
                 <ul class="nav nav-tabs card-header-tabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="registrations-tab" data-bs-toggle="tab" 
+                        <button class="nav-link active text-dark" id="registrations-tab" data-bs-toggle="tab" 
                                 data-bs-target="#registrations" type="button" role="tab" 
                                 aria-controls="registrations" aria-selected="true">
                             <i class="fas fa-user-plus me-1"></i> Registrations
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="logins-tab" data-bs-toggle="tab" 
+                        <button class="nav-link text-dark" id="logins-tab" data-bs-toggle="tab" 
                                 data-bs-target="#logins" type="button" role="tab" 
                                 aria-controls="logins" aria-selected="false">
                             <i class="fas fa-sign-in-alt me-1"></i> Logins
@@ -444,124 +514,58 @@
 {% block scripts %}
 {{ super() }}
 <script>
-    // Chart for monthly user registrations
-    var ctx = document.getElementById("monthlyRegistrationsChart");
-    var monthlyRegistrationsChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: {{ months|tojson }},
-            datasets: [{
-                label: "User Registrations",
-                backgroundColor: "rgba(2, 117, 216, 1)",
-                borderColor: "rgba(2, 117, 216, 1)",
-                data: {{ registration_data|tojson }},
-            }]
-        },
-        options: {
-            animation: {
-                duration: 500
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                }
-            }
-        }
-    });
+    // Function to filter data by year
+    function filterByYear(year) {
+        // Update year display in titles
+        document.querySelectorAll('.year-display').forEach(function(el) {
+            el.textContent = year;
+        });
+        
+        // Here you would typically make an AJAX call to fetch data for the selected year
+        // For demonstration, we'll just show an alert
+        alert('In a real implementation, this would fetch data for year: ' + year);
+        
+        // In a real implementation, you would update the table data with the response
+        // Example:
+        // fetch('/api/admin/data?year=' + year)
+        //   .then(response => response.json())
+        //   .then(data => {
+        //     updateUserRegistrationTable(data.registration_data);
+        //     updateFinancialDataTable(data.income_data, data.expense_data);
+        //   });
+    }
     
-    // Chart for monthly financial data
-    var financeCtx = document.getElementById("monthlyFinanceChart");
-    var monthlyFinanceChart = new Chart(financeCtx, {
-        type: 'line',
-        data: {
-            labels: {{ months|tojson }},
-            datasets: [
-                {
-                    label: "Income",
-                    backgroundColor: "rgba(40, 167, 69, 0.2)",
-                    borderColor: "rgba(40, 167, 69, 1)",
-                    borderWidth: 2,
-                    pointBackgroundColor: "rgba(40, 167, 69, 1)",
-                    pointBorderColor: "#fff",
-                    pointRadius: 3,
-                    fill: true,
-                    tension: 0.2,
-                    data: {{ income_data|tojson }},
-                },
-                {
-                    label: "Expenses",
-                    backgroundColor: "rgba(220, 53, 69, 0.2)",
-                    borderColor: "rgba(220, 53, 69, 1)",
-                    borderWidth: 2,
-                    pointBackgroundColor: "rgba(220, 53, 69, 1)",
-                    pointBorderColor: "#fff",
-                    pointRadius: 3,
-                    fill: true,
-                    tension: 0.2,
-                    data: {{ expense_data|tojson }},
-                }
-            ]
-        },
-        options: {
-            animation: {
-                duration: 500
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return '$' + value;
-                        }
-                    }
-                }
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.dataset.label + ': $' + context.raw;
-                        }
-                    }
-                }
-            }
+    // Example function to update the user registration table
+    function updateUserRegistrationTable(data) {
+        const tbody = document.querySelector('#users-data table tbody');
+        tbody.innerHTML = '';
+        
+        for (let i = 0; i < data.months.length; i++) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${data.months[i]}</td>
+                <td>${data.registration_data[i]}</td>
+            `;
+            tbody.appendChild(tr);
         }
-    });
+    }
     
-    // Chart for user statistics
-    var userStatsCtx = document.getElementById("userStatsChart");
-    var userStatsChart = new Chart(userStatsCtx, {
-        type: 'pie',
-        data: {
-            labels: ["Active", "Inactive", "Admin", "Standard"],
-            datasets: [{
-                data: [{{ active_users }}, {{ inactive_users }}, {{ admins }}, {{ total_users - admins }}],
-                backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#007bff'],
-            }]
-        },
-        options: {
-            animation: {
-                duration: 500
-            },
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        boxWidth: 12
-                    }
-                }
-            }
+    // Example function to update the financial data table
+    function updateFinancialDataTable(incomeData, expenseData) {
+        const tbody = document.querySelector('#finance-data table tbody');
+        tbody.innerHTML = '';
+        
+        for (let i = 0; i < incomeData.months.length; i++) {
+            const tr = document.createElement('tr');
+            const net = incomeData.values[i] - expenseData.values[i];
+            tr.innerHTML = `
+                <td>${incomeData.months[i]}</td>
+                <td>$${incomeData.values[i]}</td>
+                <td>$${expenseData.values[i]}</td>
+                <td>$${net}</td>
+            `;
+            tbody.appendChild(tr);
         }
-    });
+    }
 </script>
 {% endblock %}

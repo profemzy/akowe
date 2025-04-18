@@ -13,6 +13,7 @@ from akowe.models import db
 from akowe.models.income import Income
 from akowe.models.user import User
 
+
 def setup_db():
     """Set up the database directly with SQLAlchemy."""
     app = create_app()
@@ -27,7 +28,8 @@ def setup_db():
         print("Checking for user_id column in income table...")
         try:
             # Try to query incomes with user_id
-            result = Income.query.filter(Income.user_id != None).first()
+            # Using SQLAlchemy's .isnot() method for NULL comparison
+            Income.query.filter(Income.user_id.isnot(None)).first()
             print("✅ user_id column exists")
         except Exception as e:
             if "user_id" in str(e):
