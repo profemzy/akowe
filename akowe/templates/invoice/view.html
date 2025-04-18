@@ -54,17 +54,17 @@
                 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <strong>Issue Date:</strong> {{ invoice.issue_date.strftime('%Y-%m-%d') }}
+                        <strong>Issue Date:</strong> {{ invoice.issue_date|format_date }}
                     </div>
                     <div class="col-md-6">
-                        <strong>Due Date:</strong> {{ invoice.due_date.strftime('%Y-%m-%d') }}
+                        <strong>Due Date:</strong> {{ invoice.due_date|format_date }}
                     </div>
                 </div>
                 
                 {% if invoice.status == 'paid' and invoice.paid_date %}
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <strong>Payment Date:</strong> {{ invoice.paid_date.strftime('%Y-%m-%d') }}
+                        <strong>Payment Date:</strong> {{ invoice.paid_date|format_date }}
                     </div>
                     <div class="col-md-6">
                         <strong>Payment Method:</strong> {{ invoice.payment_method|default('Not specified') }}
@@ -113,7 +113,7 @@
                         <tbody>
                             {% for entry in invoice.timesheet_entries %}
                             <tr>
-                                <td>{{ entry.date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ entry.date|format_date }}</td>
                                 <td>{{ entry.project_ref.name if entry.project_ref else "Unknown Project" }}</td>
                                 <td>{{ entry.description }}</td>
                                 <td>{{ '{:.2f}'.format(entry.hours) }}</td>
@@ -204,7 +204,7 @@
                         <div>
                             <i class="fas fa-calendar-plus text-primary me-2"></i>
                             <strong>Created</strong><br>
-                            <small class="text-muted">{{ invoice.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                            <small class="text-muted">{{ invoice.created_at|format_datetime }}</small>
                         </div>
                     </li>
                     
@@ -213,7 +213,7 @@
                         <div>
                             <i class="fas fa-paper-plane text-info me-2"></i>
                             <strong>Sent</strong><br>
-                            <small class="text-muted">{{ invoice.sent_date.strftime('%Y-%m-%d %H:%M') if invoice.sent_date else 'No date' }}</small>
+                            <small class="text-muted">{{ invoice.sent_date|format_datetime if invoice.sent_date else 'No date' }}</small>
                         </div>
                     </li>
                     {% endif %}
@@ -223,7 +223,7 @@
                         <div>
                             <i class="fas fa-check-circle text-success me-2"></i>
                             <strong>Paid</strong><br>
-                            <small class="text-muted">{{ invoice.paid_date.strftime('%Y-%m-%d %H:%M') if invoice.paid_date else 'No date' }}</small>
+                            <small class="text-muted">{{ invoice.paid_date|format_datetime if invoice.paid_date else 'No date' }}</small>
                         </div>
                     </li>
                     {% endif %}

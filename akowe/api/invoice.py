@@ -10,6 +10,8 @@ from akowe.models import db
 from akowe.models.client import Client
 from akowe.models.invoice import Invoice
 from akowe.models.timesheet import Timesheet
+from akowe.models.income import Income
+from akowe.utils.timezone import to_utc, to_local_time, local_date_input, convert_to_utc, convert_from_utc
 
 bp = Blueprint("invoice", __name__, url_prefix="/invoice")
 
@@ -17,7 +19,9 @@ bp = Blueprint("invoice", __name__, url_prefix="/invoice")
 def generate_invoice_number():
     """Generate a unique invoice number"""
     # Format: INV-YYYYMM-XXXX where XXXX is a sequential number
-    today = datetime.now()
+    # Use local timezone for the invoice number
+    from akowe.utils.timezone import get_current_local_datetime
+    today = get_current_local_datetime()
     year_month = today.strftime("%Y%m")
 
     # Get the last invoice number for this year/month
@@ -42,6 +46,7 @@ def generate_invoice_number():
 
 
 @bp.route("/", methods=["GET"])
+@convert_from_utc
 def index():
     """List all invoices"""
     # Get filter parameters
@@ -70,14 +75,16 @@ def index():
 
     if from_date:
         try:
-            from_date = datetime.strptime(from_date, "%Y-%m-%d").date()
+            # Convert local date to UTC for database query
+            from_date = local_date_input(from_date)
             query = query.filter(Invoice.issue_date >= from_date)
         except ValueError:
             flash("Invalid from date format", "error")
 
     if to_date:
         try:
-            to_date = datetime.strptime(to_date, "%Y-%m-%d").date()
+            # Convert local date to UTC for database query
+            to_date = local_date_input(to_date)
             query = query.filter(Invoice.issue_date <= to_date)
         except ValueError:
             flash("Invalid to date format", "error")
@@ -108,14 +115,16 @@ def index():
 
 
 @bp.route("/new", methods=["GET", "POST"])
+@convert_to_utc
 def new():
     """Create a new invoice"""
     if request.method == "POST":
         try:
             # Get data from form
             client_id = request.form["client"]
-            issue_date = datetime.strptime(request.form["issue_date"], "%Y-%m-%d").date()
-            due_date = datetime.strptime(request.form["due_date"], "%Y-%m-%d").date()
+            # Convert form date input to proper local dates
+            issue_date = local_date_input(request.form["issue_date"])
+            due_date = local_date_input(request.form["due_date"])
             notes = request.form["notes"]
             tax_rate = Decimal(request.form["tax_rate"])
 
@@ -241,6 +250,7 @@ def new():
 
 
 @bp.route("/view/<int:id>", methods=["GET"])
+@convert_from_utc
 def view(id):
     """View an invoice"""
     invoice = Invoice.query.get_or_404(id)
@@ -254,6 +264,7 @@ def view(id):
 
 
 @bp.route("/edit/<int:id>", methods=["GET", "POST"])
+@convert_from_utc
 def edit(id):
     """Edit an invoice"""
     invoice = Invoice.query.get_or_404(id)
@@ -272,8 +283,8 @@ def edit(id):
         try:
             # Update invoice details
             invoice.client = request.form["client"]
-            invoice.issue_date = datetime.strptime(request.form["issue_date"], "%Y-%m-%d").date()
-            invoice.due_date = datetime.strptime(request.form["due_date"], "%Y-%m-%d").date()
+            invoice.issue_date = local_date_input(request.form["issue_date"])
+            invoice.due_date = local_date_input(request.form["due_date"])
             invoice.notes = request.form["notes"]
             invoice.tax_rate = Decimal(request.form["tax_rate"])
 
@@ -394,6 +405,7 @@ def mark_sent(id):
 
     try:
         invoice.status = "sent"
+        # Store in UTC but keep track that we're setting a UTC timestamp
         invoice.sent_date = datetime.utcnow()
         db.session.commit()
         flash("Invoice marked as sent!", "success")
@@ -421,13 +433,51 @@ def mark_paid(id):
 
     try:
         invoice.status = "paid"
-        invoice.paid_date = datetime.utcnow()
+        # Use current UTC time for database storage
+        payment_date = datetime.utcnow()
+        invoice.paid_date = payment_date
+        # Local time for user display/processing
+        local_payment_date = to_local_time(payment_date)
         invoice.payment_method = request.form.get("payment_method", "")
         invoice.payment_reference = request.form.get("payment_reference", "")
 
         # Update timesheet entries
         for entry in invoice.timesheet_entries:
             entry.status = "paid"
+
+        # Create income record associated with this invoice
+        # Check if income record for this invoice already exists to avoid duplicates
+        existing_income = Income.query.filter_by(invoice_id=invoice.id).first()
+        
+        if not existing_income:
+            # Get client and project information
+            client_name = invoice.client_ref.name if invoice.client_ref else "Unknown"
+            # For project, we'll use the first project from timesheet entries or default value
+            project_name = "Invoice Payment"
+            project_id = None
+            
+            if invoice.timesheet_entries:
+                first_entry = invoice.timesheet_entries[0]
+                if hasattr(first_entry, 'project_ref') and first_entry.project_ref:
+                    project_name = first_entry.project_ref.name
+                    project_id = first_entry.project_id
+                elif hasattr(first_entry, 'project'):
+                    project_name = first_entry.project
+            
+            # Create income record
+            income = Income(
+                date=local_payment_date.date(),
+                amount=invoice.total,
+                client=client_name,
+                project=project_name,
+                invoice=invoice.invoice_number,
+                client_id=invoice.client_id,
+                project_id=project_id,
+                invoice_id=invoice.id,
+                user_id=invoice.user_id
+            )
+            db.session.add(income)
+            flash("Income record automatically created!", "success")
 
         db.session.commit()
         flash("Invoice marked as paid!", "success")

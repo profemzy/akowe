@@ -1,0 +1,261 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{{ title }} - Akowe{% endblock %}
+
+{% block head %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">System Statistics</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('admin.stats', period='week') }}" class="btn btn-sm btn-outline-secondary {% if period == 'week' %}active{% endif %}">Week</a>
+            <a href="{{ url_for('admin.stats', period='month') }}" class="btn btn-sm btn-outline-secondary {% if period == 'month' %}active{% endif %}">Month</a>
+            <a href="{{ url_for('admin.stats', period='year') }}" class="btn btn-sm btn-outline-secondary {% if period == 'year' %}active{% endif %}">Year</a>
+        </div>
+        <a href="{{ url_for('admin.index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-chart-area me-1"></i>
+                Financial Activity
+            </div>
+            <div class="card-body">
+                <canvas id="financialChart" width="100%" height="30"></canvas>
+            </div>
+            <div class="card-footer small text-muted">
+                Showing data from {{ date_range[0] }} to {{ date_range[-1] }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-chart-bar me-1"></i>
+                Invoice Activity
+            </div>
+            <div class="card-body">
+                <canvas id="invoiceChart" width="100%" height="50"></canvas>
+            </div>
+            <div class="card-footer small text-muted">
+                Number of invoices created per day
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-user-plus me-1"></i>
+                User Registration Activity
+            </div>
+            <div class="card-body">
+                <canvas id="registrationChart" width="100%" height="50"></canvas>
+            </div>
+            <div class="card-footer small text-muted">
+                Number of new user registrations per day
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-table me-1"></i>
+                Summary Statistics
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card border-primary mb-3">
+                            <div class="card-header bg-primary text-white">Income</div>
+                            <div class="card-body">
+                                <h5 class="card-title">${{ income_data|sum }}</h5>
+                                <p class="card-text">Total income in selected period</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-danger mb-3">
+                            <div class="card-header bg-danger text-white">Expenses</div>
+                            <div class="card-body">
+                                <h5 class="card-title">${{ expense_data|sum }}</h5>
+                                <p class="card-text">Total expenses in selected period</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-success mb-3">
+                            <div class="card-header bg-success text-white">Profit</div>
+                            <div class="card-body">
+                                <h5 class="card-title">${{ income_data|sum - expense_data|sum }}</h5>
+                                <p class="card-text">Total profit in selected period</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-info mb-3">
+                            <div class="card-header bg-info text-white">Activity</div>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ invoice_data|sum }} invoices</h5>
+                                <p class="card-text">{{ registration_data|sum }} new users</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Chart for financial activity
+    var financialCtx = document.getElementById("financialChart");
+    var financialChart = new Chart(financialCtx, {
+        type: 'line',
+        data: {
+            labels: {{ date_range|tojson }},
+            datasets: [
+                {
+                    label: "Income",
+                    lineTension: 0.3,
+                    backgroundColor: "rgba(2, 117, 216, 0.2)",
+                    borderColor: "rgba(2, 117, 216, 1)",
+                    pointRadius: 5,
+                    pointBackgroundColor: "rgba(2, 117, 216, 1)",
+                    pointBorderColor: "rgba(255, 255, 255, 0.8)",
+                    pointHoverRadius: 5,
+                    pointHoverBackgroundColor: "rgba(2, 117, 216, 1)",
+                    pointHitRadius: 50,
+                    pointBorderWidth: 2,
+                    data: {{ income_data|tojson }},
+                },
+                {
+                    label: "Expenses",
+                    lineTension: 0.3,
+                    backgroundColor: "rgba(220, 53, 69, 0.2)",
+                    borderColor: "rgba(220, 53, 69, 1)",
+                    pointRadius: 5,
+                    pointBackgroundColor: "rgba(220, 53, 69, 1)",
+                    pointBorderColor: "rgba(255, 255, 255, 0.8)",
+                    pointHoverRadius: 5,
+                    pointHoverBackgroundColor: "rgba(220, 53, 69, 1)",
+                    pointHitRadius: 50,
+                    pointBorderWidth: 2,
+                    data: {{ expense_data|tojson }},
+                }
+            ],
+        },
+        options: {
+            scales: {
+                x: {
+                    ticks: {
+                        maxTicksLimit: 10
+                    }
+                },
+                y: {
+                    ticks: {
+                        min: 0,
+                        maxTicksLimit: 5
+                    },
+                    grid: {
+                        color: "rgba(0, 0, 0, .125)",
+                    }
+                },
+            },
+            plugins: {
+                legend: {
+                    display: true
+                }
+            }
+        }
+    });
+    
+    // Chart for invoice activity
+    var invoiceCtx = document.getElementById("invoiceChart");
+    var invoiceChart = new Chart(invoiceCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ date_range|tojson }},
+            datasets: [{
+                label: "Invoice Count",
+                backgroundColor: "rgba(40, 167, 69, 0.7)",
+                borderColor: "rgba(40, 167, 69, 1)",
+                data: {{ invoice_data|tojson }},
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    ticks: {
+                        maxTicksLimit: 10
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Chart for user registration activity
+    var registrationCtx = document.getElementById("registrationChart");
+    var registrationChart = new Chart(registrationCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ date_range|tojson }},
+            datasets: [{
+                label: "New Users",
+                backgroundColor: "rgba(255, 193, 7, 0.7)",
+                borderColor: "rgba(255, 193, 7, 1)",
+                data: {{ registration_data|tojson }},
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    ticks: {
+                        maxTicksLimit: 10
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

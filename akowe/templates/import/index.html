@@ -1,0 +1,120 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Import Transactions{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Import Transactions</h1>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="importTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="true">All Transactions</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="income-tab" data-bs-toggle="tab" data-bs-target="#income" type="button" role="tab" aria-controls="income" aria-selected="false">Income Only</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="expense-tab" data-bs-toggle="tab" data-bs-target="#expense" type="button" role="tab" aria-controls="expense" aria-selected="false">Expense Only</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="importTabsContent">
+                        <!-- All Transactions Tab -->
+                        <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+                            <h5 class="card-title">Import All Transactions</h5>
+                            <p class="card-text">Upload a CSV file containing both income and expense transactions.</p>
+                            
+                            <form action="{{ url_for('import.import_all_transactions') }}" method="post" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <label for="allFile" class="form-label">Select CSV file</label>
+                                    <input type="file" class="form-control" id="allFile" name="file" accept=".csv" required>
+                                </div>
+                                <div class="mb-3">
+                                    <button type="submit" class="btn btn-primary">Import All Transactions</button>
+                                </div>
+                            </form>
+                            
+                            <div class="alert alert-info">
+                                <h6>CSV Format Requirements:</h6>
+                                <p>The file should have a "type" column with values "income" or "expense" to distinguish between transaction types.</p>
+                                <p>Other required columns:</p>
+                                <ul>
+                                    <li>date: Transaction date in YYYY-MM-DD format</li>
+                                    <li>amount: Transaction amount (decimal)</li>
+                                    <li>client/vendor: Client (for income) or vendor (for expense)</li>
+                                    <li>project/category: Project (for income) or category (for expense)</li>
+                                </ul>
+                                <p><a href="/static/sample_combined.csv" download>Download Sample CSV</a></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Income Tab -->
+                        <div class="tab-pane fade" id="income" role="tabpanel" aria-labelledby="income-tab">
+                            <h5 class="card-title">Import Income Transactions</h5>
+                            <p class="card-text">Upload a CSV file containing only income transactions.</p>
+                            
+                            <form action="{{ url_for('import.import_income') }}" method="post" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <label for="incomeFile" class="form-label">Select CSV file</label>
+                                    <input type="file" class="form-control" id="incomeFile" name="file" accept=".csv" required>
+                                </div>
+                                <div class="mb-3">
+                                    <button type="submit" class="btn btn-success">Import Income</button>
+                                </div>
+                            </form>
+                            
+                            <div class="alert alert-info">
+                                <h6>CSV Format Requirements:</h6>
+                                <p>Required columns:</p>
+                                <ul>
+                                    <li>date: Income date in YYYY-MM-DD format</li>
+                                    <li>amount: Income amount (decimal)</li>
+                                    <li>client: Client name</li>
+                                    <li>project: Project name</li>
+                                    <li>invoice: Invoice number (optional)</li>
+                                </ul>
+                                <p><a href="/static/sample_income.csv" download>Download Sample CSV</a></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Expense Tab -->
+                        <div class="tab-pane fade" id="expense" role="tabpanel" aria-labelledby="expense-tab">
+                            <h5 class="card-title">Import Expense Transactions</h5>
+                            <p class="card-text">Upload a CSV file containing only expense transactions.</p>
+                            
+                            <form action="{{ url_for('import.import_expense') }}" method="post" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <label for="expenseFile" class="form-label">Select CSV file</label>
+                                    <input type="file" class="form-control" id="expenseFile" name="file" accept=".csv" required>
+                                </div>
+                                <div class="mb-3">
+                                    <button type="submit" class="btn btn-danger">Import Expenses</button>
+                                </div>
+                            </form>
+                            
+                            <div class="alert alert-info">
+                                <h6>CSV Format Requirements:</h6>
+                                <p>Required columns:</p>
+                                <ul>
+                                    <li>date: Expense date in YYYY-MM-DD format</li>
+                                    <li>amount: Expense amount (decimal)</li>
+                                    <li>vendor: Vendor/merchant name</li>
+                                    <li>category: Expense category</li>
+                                    <li>tax_deductible: Whether expense is tax deductible (true/false)</li>
+                                    <li>notes: Additional notes (optional)</li>
+                                </ul>
+                                <p><a href="/static/sample_expense.csv" download>Download Sample CSV</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

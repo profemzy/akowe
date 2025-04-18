@@ -93,13 +93,10 @@ class TaxPredictionService:
         
         # Stop projection from going beyond 100% of year
         year_fraction = min(1.0, days_elapsed / days_in_year)
-        remaining_fraction = 1.0 - year_fraction
         
         # Project income and expenses for the full year
         # Use months for better seasonal handling
         current_month = datetime.now().month
-        months_elapsed = current_month
-        months_remaining = 12 - months_elapsed
         
         # Income projection
         # Calculate average monthly income for months with data
@@ -267,7 +264,7 @@ class TaxPredictionService:
                 is_current = True
             else:
                 # Middle brackets
-                prev_max = cls.FEDERAL_TAX_BRACKETS[i-1]["max"]
+                prev_max = cls.FEDERAL_TAX_BRACKETS[i - 1]["max"]
                 amount_in_bracket = min(remaining_income, bracket["max"] - prev_max)
                 tax_in_bracket = amount_in_bracket * bracket["rate"]
                 is_current = True
@@ -276,7 +273,7 @@ class TaxPredictionService:
             if i == 0:
                 bracket_label = f"$0 - ${bracket['max']:,.2f}"
             else:
-                prev_max = cls.FEDERAL_TAX_BRACKETS[i-1]["max"]
+                prev_max = cls.FEDERAL_TAX_BRACKETS[i - 1]["max"]
                 bracket_label = f"${prev_max + Decimal('0.01'):,.2f} - ${bracket['max']:,.2f}"
                 
             brackets_info.append({
@@ -382,13 +379,13 @@ class TaxPredictionService:
         
         for i, bracket in enumerate(cls.FEDERAL_TAX_BRACKETS):
             if bracket["max"] is None:  # Last bracket
-                if i > 0 and projected_net_income > cls.FEDERAL_TAX_BRACKETS[i-1]["max"]:
+                if i > 0 and projected_net_income > cls.FEDERAL_TAX_BRACKETS[i - 1]["max"]:
                     current_bracket = i
                     next_bracket = None
                     break
             elif projected_net_income <= bracket["max"]:
                 current_bracket = i
-                next_bracket = i+1 if i+1 < len(cls.FEDERAL_TAX_BRACKETS) else None
+                next_bracket = i + 1 if i + 1 < len(cls.FEDERAL_TAX_BRACKETS) else None
                 break
         
         # If within 10% of next bracket, suggest tax planning
@@ -399,11 +396,10 @@ class TaxPredictionService:
             if distance_to_next > 0 and distance_to_next <= Decimal("5000"):
                 current_rate = cls.FEDERAL_TAX_BRACKETS[current_bracket]["rate"] * 100
                 next_rate = cls.FEDERAL_TAX_BRACKETS[next_bracket]["rate"] * 100
-                rate_increase = next_rate - current_rate
                 
                 suggestions.append({
                     "type": "tax_bracket_planning",
-                    "title": f"Near Higher Tax Bracket",
+                    "title": "Near Higher Tax Bracket",
                     "description": f"You're ${distance_to_next:,.2f} away from the next tax bracket ({current_rate}% to {next_rate}%)",
                     "benefit": f"Consider timing expenses to stay below ${next_bracket_threshold:,.2f} threshold",
                     "priority": "high"
@@ -414,7 +410,7 @@ class TaxPredictionService:
             suggestions.append({
                 "type": "rrsp_contribution",
                 "title": "RRSP Contribution Opportunity",
-                "description": f"Based on projected income, RRSP contributions could reduce your taxable income",
+                "description": "Based on projected income, RRSP contributions could reduce your taxable income",
                 "benefit": "Reduces current year tax and builds retirement savings",
                 "priority": "high"
             })

@@ -2,16 +2,410 @@
 
 {% block title %}{{ title }} - Akowe{% endblock %}
 
+{% block head %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Admin Dashboard</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('admin.stats') }}" class="btn btn-sm btn-outline-secondary">View Detailed Stats</a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="me-3">
+                        <div class="text-white-75 small">Users</div>
+                        <div class="text-lg fw-bold">{{ total_users }}</div>
+                    </div>
+                    <i class="fas fa-users fa-2x text-white-50"></i>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-white stretched-link" href="{{ url_for('admin.users') }}">View Details</a>
+                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="me-3">
+                        <div class="text-white-75 small">Clients</div>
+                        <div class="text-lg fw-bold">{{ total_clients }}</div>
+                    </div>
+                    <i class="fas fa-building fa-2x text-white-50"></i>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-white stretched-link" href="{{ url_for('client.index') }}">View Details</a>
+                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-warning text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="me-3">
+                        <div class="text-white-75 small">Invoices</div>
+                        <div class="text-lg fw-bold">{{ invoice_count }}</div>
+                    </div>
+                    <i class="fas fa-file-invoice-dollar fa-2x text-white-50"></i>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-white stretched-link" href="{{ url_for('invoice.index') }}">View Details</a>
+                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-danger text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="me-3">
+                        <div class="text-white-75 small">Timesheets</div>
+                        <div class="text-lg fw-bold">{{ timesheet_count }}</div>
+                    </div>
+                    <i class="fas fa-clock fa-2x text-white-50"></i>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-white stretched-link" href="{{ url_for('timesheet.index') }}">View Details</a>
+                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Financial Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4 col-sm-6 mb-3">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="me-3">
+                        <div class="text-white-75 small">Total Income</div>
+                        <div class="text-lg fw-bold">${{ total_income }}</div>
+                    </div>
+                    <i class="fas fa-money-bill-wave fa-2x text-white-50"></i>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-white stretched-link" href="{{ url_for('income.index') }}">View Details</a>
+                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 col-sm-6 mb-3">
+        <div class="card bg-secondary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="me-3">
+                        <div class="text-white-75 small">Total Expenses</div>
+                        <div class="text-lg fw-bold">${{ total_expenses }}</div>
+                    </div>
+                    <i class="fas fa-credit-card fa-2x text-white-50"></i>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-white stretched-link" href="{{ url_for('expense.index') }}">View Details</a>
+                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 col-sm-6 mb-3">
+        <div class="card bg-dark text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="me-3">
+                        <div class="text-white-75 small">Total Invoiced</div>
+                        <div class="text-lg fw-bold">${{ total_invoiced }}</div>
+                    </div>
+                    <i class="fas fa-file-invoice fa-2x text-white-50"></i>
+                </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+                <a class="small text-white stretched-link" href="{{ url_for('invoice.index') }}">View Details</a>
+                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="row">
+    <!-- Data Activity Chart -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="users-chart-tab" data-bs-toggle="tab" 
+                                data-bs-target="#users-chart" type="button" role="tab" 
+                                aria-controls="users-chart" aria-selected="true">
+                            <i class="fas fa-users me-1"></i> Users
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="finance-chart-tab" data-bs-toggle="tab" 
+                                data-bs-target="#finance-chart" type="button" role="tab" 
+                                aria-controls="finance-chart" aria-selected="false">
+                            <i class="fas fa-dollar-sign me-1"></i> Finance
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="users-chart" role="tabpanel" 
+                         aria-labelledby="users-chart-tab">
+                        <h5 class="card-title">User Registration ({{ datetime.now().year }})</h5>
+                        <canvas id="monthlyRegistrationsChart" width="100%" height="50"></canvas>
+                    </div>
+                    <div class="tab-pane fade" id="finance-chart" role="tabpanel" 
+                         aria-labelledby="finance-chart-tab">
+                        <h5 class="card-title">Monthly Financial Data ({{ datetime.now().year }})</h5>
+                        <canvas id="monthlyFinanceChart" width="100%" height="50"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Statistics -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-users me-1"></i>
+                User Statistics
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="mb-1">Active Users Today</h6>
+                    <p class="h4">{{ active_today }}</p>
+                </div>
+                <canvas id="userStatsChart" width="100%" height="50"></canvas>
+            </div>
+            <div class="card-footer small text-muted">
+                <div class="row">
+                    <div class="col-6">Active: {{ active_users }}</div>
+                    <div class="col-6">Inactive: {{ inactive_users }}</div>
+                    <div class="col-6">Admins: {{ admins }}</div>
+                    <div class="col-6">Standard Users: {{ total_users - admins }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- System Information -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-server me-1"></i>
+                System Information
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="mb-1">CPU Usage</h6>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: {{ system_info.cpu_percent }}%;" 
+                             aria-valuenow="{{ system_info.cpu_percent }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ system_info.cpu_percent }}%
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="mb-1">Memory Usage</h6>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ system_info.memory_percent }}%;" 
+                             aria-valuenow="{{ system_info.memory_percent }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ system_info.memory_percent }}%
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h6 class="mb-1">Disk Usage</h6>
+                    <div class="progress">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ system_info.disk_percent }}%;" 
+                             aria-valuenow="{{ system_info.disk_percent }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ system_info.disk_percent }}%
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <p><strong>Uptime:</strong> {{ system_info.uptime }}</p>
+                <p><strong>OS:</strong> {{ system_info.os }}</p>
+                <p><strong>Python:</strong> {{ system_info.python_version }}</p>
+                <p><strong>Platform:</strong> {{ system_info.platform }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity Tabs -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="registrations-tab" data-bs-toggle="tab" 
+                                data-bs-target="#registrations" type="button" role="tab" 
+                                aria-controls="registrations" aria-selected="true">
+                            <i class="fas fa-user-plus me-1"></i> Registrations
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="logins-tab" data-bs-toggle="tab" 
+                                data-bs-target="#logins" type="button" role="tab" 
+                                aria-controls="logins" aria-selected="false">
+                            <i class="fas fa-sign-in-alt me-1"></i> Logins
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <!-- Registrations Tab -->
+                    <div class="tab-pane fade show active" id="registrations" role="tabpanel" 
+                         aria-labelledby="registrations-tab">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in recent_registrations %}
+                                    <tr>
+                                        <td>{{ user.username }}</td>
+                                        <td>{{ user.created_at|format_datetime }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="2" class="text-center">No recent registrations</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Logins Tab -->
+                    <div class="tab-pane fade" id="logins" role="tabpanel" 
+                         aria-labelledby="logins-tab">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Last Login</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if recent_logins %}
+                                        {% for user in recent_logins %}
+                                        <tr>
+                                            <td>{{ user.username }}</td>
+                                            <td>{{ user.last_login|format_datetime }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="2" class="text-center">No recent logins</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer small text-muted">
+                <a href="{{ url_for('admin.users') }}">View all users</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Invoices -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-file-invoice-dollar me-1"></i>
+                Recent Invoices
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in recent_invoices %}
+                            <tr>
+                                <td>{{ invoice.invoice_number }}</td>
+                                <td>${{ invoice.total }}</td>
+                                <td>
+                                    {% if invoice.status == 'paid' %}
+                                    <span class="badge bg-success">Paid</span>
+                                    {% elif invoice.status == 'draft' %}
+                                    <span class="badge bg-secondary">Draft</span>
+                                    {% elif invoice.status == 'sent' %}
+                                    <span class="badge bg-primary">Sent</span>
+                                    {% elif invoice.status == 'overdue' %}
+                                    <span class="badge bg-danger">Overdue</span>
+                                    {% else %}
+                                    <span class="badge bg-info">{{ invoice.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center">No recent invoices</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer small text-muted">
+                <a href="{{ url_for('invoice.index') }}">View all invoices</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Admin Actions -->
     <div class="col-md-4 mb-4">
         <div class="card">
+            <div class="card-header">
+                <i class="fas fa-users-cog me-1"></i>
+                User Management
+            </div>
             <div class="card-body">
-                <h5 class="card-title">User Management</h5>
                 <p class="card-text">Manage users, create accounts, reset passwords, and control access permissions.</p>
                 <a href="{{ url_for('admin.users') }}" class="btn btn-primary">Manage Users</a>
             </div>
@@ -20,22 +414,154 @@
     
     <div class="col-md-4 mb-4">
         <div class="card">
+            <div class="card-header">
+                <i class="fas fa-cogs me-1"></i>
+                System Settings
+            </div>
             <div class="card-body">
-                <h5 class="card-title">System Settings</h5>
                 <p class="card-text">Configure application settings, categories, and defaults.</p>
-                <a href="#" class="btn btn-primary disabled">Manage Settings</a>
+                <a href="{{ url_for('admin.settings') }}" class="btn btn-primary">Manage Settings</a>
             </div>
         </div>
     </div>
     
     <div class="col-md-4 mb-4">
         <div class="card">
+            <div class="card-header">
+                <i class="fas fa-database me-1"></i>
+                Data Management
+            </div>
             <div class="card-body">
-                <h5 class="card-title">Data Management</h5>
                 <p class="card-text">Backup and restore data, purge old records, and manage database.</p>
-                <a href="#" class="btn btn-primary disabled">Manage Data</a>
+                <a href="{{ url_for('admin.data_management') }}" class="btn btn-primary">Manage Data</a>
             </div>
         </div>
     </div>
 </div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Chart for monthly user registrations
+    var ctx = document.getElementById("monthlyRegistrationsChart");
+    var monthlyRegistrationsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ months|tojson }},
+            datasets: [{
+                label: "User Registrations",
+                backgroundColor: "rgba(2, 117, 216, 1)",
+                borderColor: "rgba(2, 117, 216, 1)",
+                data: {{ registration_data|tojson }},
+            }]
+        },
+        options: {
+            animation: {
+                duration: 500
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    
+    // Chart for monthly financial data
+    var financeCtx = document.getElementById("monthlyFinanceChart");
+    var monthlyFinanceChart = new Chart(financeCtx, {
+        type: 'line',
+        data: {
+            labels: {{ months|tojson }},
+            datasets: [
+                {
+                    label: "Income",
+                    backgroundColor: "rgba(40, 167, 69, 0.2)",
+                    borderColor: "rgba(40, 167, 69, 1)",
+                    borderWidth: 2,
+                    pointBackgroundColor: "rgba(40, 167, 69, 1)",
+                    pointBorderColor: "#fff",
+                    pointRadius: 3,
+                    fill: true,
+                    tension: 0.2,
+                    data: {{ income_data|tojson }},
+                },
+                {
+                    label: "Expenses",
+                    backgroundColor: "rgba(220, 53, 69, 0.2)",
+                    borderColor: "rgba(220, 53, 69, 1)",
+                    borderWidth: 2,
+                    pointBackgroundColor: "rgba(220, 53, 69, 1)",
+                    pointBorderColor: "#fff",
+                    pointRadius: 3,
+                    fill: true,
+                    tension: 0.2,
+                    data: {{ expense_data|tojson }},
+                }
+            ]
+        },
+        options: {
+            animation: {
+                duration: 500
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value;
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': $' + context.raw;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Chart for user statistics
+    var userStatsCtx = document.getElementById("userStatsChart");
+    var userStatsChart = new Chart(userStatsCtx, {
+        type: 'pie',
+        data: {
+            labels: ["Active", "Inactive", "Admin", "Standard"],
+            datasets: [{
+                data: [{{ active_users }}, {{ inactive_users }}, {{ admins }}, {{ total_users - admins }}],
+                backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#007bff'],
+            }]
+        },
+        options: {
+            animation: {
+                duration: 500
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12
+                    }
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}

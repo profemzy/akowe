@@ -1,0 +1,114 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{{ title }} - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">System Settings</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('admin.index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="alert alert-info" role="alert">
+    <i class="fas fa-info-circle"></i> Settings are stored in environment variables. Changes made here will be saved to the .env file.
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-cogs"></i> Application Settings
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('admin.settings') }}">
+                    <h5 class="card-title mb-3">Business Information</h5>
+                    <div class="mb-3">
+                        <label for="company_name" class="form-label">Company Name</label>
+                        <input type="text" class="form-control" id="company_name" name="COMPANY_NAME" 
+                               value="{{ env_vars.get('COMPANY_NAME', '') }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="default_hourly_rate" class="form-label">Default Hourly Rate</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" class="form-control" id="default_hourly_rate" name="DEFAULT_HOURLY_RATE" 
+                                   value="{{ env_vars.get('DEFAULT_HOURLY_RATE', '0.00') }}">
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h5 class="card-title mb-3">Regional Settings</h5>
+                    <div class="mb-3">
+                        <label for="timezone" class="form-label">Timezone</label>
+                        <select class="form-select" id="timezone" name="TIMEZONE">
+                            {% set current_timezone = env_vars.get('TIMEZONE', 'America/Los_Angeles') %}
+                            <option value="America/Los_Angeles" {% if current_timezone == 'America/Los_Angeles' %}selected{% endif %}>America/Los_Angeles (Pacific Time)</option>
+                            <option value="America/Denver" {% if current_timezone == 'America/Denver' %}selected{% endif %}>America/Denver (Mountain Time)</option>
+                            <option value="America/Chicago" {% if current_timezone == 'America/Chicago' %}selected{% endif %}>America/Chicago (Central Time)</option>
+                            <option value="America/New_York" {% if current_timezone == 'America/New_York' %}selected{% endif %}>America/New_York (Eastern Time)</option>
+                            <option value="Europe/London" {% if current_timezone == 'Europe/London' %}selected{% endif %}>Europe/London (GMT/BST)</option>
+                            <option value="Europe/Paris" {% if current_timezone == 'Europe/Paris' %}selected{% endif %}>Europe/Paris (CET/CEST)</option>
+                            <option value="Asia/Tokyo" {% if current_timezone == 'Asia/Tokyo' %}selected{% endif %}>Asia/Tokyo (JST)</option>
+                            <option value="Australia/Sydney" {% if current_timezone == 'Australia/Sydney' %}selected{% endif %}>Australia/Sydney (AEST/AEDT)</option>
+                        </select>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h5 class="card-title mb-3">Storage Settings</h5>
+                    <div class="mb-3">
+                        <label for="azure_storage" class="form-label">Azure Storage Connection String</label>
+                        <input type="text" class="form-control" id="azure_storage" name="AZURE_STORAGE_CONNECTION_STRING" 
+                               value="{{ env_vars.get('AZURE_STORAGE_CONNECTION_STRING', '') }}">
+                        <div class="form-text">Used for cloud storage of receipts and attachments.</div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Settings Information
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Environment Variables</h5>
+                <p>These settings are stored in your <code>.env</code> file at the root of your application.</p>
+                
+                <h6 class="mt-4">Company Settings</h6>
+                <p>The company name is used on invoices and other business documents.</p>
+                
+                <h6 class="mt-4">Timezone</h6>
+                <p>The timezone setting affects how dates and times are displayed throughout the application.</p>
+                <p>All dates are stored in UTC in the database but displayed in your local timezone.</p>
+                
+                <h6 class="mt-4">Storage</h6>
+                <p>Azure Blob Storage is used for storing receipts and attachments. You'll need a valid connection string to enable this feature.</p>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-tools"></i> Advanced
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin.logs') }}" class="btn btn-outline-secondary">View Application Logs</a>
+                    <button class="btn btn-outline-danger" disabled>Clear Application Cache</button>
+                    <button class="btn btn-outline-warning" disabled>Run Database Migration</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

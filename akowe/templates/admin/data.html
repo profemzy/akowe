@@ -1,0 +1,264 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{{ title }} - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Data Management</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('admin.index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-database"></i> Database Statistics
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <th>Clients:</th>
+                                <td>{{ client_count }}</td>
+                            </tr>
+                            <tr>
+                                <th>Projects:</th>
+                                <td>{{ project_count }}</td>
+                            </tr>
+                            <tr>
+                                <th>Invoices:</th>
+                                <td>{{ invoice_count }}</td>
+                            </tr>
+                            <tr>
+                                <th>Timesheets:</th>
+                                <td>{{ timesheet_count }}</td>
+                            </tr>
+                            <tr>
+                                <th>Income Records:</th>
+                                <td>{{ income_count }}</td>
+                            </tr>
+                            <tr>
+                                <th>Expense Records:</th>
+                                <td>{{ expense_count }}</td>
+                            </tr>
+                            <tr>
+                                <th>Total Records:</th>
+                                <td>{{ client_count + project_count + invoice_count + timesheet_count + income_count + expense_count }}</td>
+                            </tr>
+                            <tr>
+                                <th>Database Size:</th>
+                                <td>{{ db_size }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-tools"></i> Data Management Tools
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Backup Database</h5>
+                                <p class="card-text">Create a complete backup of the database.</p>
+                                <button class="btn btn-primary" disabled>Create Backup</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Restore Database</h5>
+                                <p class="card-text">Restore from a previous backup file.</p>
+                                <button class="btn btn-warning" disabled>Restore Backup</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title">Export All Data</h5>
+                                <p class="card-text">Export all data to CSV files for archiving.</p>
+                                <button class="btn btn-secondary" disabled>Export Data</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title">Purge Old Records</h5>
+                                <p class="card-text">Remove records older than a specific date.</p>
+                                <button class="btn btn-danger" disabled>Purge Records</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-history"></i> Recent Database Activity
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs" id="activityTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="invoices-tab" data-bs-toggle="tab" data-bs-target="#invoices" type="button" role="tab" aria-controls="invoices" aria-selected="true">Invoices</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="timesheets-tab" data-bs-toggle="tab" data-bs-target="#timesheets" type="button" role="tab" aria-controls="timesheets" aria-selected="false">Timesheets</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="income-tab" data-bs-toggle="tab" data-bs-target="#income" type="button" role="tab" aria-controls="income" aria-selected="false">Income</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="expenses-tab" data-bs-toggle="tab" data-bs-target="#expenses" type="button" role="tab" aria-controls="expenses" aria-selected="false">Expenses</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="activityTabsContent">
+                    <div class="tab-pane fade show active" id="invoices" role="tabpanel" aria-labelledby="invoices-tab">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Invoice #</th>
+                                        <th>Client</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for invoice in recent_entries.invoices %}
+                                    <tr>
+                                        <td>{{ invoice.invoice_number }}</td>
+                                        <td>{{ invoice.client_ref.name if invoice.client_ref else "Unknown" }}</td>
+                                        <td>${{ invoice.total }}</td>
+                                        <td>{{ invoice.status }}</td>
+                                        <td>{{ invoice.created_at|format_datetime }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">No recent invoices</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="timesheets" role="tabpanel" aria-labelledby="timesheets-tab">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Client</th>
+                                        <th>Project</th>
+                                        <th>Hours</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for timesheet in recent_entries.timesheets %}
+                                    <tr>
+                                        <td>{{ timesheet.date|format_date }}</td>
+                                        <td>{{ timesheet.client_ref.name if timesheet.client_ref else "Unknown" }}</td>
+                                        <td>{{ timesheet.project_ref.name if timesheet.project_ref else "Unknown" }}</td>
+                                        <td>{{ timesheet.hours }}</td>
+                                        <td>{{ timesheet.status }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">No recent timesheet entries</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="income" role="tabpanel" aria-labelledby="income-tab">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Client</th>
+                                        <th>Project</th>
+                                        <th>Invoice</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for income in recent_entries.incomes %}
+                                    <tr>
+                                        <td>{{ income.date|format_date }}</td>
+                                        <td>${{ income.amount }}</td>
+                                        <td>{{ income.client }}</td>
+                                        <td>{{ income.project }}</td>
+                                        <td>{{ income.invoice }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">No recent income entries</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="expenses" role="tabpanel" aria-labelledby="expenses-tab">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Category</th>
+                                        <th>Description</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for expense in recent_entries.expenses %}
+                                    <tr>
+                                        <td>{{ expense.date|format_date }}</td>
+                                        <td>${{ expense.amount }}</td>
+                                        <td>{{ expense.category }}</td>
+                                        <td>{{ expense.title }}</td>
+                                        <td>{{ expense.status }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">No recent expense entries</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

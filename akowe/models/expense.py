@@ -16,6 +16,7 @@ class Expense(db.Model):
     vendor = db.Column(db.String(255), nullable=True)
     receipt_blob_name = db.Column(db.String(255), nullable=True)
     receipt_url = db.Column(db.String(1024), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

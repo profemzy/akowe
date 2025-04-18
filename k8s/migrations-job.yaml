@@ -1,0 +1,85 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: akowe-database-migrations
+  labels:
+    app: akowe
+    component: migration
+spec:
+  template:
+    metadata:
+      labels:
+        app: akowe
+        component: migration
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: migration-runner
+        image: ${REGISTRY_URL}/akowe:${IMAGE_TAG}
+        # Use consolidated migration script instead of individual scripts
+        command: ["python", "run_migrations.py"]
+        env:
+        # Database connection
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: akowe-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: akowe-config
+              key: DB_PORT
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: akowe-config
+              key: DB_NAME
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: akowe-secrets
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: akowe-secrets
+              key: DB_PASSWORD
+        
+        # Application settings
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: akowe-secrets
+              key: SECRET_KEY
+        - name: FLASK_APP
+          value: "app.py"
+        - name: FLASK_ENV
+          value: "production"
+        - name: PYTHONUNBUFFERED
+          value: "1"  # For better log output
+        
+        # Timezone settings (optional)
+        - name: TIMEZONE
+          valueFrom:
+            configMapKeyRef:
+              name: akowe-config
+              key: timezone
+              optional: true
+              
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+      # Security context if needed
+      # securityContext:
+      #   runAsNonRoot: true
+      # Time to wait for the job to complete
+      activeDeadlineSeconds: 600  # 10 minutes
+  # How many times to retry the job if it fails
+  backoffLimit: 3
+  # Delete the job after it completes or fails
+  ttlSecondsAfterFinished: 86400  # 24 hours
