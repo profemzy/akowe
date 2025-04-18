@@ -1,11 +1,12 @@
 """Akowe application factory module."""
 
-from flask import Flask, redirect, url_for, request, jsonify
+from flask import Flask, redirect, url_for, request, jsonify, session, render_template
 from flask_migrate import Migrate
 from flask_login import LoginManager, current_user
+from flask_wtf.csrf import CSRFProtect
 from dotenv import load_dotenv
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 # Initialize Flask extensions
@@ -14,6 +15,7 @@ login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 login_manager.login_message = "Please log in to access this page."
 login_manager.login_message_category = "info"
+csrf = CSRFProtect()
 
 
 def create_app(test_config=None):
@@ -32,6 +34,17 @@ def create_app(test_config=None):
         SECRET_KEY=os.environ.get("SECRET_KEY", "dev"),
         SQLALCHEMY_DATABASE_URI=os.environ.get("DATABASE_URL", "sqlite:///akowe.db"),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        
+        # Security settings
+        SESSION_COOKIE_SECURE=os.environ.get("FLASK_ENV") != "development",  # Secure in non-dev environments
+        SESSION_COOKIE_HTTPONLY=True,  # Prevent JavaScript access to session cookie
+        SESSION_COOKIE_SAMESITE="Lax",  # CSRF protection
+        PERMANENT_SESSION_LIFETIME=timedelta(hours=6),  # Session expires after 6 hours
+        WTF_CSRF_ENABLED=True,  # Explicitly enable CSRF protection
+        SESSION_ACTIVITY_TIMEOUT=1800,  # 30 minutes of inactivity causes session timeout
+        REMEMBER_COOKIE_DURATION=timedelta(days=14),  # "Remember me" lasts for 14 days
+        REMEMBER_COOKIE_SECURE=os.environ.get("FLASK_ENV") != "development",
+        REMEMBER_COOKIE_HTTPONLY=True,
     )
     if test_config is None:
         # Load the instance config, if it exists, when not testing
@@ -51,6 +64,7 @@ def create_app(test_config=None):
     db.init_app(app)
     migrate.init_app(app, db, directory=os.path.join(os.path.dirname(app.root_path), "migrations"))
     login_manager.init_app(app)
+    csrf.init_app(app)
     
     # Register user loader for Flask-Login
     from akowe.models.user import User
@@ -58,11 +72,53 @@ def create_app(test_config=None):
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+        
+    # Global CSRF error handler
+    from flask_wtf.csrf import CSRFError
+    
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e):
+        """Handle CSRF errors gracefully and inform the user."""
+        return render_template('layouts/error.html', 
+                              error="CSRF Validation Failed", 
+                              message="Your form submission could not be processed. Please try again.",
+                              status_code=400), 400
 
     @app.route("/ping")
     def ping():
         return {"status": "ok", "message": "Akowe is running"}
 
+    # Session activity timeout check
+    @app.before_request
+    def check_session_activity():
+        if current_user.is_authenticated:
+            # Skip for static files and certain routes
+            if request.path.startswith('/static/') or request.path == '/ping':
+                return
+                
+            # Get last activity time from session
+            last_activity = session.get('last_activity')
+            now = datetime.utcnow()
+            
+            # Set current time as last activity
+            session['last_activity'] = now.timestamp()
+            
+            # If no previous activity or it's been too long, require re-login
+            if not last_activity or now.timestamp() - last_activity > app.config.get('SESSION_ACTIVITY_TIMEOUT', 3600):
+                # Check for remember cookie
+                has_remember_cookie = False
+                remember_cookie_name = app.config.get('REMEMBER_COOKIE_NAME', 'remember_token')
+                if remember_cookie_name in request.cookies:
+                    has_remember_cookie = True
+                
+                # Only enforce for non-remembered sessions
+                if not has_remember_cookie and session.get('_remember') != 'set':
+                    from flask_login import logout_user
+                    logout_user()
+                    from flask import flash
+                    flash("Your session has expired due to inactivity. Please log in again.", "warning")
+                    return redirect(url_for('auth.login'))
+    
     # Register authentication blueprint
     from akowe import auth
     app.register_blueprint(auth.bp)

@@ -5,7 +5,7 @@ import sys
 import tempfile
 import importlib.util
 import pytest
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from decimal import Decimal
 
 # Load create_app directly from the file
@@ -35,6 +35,10 @@ def app():
             "MAX_CONTENT_LENGTH": 5 * 1024 * 1024,  # 5MB max upload for tests
             "AZURE_STORAGE_CONNECTION_STRING": "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=test;EndpointSuffix=core.windows.net",
             "TEMPLATE_FOLDER": template_path,  # Specify the template path
+            "SESSION_ACTIVITY_TIMEOUT": 1800,  # 30 minutes for session timeout
+            "PERMANENT_SESSION_LIFETIME": timedelta(hours=6),  # 6 hours for session lifetime
+            "REMEMBER_COOKIE_DURATION": timedelta(days=14),  # 14 days for remember cookie
+            "SESSION_TYPE": "filesystem",  # For testing we use filesystem sessions
         }
     )
     
@@ -91,11 +95,15 @@ def auth(client, test_user):
         def __init__(self, test_user):
             self.test_user = test_user
 
-        def login(self, username="test", password="password"):
-            return client.post("/login", data={"username": username, "password": password})
+        def login(self, username="test", password="password", remember=False):
+            return client.post("/login", data={
+                "username": username, 
+                "password": password,
+                "remember_me": remember
+            }, follow_redirects=True)
 
         def logout(self):
-            return client.get("/logout")
+            return client.get("/logout", follow_redirects=True)
 
     return AuthActions(test_user)
 

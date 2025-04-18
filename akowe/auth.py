@@ -1,13 +1,25 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, login_required, current_user
 from urllib.parse import urlparse
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from akowe.models import db
 from akowe.models.user import User
 from akowe.forms import LoginForm, PasswordChangeForm
 
 bp = Blueprint("auth", __name__)
+
+# Handle CSRF errors
+from flask_wtf.csrf import CSRFError
+
+
+@bp.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    """Handle CSRF errors by returning to the login page with an error message."""
+    flash("Security token expired or missing. Please fill out the form again.", "danger")
+    # Create a fresh form with a new CSRF token
+    form = LoginForm()
+    return render_template("auth/login.html", form=form, title="Log In", csrf_error=True)
 
 
 @bp.route("/login", methods=["GET", "POST"])
@@ -23,15 +35,28 @@ def login():
         # Check if user exists and password is correct
         if user is None or not user.verify_password(form.password.data):
             flash("Invalid username or password", "danger")
-            return redirect(url_for("auth.login"))
+            # Rather than redirecting, render the template with the form to show errors
+            return render_template("auth/login.html", form=form, title="Log In", login_failed=True)
 
         # Check if user is active
         if not user.is_active:
             flash("Account is disabled. Please contact an administrator.", "warning")
-            return redirect(url_for("auth.login"))
+            # Rather than redirecting, render the template with the form
+            return render_template("auth/login.html", form=form, title="Log In", login_failed=True)
 
         # Log in the user and update last login timestamp
+        # If remember_me is False, make session permanent but with config lifetime
+        # This allows us to control session expiry even for non-remembered sessions
+        if not form.remember_me.data:
+            session.permanent = True  # This makes the session use PERMANENT_SESSION_LIFETIME
+        
         login_user(user, remember=form.remember_me.data)
+        
+        # Set session security flags
+        session.modified = True
+        
+        # Set initial activity time
+        session['last_activity'] = datetime.utcnow().timestamp()
         
         # Update last login time
         user.last_login = datetime.utcnow()

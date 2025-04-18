@@ -22,8 +22,10 @@ def test_login_page(client):
 
 def test_login_success(client, auth):
     """Test successful login."""
+    # Since we updated auth.login() to use follow_redirects=True, we don't check redirects anymore
     response = auth.login()
-    assert response.headers["Location"] == "/"
+    assert response.status_code == 200  # Should now be a 200 OK rather than a redirect
+    assert b"Dashboard" in response.data  # Verify we see the dashboard after login
     
     # Test session is set correctly
     with client:

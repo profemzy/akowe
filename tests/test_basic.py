@@ -16,7 +16,8 @@ if __name__ == "__main__":
         'tests/test_app.py', 
         'tests/test_ping.py', 
         'tests/test_with_mocks.py',
-        'tests/simple_test.py'
+        'tests/simple_test.py',
+        'tests/test_auth_security.py'
     ]
     
     exit_code = pytest.main(['-v'] + test_files)
