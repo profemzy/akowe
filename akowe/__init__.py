@@ -3,8 +3,11 @@ from flask_migrate import Migrate
 from flask_login import LoginManager, current_user
 from dotenv import load_dotenv
 import os
+import pytz
+from datetime import datetime
 
 from akowe.models import db
+from akowe.utils.timezone_initializer import init_timezone
 
 migrate = Migrate()
 login_manager = LoginManager()
@@ -57,12 +60,13 @@ def create_app(test_config=None):
 
     app.register_blueprint(admin.bp)
     # Register main blueprints
-    from akowe.api import income_bp, expense_bp, dashboard_bp, export_bp
+    from akowe.api import income_bp, expense_bp, dashboard_bp, export_bp, import_bp
 
     app.register_blueprint(income_bp)
     app.register_blueprint(expense_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(export_bp)
+    app.register_blueprint(import_bp)
     # Register tax dashboard blueprint
     from akowe.api.tax_dashboard import bp as tax_dashboard_bp
 
@@ -83,9 +87,13 @@ def create_app(test_config=None):
     from akowe.api.mobile_api import bp as mobile_api_bp
 
     app.register_blueprint(mobile_api_bp)
+    
+    # Initialize timezone settings
+    init_timezone(app)
 
     # Add custom template filters
     from decimal import Decimal
+    from akowe.utils.timezone import to_local_time, format_datetime, format_date
 
     @app.template_filter("to_decimal")
     def to_decimal(value):
@@ -93,6 +101,30 @@ def create_app(test_config=None):
         if value is None:
             return Decimal("0")
         return Decimal(str(value))
+        
+    # Add global functions to template context
+    @app.context_processor
+    def utility_processor():
+        """Add utility functions to template context."""
+        return {
+            'hasattr': hasattr,  # Add Python's built-in hasattr function
+            'datetime': datetime  # Add datetime module for templates
+        }
+        
+    @app.template_filter("local_datetime")
+    def local_datetime_filter(dt):
+        """Convert a UTC datetime to local timezone."""
+        return to_local_time(dt)
+        
+    @app.template_filter("format_datetime")
+    def format_datetime_filter(dt, format_str="%Y-%m-%d %H:%M:%S"):
+        """Format a datetime in the local timezone."""
+        return format_datetime(dt, format_str)
+        
+    @app.template_filter("format_date")
+    def format_date_filter(dt, format_str="%Y-%m-%d"):
+        """Format a date in the local timezone."""
+        return format_date(dt, format_str)
 
     # Protect all routes
     @app.before_request

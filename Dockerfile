@@ -49,7 +49,7 @@ RUN pip install --no-cache-dir /wheels/* \
     && rm -rf /wheels
 
 # Copy only necessary files
-COPY app.py docker-entrypoint.sh init_db.py ./
+COPY app.py docker-entrypoint.sh init_db.py run_migrations.py ./
 COPY akowe/ ./akowe/
 
 # Copy migrations and make sure directories exist

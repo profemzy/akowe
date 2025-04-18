@@ -16,37 +16,108 @@
     <div class="col-lg-8">
         <div class="card">
             <div class="card-body">
-                <form method="post" action="{{ url_for('income.new') }}">
-                    <div class="mb-3">
-                        <label for="date" class="form-label">Date</label>
-                        <input type="date" class="form-control" id="date" name="date" required>
+                <ul class="nav nav-tabs mb-3" id="incomeEntryTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="relationships-tab" data-bs-toggle="tab" data-bs-target="#relationships-tab-pane" type="button" role="tab" aria-controls="relationships-tab-pane" aria-selected="true">
+                            Client-Project Based
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="legacy-tab" data-bs-toggle="tab" data-bs-target="#legacy-tab-pane" type="button" role="tab" aria-controls="legacy-tab-pane" aria-selected="false">
+                            Simple Entry
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="incomeEntryTabsContent">
+                    <!-- Relationship based form -->
+                    <div class="tab-pane fade show active" id="relationships-tab-pane" role="tabpanel" aria-labelledby="relationships-tab" tabindex="0">
+                        <form id="relationshipForm" method="post" action="{{ url_for('income.new') }}">
+                            <div class="mb-3">
+                                <label for="date" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="date" name="date" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="amount" class="form-label">Amount ($)</label>
+                                <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="client_id" class="form-label">Client</label>
+                                <select class="form-select" id="client_id" name="client_id" required onchange="loadProjects(this.value)">
+                                    <option value="">Select Client</option>
+                                    {% for client in clients %}
+                                    <option value="{{ client.id }}" data-name="{{ client.name }}">{{ client.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <!-- Hidden field to store client name -->
+                                <input type="hidden" name="client" id="client_name">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="project_id" class="form-label">Project</label>
+                                <select class="form-select" id="project_id" name="project_id" required>
+                                    <option value="">Select Client First</option>
+                                </select>
+                                <!-- Hidden field to store project name -->
+                                <input type="hidden" name="project" id="project_name">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="invoice_id" class="form-label">Invoice</label>
+                                <select class="form-select" id="invoice_id" name="invoice_id">
+                                    <option value="">Select Invoice (Optional)</option>
+                                    {% for inv in invoices %}
+                                    <option value="{{ inv.id }}" data-number="{{ inv.invoice_number }}">{{ inv.invoice_number }} - {{ inv.client_ref.name }} (${{ '{:,.2f}'.format(inv.total) }})</option>
+                                    {% endfor %}
+                                </select>
+                                <!-- Hidden field for invoice number string -->
+                                <input type="hidden" name="invoice" id="invoice_number">
+                            </div>
+                            
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary" onclick="setNameFields()">Save Income</button>
+                                <a href="{{ url_for('income.index') }}" class="btn btn-secondary">Cancel</a>
+                            </div>
+                        </form>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="amount" class="form-label">Amount ($)</label>
-                        <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0" required>
+                    <!-- Legacy string based form -->
+                    <div class="tab-pane fade" id="legacy-tab-pane" role="tabpanel" aria-labelledby="legacy-tab" tabindex="0">
+                        <form id="legacyForm" method="post" action="{{ url_for('income.new') }}">
+                            <div class="mb-3">
+                                <label for="date_legacy" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="date_legacy" name="date" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="amount_legacy" class="form-label">Amount ($)</label>
+                                <input type="number" class="form-control" id="amount_legacy" name="amount" step="0.01" min="0" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="client_legacy" class="form-label">Client</label>
+                                <input type="text" class="form-control" id="client_legacy" name="client" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="project_legacy" class="form-label">Project</label>
+                                <input type="text" class="form-control" id="project_legacy" name="project" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="invoice_legacy" class="form-label">Invoice</label>
+                                <input type="text" class="form-control" id="invoice_legacy" name="invoice">
+                            </div>
+                            
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary">Save Income</button>
+                                <a href="{{ url_for('income.index') }}" class="btn btn-secondary">Cancel</a>
+                            </div>
+                        </form>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="client" class="form-label">Client</label>
-                        <input type="text" class="form-control" id="client" name="client" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="project" class="form-label">Project</label>
-                        <input type="text" class="form-control" id="project" name="project" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="invoice" class="form-label">Invoice</label>
-                        <input type="text" class="form-control" id="invoice" name="invoice">
-                    </div>
-                    
-                    <div class="text-end">
-                        <button type="submit" class="btn btn-primary">Save Income</button>
-                        <a href="{{ url_for('income.index') }}" class="btn btn-secondary">Cancel</a>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -59,11 +130,65 @@
             <div class="card-body">
                 <p><strong>Date:</strong> The date the income was received or earned</p>
                 <p><strong>Amount:</strong> The amount in dollars (e.g., 1000.00)</p>
-                <p><strong>Client:</strong> The name of the client or source of income</p>
-                <p><strong>Project:</strong> The project code and name (e.g., P2023001 - Web Development)</p>
+                <p><strong>Client:</strong> The client who paid for the work</p>
+                <p><strong>Project:</strong> The project the income is associated with</p>
                 <p><strong>Invoice:</strong> The invoice number or reference (optional)</p>
+                <hr>
+                <p><strong>Client-Project Based:</strong> Select from existing clients and projects</p>
+                <p><strong>Simple Entry:</strong> Quickly enter income without client/project relationships</p>
             </div>
         </div>
     </div>
 </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function loadProjects(clientId) {
+    if (!clientId) {
+        return;
+    }
+    
+    // Update the client name field
+    const clientSelect = document.getElementById('client_id');
+    const selectedOption = clientSelect.options[clientSelect.selectedIndex];
+    document.getElementById('client_name').value = selectedOption.dataset.name;
+    
+    fetch(`{{ url_for('income.get_projects', client_id=0) }}`.replace('0', clientId))
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('project_id').innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error loading projects:', error);
+        });
+}
+
+function setNameFields() {
+    // Set the project name field before submission
+    const projectSelect = document.getElementById('project_id');
+    if (projectSelect.selectedIndex > -1) {
+        const selectedOption = projectSelect.options[projectSelect.selectedIndex];
+        document.getElementById('project_name').value = selectedOption.text;
+    }
+    
+    // Set the invoice number field
+    const invoiceSelect = document.getElementById('invoice_id');
+    if (invoiceSelect.selectedIndex > -1 && invoiceSelect.value) {
+        const selectedOption = invoiceSelect.options[invoiceSelect.selectedIndex];
+        document.getElementById('invoice_number').value = selectedOption.dataset.number || "";
+    }
+}
+
+// Add event listeners for selection changes
+document.getElementById('project_id').addEventListener('change', function() {
+    setNameFields();
+});
+
+// Add event listener for invoice selection changes
+document.getElementById('invoice_id').addEventListener('change', function() {
+    setNameFields();
+});
+</script>
 {% endblock %}

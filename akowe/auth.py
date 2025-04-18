@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from urllib.parse import urlparse
+from datetime import datetime
 
 from akowe.models import db
 from akowe.models.user import User
@@ -29,8 +30,12 @@ def login():
             flash("Account is disabled. Please contact an administrator.", "warning")
             return redirect(url_for("auth.login"))
 
-        # Log in the user
+        # Log in the user and update last login timestamp
         login_user(user, remember=form.remember_me.data)
+        
+        # Update last login time
+        user.last_login = datetime.utcnow()
+        db.session.commit()
 
         # Redirect to the page the user was trying to access
         next_page = request.args.get("next")

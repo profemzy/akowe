@@ -48,21 +48,29 @@ docker push your-registry.azurecr.io/akowe:latest
 
 ```bash
 # Replace ${REGISTRY_URL} with your actual registry URL
-sed -i 's/${REGISTRY_URL}/your-registry.azurecr.io/g' k8s/02-deployment.yaml k8s/migrate-job.yaml
+sed -i 's/${REGISTRY_URL}/your-registry.azurecr.io/g' k8s/02-deployment.yaml k8s/migrations-job.yaml
 ```
 
 3. Apply the configuration and run database migrations first:
 
 ```bash
 kubectl apply -f k8s/01-config.yaml
-kubectl apply -f k8s/migrate-job.yaml
+
+# Set environment variables for migration job
+export REGISTRY_URL=your-registry.azurecr.io
+export IMAGE_TAG=latest
+
+# Apply the consolidated migration job
+envsubst < k8s/migrations-job.yaml | kubectl apply -f -
 ```
 
 4. Wait for the migration job to complete:
 
 ```bash
-kubectl wait --for=condition=complete --timeout=120s job/akowe-migrate-db -n wackops
+kubectl wait --for=condition=complete --timeout=120s job/akowe-database-migrations -n wackops
 ```
+
+See the [Database Migrations Guide](DATABASE-MIGRATIONS.md) for detailed information about the consolidated migration system.
 
 5. Apply the remaining Kubernetes manifests:
 

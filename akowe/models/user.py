@@ -17,6 +17,7 @@ class User(UserMixin, db.Model):
     hourly_rate = db.Column(db.Numeric(10, 2), nullable=True)  # Default hourly rate
     is_admin = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
+    last_login = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

@@ -1,0 +1,9 @@
+type,date,amount,client,vendor,project,category,tax_deductible,notes,invoice
+income,2025-01-15,1500.00,Acme Corp,,Project Alpha,,,,INV-202501-0001
+income,2025-01-20,3000.00,TechCo,,Website Redesign,,,,INV-202501-0002
+expense,2025-01-18,75.50,,Office Supplies,,Office Expenses,true,Printer ink and paper,
+expense,2025-01-22,12.99,,Adobe,,Software Subscription,true,Monthly Adobe subscription,
+income,2025-02-05,2500.00,Global Industries,,Database Migration,,,,INV-202502-0001
+expense,2025-02-10,150.00,,City Power,,Utilities,true,Electricity bill,
+expense,2025-02-15,45.75,,Coffee Shop,,Meals & Entertainment,false,Client meeting refreshments,
+income,2025-02-20,4500.00,TechCo,,Website Maintenance,,,,INV-202502-0002

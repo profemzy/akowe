@@ -1,6 +1,38 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %}User Management - Akowe{% endblock %}
+{% block title %}{{ title }} - Akowe{% endblock %}
+
+{% block styles %}
+<style>
+    /* Fix for dropdown menus in tables */
+    .table-responsive .dropdown-menu {
+        position: absolute !important;
+        z-index: 1000;
+    }
+    
+    .table-responsive .dropdown {
+        position: static !important;
+    }
+
+    /* Ensure the dropdown is above other elements */
+    .table-responsive {
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+    }
+    
+    @media (max-width: 767.98px) {
+        .table-responsive {
+            overflow-x: auto !important;
+        }
+        
+        /* On mobile, make dropdowns align right to avoid overflow issues */
+        .dropdown-menu-end {
+            right: 0;
+            left: auto;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -9,12 +41,97 @@
         <a href="{{ url_for('admin.new_user') }}" class="btn btn-sm btn-primary">
             <i class="fas fa-user-plus"></i> New User
         </a>
+        <a href="{{ url_for('admin.index') }}" class="btn btn-sm btn-outline-secondary ms-2">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
 </div>
 
-<div class="card">
+<div class="row mb-4">
+    <!-- Stats Cards -->
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50">Total Users</h6>
+                        <h3 class="m-0">{{ total_users }}</h3>
+                    </div>
+                    <i class="fas fa-users fa-2x text-white-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50">Active Users</h6>
+                        <h3 class="m-0">{{ active_users }}</h3>
+                    </div>
+                    <i class="fas fa-user-check fa-2x text-white-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50">Admin Users</h6>
+                        <h3 class="m-0">{{ admin_users }}</h3>
+                    </div>
+                    <i class="fas fa-user-shield fa-2x text-white-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-users me-1"></i>
+        User List
+    </div>
     <div class="card-body">
-        <div class="table-responsive">
+        <!-- Filters -->
+        <div class="row mb-3">
+            <div class="col-md-8">
+                <form method="get" class="d-flex">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="q" value="{{ search_query }}" placeholder="Search users...">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex justify-content-end">
+                    <div class="btn-group">
+                        <a href="{{ url_for('admin.users', status='all', role=filter_role) }}" 
+                           class="btn btn-outline-secondary {% if filter_status == 'all' %}active{% endif %}">All</a>
+                        <a href="{{ url_for('admin.users', status='active', role=filter_role) }}" 
+                           class="btn btn-outline-secondary {% if filter_status == 'active' %}active{% endif %}">Active</a>
+                        <a href="{{ url_for('admin.users', status='inactive', role=filter_role) }}" 
+                           class="btn btn-outline-secondary {% if filter_status == 'inactive' %}active{% endif %}">Inactive</a>
+                    </div>
+                    <div class="btn-group ms-2">
+                        <a href="{{ url_for('admin.users', status=filter_status, role='all') }}" 
+                           class="btn btn-outline-secondary {% if filter_role == 'all' %}active{% endif %}">All Roles</a>
+                        <a href="{{ url_for('admin.users', status=filter_status, role='admin') }}" 
+                           class="btn btn-outline-secondary {% if filter_role == 'admin' %}active{% endif %}">Admins</a>
+                        <a href="{{ url_for('admin.users', status=filter_status, role='user') }}" 
+                           class="btn btn-outline-secondary {% if filter_role == 'user' %}active{% endif %}">Users</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="table-responsive position-relative">
             <table class="table table-striped table-hover">
                 <thead>
                     <tr>
@@ -22,7 +139,7 @@
                         <th>Username</th>
                         <th>Email</th>
                         <th>Name</th>
-                        <th>Admin</th>
+                        <th>Role</th>
                         <th>Status</th>
                         <th>Created</th>
                         <th>Actions</th>
@@ -49,17 +166,31 @@
                             <span class="badge bg-danger">Inactive</span>
                             {% endif %}
                         </td>
-                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ user.created_at|format_datetime("%Y-%m-%d") }}</td>
                         <td>
-                            <div class="btn-group">
-                                <a href="{{ url_for('admin.edit_user', id=user.id) }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
-                                <button type="button" class="btn btn-sm btn-outline-danger" 
-                                        data-bs-toggle="modal" data-bs-target="#deleteModal{{ user.id }}"
-                                        {% if user.id == 1 %}disabled{% endif %}>
-                                    <i class="fas fa-trash"></i> Delete
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Actions
                                 </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('admin.edit_user', id=user.id) }}">
+                                            <i class="fas fa-edit"></i> Edit User
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#resetPasswordModal{{ user.id }}">
+                                            <i class="fas fa-key"></i> Reset Password
+                                        </button>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ user.id }}"
+                                                {% if user.id == 1 %}disabled{% endif %}>
+                                            <i class="fas fa-trash"></i> Delete User
+                                        </button>
+                                    </li>
+                                </ul>
                             </div>
                             
                             <!-- Delete Modal -->
@@ -85,6 +216,30 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <!-- Reset Password Modal -->
+                            <div class="modal fade" id="resetPasswordModal{{ user.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Reset Password</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to reset the password for <strong>{{ user.username }}</strong>?
+                                            <p class="mt-2">
+                                                A new temporary password will be generated.
+                                            </p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="{{ url_for('admin.reset_password', id=user.id) }}" method="post">
+                                                <button type="submit" class="btn btn-warning">Reset Password</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                     {% else %}
@@ -96,5 +251,45 @@
             </table>
         </div>
     </div>
+    <div class="card-footer small text-muted">
+        {% if search_query %}
+        Showing search results for "{{ search_query }}"
+        {% else %}
+        Showing users with status: {{ filter_status }} | role: {{ filter_role }}
+        {% endif %}
+    </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Ensure dropdowns remain visible
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fix dropdowns position
+        const dropdownButtons = document.querySelectorAll('.table-responsive .dropdown-toggle');
+        
+        dropdownButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Get the dropdown menu
+                const menu = this.nextElementSibling;
+                
+                // Set timeout to ensure the menu is rendered before we check position
+                setTimeout(() => {
+                    // Get the container bounds
+                    const tableRect = document.querySelector('.table-responsive').getBoundingClientRect();
+                    const menuRect = menu.getBoundingClientRect();
+                    
+                    // Check if dropdown is going out of the visible area
+                    if (menuRect.right > tableRect.right) {
+                        menu.classList.add('dropdown-menu-end');
+                    }
+                    
+                    // Set the z-index higher than table-responsive
+                    menu.style.zIndex = 1050;
+                }, 0);
+            });
+        });
+    });
+</script>
 {% endblock %}

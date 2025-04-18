@@ -1,0 +1,192 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{{ title }} - Akowe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Application Logs</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('admin.logs') }}" class="btn btn-sm btn-outline-secondary" title="Refresh logs">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </a>
+        </div>
+        <a href="{{ url_for('admin.index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-file-alt me-1"></i>
+        Application Log Entries
+    </div>
+    <div class="card-body">
+        {% if log_entries %}
+        <div class="d-flex mb-3">
+            <div class="input-group">
+                <span class="input-group-text">Filter</span>
+                <input type="text" id="logFilter" class="form-control" placeholder="Type to filter logs...">
+            </div>
+            <div class="btn-group ms-2">
+                <button class="btn btn-outline-secondary filter-button" data-level="INFO">INFO</button>
+                <button class="btn btn-outline-warning filter-button" data-level="WARNING">WARNING</button>
+                <button class="btn btn-outline-danger filter-button" data-level="ERROR">ERROR</button>
+                <button class="btn btn-outline-secondary filter-button" data-level="ALL">ALL</button>
+            </div>
+        </div>
+        
+        <div class="log-container bg-dark text-light p-3" style="font-family: monospace; height: 600px; overflow-y: auto;">
+            {% for entry in log_entries %}
+                {% if "ERROR" in entry %}
+                <div class="log-entry log-error">{{ entry }}</div>
+                {% elif "WARNING" in entry %}
+                <div class="log-entry log-warning">{{ entry }}</div>
+                {% else %}
+                <div class="log-entry log-info">{{ entry }}</div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No log entries available. Check the log file path configuration.
+        </div>
+        {% endif %}
+    </div>
+    <div class="card-footer small text-muted">
+        Showing the latest {{ log_entries|length }} log entries. Full logs are available in the application.log file.
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-sliders-h me-1"></i>
+                Log Settings
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="logLevel" class="form-label">Log Level</label>
+                        <select class="form-select" id="logLevel" disabled>
+                            <option value="DEBUG">DEBUG</option>
+                            <option value="INFO" selected>INFO</option>
+                            <option value="WARNING">WARNING</option>
+                            <option value="ERROR">ERROR</option>
+                            <option value="CRITICAL">CRITICAL</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="logRotation" class="form-label">Log Rotation</label>
+                        <select class="form-select" id="logRotation" disabled>
+                            <option value="daily" selected>Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="size">When Size Exceeds 10MB</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="logRetention" class="form-label">Log Retention</label>
+                        <select class="form-select" id="logRetention" disabled>
+                            <option value="7">7 days</option>
+                            <option value="30" selected>30 days</option>
+                            <option value="90">90 days</option>
+                            <option value="365">1 year</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" disabled>Save Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-tools me-1"></i>
+                Log Management
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-secondary" disabled>Download Log File</button>
+                    <button class="btn btn-outline-warning" disabled>Rotate Logs Now</button>
+                    <button class="btn btn-outline-danger" disabled>Clear Log File</button>
+                </div>
+                
+                <hr>
+                
+                <h6>Log Statistics</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <tbody>
+                            <tr>
+                                <th scope="row">Log Size:</th>
+                                <td>Unknown</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Last Modified:</th>
+                                <td>Unknown</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Total Entries:</th>
+                                <td>{{ log_entries|length }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Log filtering
+    $(document).ready(function() {
+        // Text filter
+        $("#logFilter").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $(".log-entry").filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+            });
+        });
+        
+        // Level filter buttons
+        $(".filter-button").on("click", function() {
+            var level = $(this).data("level");
+            $(".filter-button").removeClass("active");
+            $(this).addClass("active");
+            
+            if (level === "ALL") {
+                $(".log-entry").show();
+            } else {
+                $(".log-entry").hide();
+                $(".log-entry").filter(function() {
+                    return $(this).text().indexOf(level) > -1;
+                }).show();
+            }
+        });
+        
+        // Scroll to bottom of log container initially
+        $(".log-container").scrollTop($(".log-container")[0].scrollHeight);
+    });
+</script>
+<style>
+    .log-error {
+        color: #ff8080;
+    }
+    .log-warning {
+        color: #ffcc80;
+    }
+    .log-info {
+        color: #80ccff;
+    }
+</style>
+{% endblock %}

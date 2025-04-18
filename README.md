@@ -157,7 +157,7 @@ WEB_REPLICAS=4 docker compose -f docker-compose.prod.yml up -d
 
 For Kubernetes deployment, see the [k8s directory](./k8s/README.md).
 
-When deploying to Kubernetes, be sure to run the migration job before deploying the application to ensure the database schema is updated correctly for the timesheet and invoice features. The migration job is defined in `k8s/migrate-job.yaml`.
+When deploying to Kubernetes, be sure to run the consolidated migration job before deploying the application to ensure the database schema is updated correctly. See the [Database Migrations Guide](k8s/DATABASE-MIGRATIONS.md) for detailed instructions. The migration job is defined in `k8s/migrations-job.yaml`.
 
 ## Receipt Upload
 

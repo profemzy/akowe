@@ -8,11 +8,13 @@ from akowe.models import db
 from akowe.models.client import Client
 from akowe.models.project import Project
 from akowe.models.timesheet import Timesheet
+from akowe.utils.timezone import convert_to_utc, convert_from_utc, local_date_input, to_local_time
 
 bp = Blueprint("timesheet", __name__, url_prefix="/timesheet")
 
 
 @bp.route("/", methods=["GET"])
+@convert_from_utc
 def index():
     """Show all timesheet entries"""
     # Get filter parameters
@@ -41,14 +43,14 @@ def index():
 
     if from_date:
         try:
-            from_date = datetime.strptime(from_date, "%Y-%m-%d").date()
+            from_date = local_date_input(from_date)
             query = query.filter(Timesheet.date >= from_date)
         except ValueError:
             flash("Invalid from date format", "error")
 
     if to_date:
         try:
-            to_date = datetime.strptime(to_date, "%Y-%m-%d").date()
+            to_date = local_date_input(to_date)
             query = query.filter(Timesheet.date <= to_date)
         except ValueError:
             flash("Invalid to date format", "error")
@@ -81,11 +83,12 @@ def index():
 
 
 @bp.route("/new", methods=["GET", "POST"])
+@convert_to_utc
 def new():
     """Add a new timesheet entry"""
     if request.method == "POST":
         try:
-            date = datetime.strptime(request.form["date"], "%Y-%m-%d").date()
+            date = local_date_input(request.form["date"])
             client_id = request.form.get("client_id")
             project_id = request.form.get("project_id")
             description = request.form["description"]
@@ -137,16 +140,21 @@ def new():
         .all()
     )
 
+    # Get today's date in local timezone
+    from akowe.utils.timezone import get_current_local_datetime
+    today_local = get_current_local_datetime()
+    
     return render_template(
         "timesheet/new.html",
         clients=clients,
         projects=projects,
         default_hourly_rate=current_user.hourly_rate or "",
-        today_date=datetime.now().strftime("%Y-%m-%d"),
+        today_date=today_local.strftime("%Y-%m-%d"),
     )
 
 
 @bp.route("/edit/<int:id>", methods=["GET", "POST"])
+@convert_from_utc
 def edit(id):
     """Edit a timesheet entry"""
     entry = Timesheet.query.get_or_404(id)
@@ -163,7 +171,7 @@ def edit(id):
 
     if request.method == "POST":
         try:
-            entry.date = datetime.strptime(request.form["date"], "%Y-%m-%d").date()
+            entry.date = local_date_input(request.form["date"])
 
             client_id = request.form.get("client_id")
             project_id = request.form.get("project_id")
@@ -251,6 +259,7 @@ def delete(id):
 
 
 @bp.route("/weekly", methods=["GET"])
+@convert_from_utc
 def weekly():
     """Show weekly timesheet view"""
     # Get the requested week (default to current week)
@@ -258,15 +267,18 @@ def weekly():
 
     if week_start_str:
         try:
-            week_start = datetime.strptime(week_start_str, "%Y-%m-%d").date()
+            week_start = local_date_input(week_start_str)
         except ValueError:
             flash("Invalid date format for week start", "error")
-            week_start = datetime.now().date()
+            # Get current date in local timezone
+            from akowe.utils.timezone import get_current_local_datetime
+            week_start = get_current_local_datetime().date()
             # Get to beginning of week (Monday)
             week_start = week_start - timedelta(days=week_start.weekday())
     else:
-        # Get current date and adjust to beginning of week (Monday)
-        week_start = datetime.now().date()
+        # Get current date in local timezone and adjust to beginning of week (Monday)
+        from akowe.utils.timezone import get_current_local_datetime
+        week_start = get_current_local_datetime().date()
         week_start = week_start - timedelta(days=week_start.weekday())
 
     # Calculate week end (Sunday)
@@ -316,6 +328,7 @@ def weekly():
 
 
 @bp.route("/quick_add", methods=["POST"])
+@convert_to_utc
 def quick_add():
     """Quickly add a timesheet entry (AJAX)"""
     if not request.is_json:
@@ -324,7 +337,7 @@ def quick_add():
     try:
         data = request.get_json()
 
-        date = datetime.strptime(data["date"], "%Y-%m-%d").date()
+        date = local_date_input(data["date"])
         client = data["client"]
         project = data["project"]
         description = data["description"]

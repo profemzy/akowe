@@ -26,4 +26,4 @@ run:
 	python app.py
 
 setup:
-	python setup.py
+	python direct_setup.py
