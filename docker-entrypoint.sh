@@ -13,39 +13,51 @@ wait_for_postgres() {
 # Initialize the database from scratch
 initialize_db_fresh() {
   echo "Initializing database from scratch..."
-  
+
   # Use the Python script to initialize or update the database schema
   python init_db.py
-  
+
   if [ $? -ne 0 ]; then
     echo "Database initialization failed!"
     exit 1
   fi
-  
+
   # Import data if files exist
   if [ -f "/app/data/income_export.csv" ]; then
     echo "Importing income data..."
     python -c "
 from akowe.akowe import create_app
 from akowe.services.import_service import ImportService
+from akowe.models.user import User
 
 app = create_app()
 with app.app_context():
-    ImportService.import_income_csv('/app/data/income_export.csv')
+    # Get admin user ID
+    admin = User.query.filter_by(username='admin').first()
+    if admin:
+        ImportService.import_income_csv('/app/data/income_export.csv', admin.id)
+    else:
+        ImportService.import_income_csv('/app/data/income_export.csv')
 "
   else
     echo "No income data file found to import"
   fi
-  
+
   if [ -f "/app/data/expense_export.csv" ]; then
     echo "Importing expense data..."
     python -c "
 from akowe.akowe import create_app
 from akowe.services.import_service import ImportService
+from akowe.models.user import User
 
 app = create_app()
 with app.app_context():
-    ImportService.import_expense_csv('/app/data/expense_export.csv')
+    # Get admin user ID
+    admin = User.query.filter_by(username='admin').first()
+    if admin:
+        ImportService.import_expense_csv('/app/data/expense_export.csv', admin.id)
+    else:
+        ImportService.import_expense_csv('/app/data/expense_export.csv')
 "
   else
     echo "No expense data file found to import"
@@ -75,7 +87,7 @@ with app.app_context():
 # Main execution
 if [ "$1" = "gunicorn" ]; then
   wait_for_postgres
-  
+
   # Check if database needs to be initialized
   if check_db; then
     echo "Database already set up, skipping initialization"
@@ -83,15 +95,15 @@ if [ "$1" = "gunicorn" ]; then
     echo "Database not set up, initializing..."
     initialize_db_fresh
   fi
-  
+
   echo "Starting Akowe Financial Tracker..."
   # Calculate optimal number of workers based on CPU cores
   WORKERS=${GUNICORN_WORKERS:-$(( 2 * $(nproc) + 1 ))}
-  
+
   # Use environment variables if provided
   BIND=${GUNICORN_BIND:-0.0.0.0:5000}
   TIMEOUT=${GUNICORN_TIMEOUT:-120}
-  
+
   echo "Starting Gunicorn with $WORKERS workers on $BIND..."
   exec gunicorn -b $BIND --access-logfile - --error-logfile - --workers $WORKERS --timeout $TIMEOUT "app:app"
 elif [ "$1" = "init" ]; then

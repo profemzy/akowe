@@ -1,21 +1,21 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
-from flask_login import login_required, current_user
-from datetime import datetime, timedelta
-from sqlalchemy import func, extract, desc
-from decimal import Decimal
 import os
+from datetime import datetime, timedelta
+from decimal import Decimal
+
+from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask_login import login_required, current_user
+from sqlalchemy import func, extract
 
 from akowe.decorators import admin_required
 from akowe.forms import RegistrationForm, UserEditForm
 from akowe.models import db
-from akowe.models.user import User
-from akowe.models.income import Income
-from akowe.models.expense import Expense
-from akowe.models.invoice import Invoice
-from akowe.models.timesheet import Timesheet
 from akowe.models.client import Client
+from akowe.models.expense import Expense
+from akowe.models.income import Income
+from akowe.models.invoice import Invoice
 from akowe.models.project import Project
-from akowe.utils.timezone import to_local_time
+from akowe.models.timesheet import Timesheet
+from akowe.models.user import User
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -42,7 +42,7 @@ def index():
     
     # Recent activity
     recent_registrations = User.query.order_by(User.created_at.desc()).limit(5).all()
-    # Check if User model has last_login attribute
+    # Check if a User model has the last_login attribute
     recent_logins = []
     if hasattr(User, 'last_login'):
         recent_logins = User.query.filter(User.last_login.isnot(None)).order_by(User.last_login.desc()).limit(5).all()
@@ -298,7 +298,7 @@ def edit_user(id):
     # Get user activity data
     user_activity = {}
     
-    # Check if models have user_id field before filtering
+    # Check if models have a user_id field before filtering
     if hasattr(Invoice, 'user_id'):
         user_activity['invoices'] = Invoice.query.filter_by(user_id=user.id).count()
     else:
@@ -417,7 +417,7 @@ def data_management():
     client_count = Client.query.count()
     project_count = Project.query.count()
     
-    # Get database size - placeholder, would need DB-specific approach
+    # Get database size - placeholder, would need a DB-specific approach
     db_size = "Unknown"  # Would need database-specific implementation
     
     # Recent database entries

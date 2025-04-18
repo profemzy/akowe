@@ -2,7 +2,7 @@ import os
 
 from flask_migrate import init, migrate, upgrade
 
-from akowe import create_app
+from akowe.akowe import create_app
 from akowe.services.import_service import ImportService
 
 
@@ -11,7 +11,7 @@ def setup_db():
     app = create_app()
 
     with app.app_context():
-        # Initialize migrations directory if it doesn't exist
+        # Initialize the migrations directory if it doesn't exist
         if not os.path.exists("migrations"):
             print("Initializing database migrations...")
             init()
