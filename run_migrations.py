@@ -7,7 +7,7 @@ import importlib
 import sys
 import os
 from sqlalchemy import text, inspect
-from akowe import create_app
+from akowe.akowe import create_app
 from akowe.models import db
 
 # Configure logging

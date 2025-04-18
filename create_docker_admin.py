@@ -4,7 +4,7 @@ import time
 from decimal import Decimal
 from sqlalchemy.exc import SQLAlchemyError
 
-from akowe import create_app
+from akowe.akowe import create_app
 from akowe.models import db
 from akowe.models.user import User
 

@@ -26,7 +26,7 @@ initialize_db_fresh() {
   if [ -f "/app/data/income_export.csv" ]; then
     echo "Importing income data..."
     python -c "
-from akowe import create_app
+from akowe.akowe import create_app
 from akowe.services.import_service import ImportService
 
 app = create_app()
@@ -40,7 +40,7 @@ with app.app_context():
   if [ -f "/app/data/expense_export.csv" ]; then
     echo "Importing expense data..."
     python -c "
-from akowe import create_app
+from akowe.akowe import create_app
 from akowe.services.import_service import ImportService
 
 app = create_app()
@@ -55,7 +55,7 @@ with app.app_context():
 # Check if database is already set up
 check_db() {
   python -c "
-from akowe import create_app
+from akowe.akowe import create_app
 from akowe.models import db
 from akowe.models.user import User
 

@@ -8,7 +8,7 @@ import os
 import sys
 from sqlalchemy import text
 
-from akowe import create_app
+from akowe.akowe import create_app
 from akowe.models import db
 from akowe.models.income import Income
 from akowe.models.user import User
