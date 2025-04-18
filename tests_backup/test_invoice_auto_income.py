@@ -1,13 +1,23 @@
 """Tests for automatic income generation when invoices are marked as paid."""
 
 import unittest
+import os
+import sys
+import importlib.util
 from datetime import datetime, timedelta
 from decimal import Decimal
 
 from flask import url_for
 from flask_login import current_user
 
-from akowe import create_app
+# Load create_app directly from the file
+spec = importlib.util.spec_from_file_location(
+    "akowe_app", 
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "akowe", "akowe.py"))
+)
+akowe_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(akowe_module)
+create_app = akowe_module.create_app
 from akowe.models import db
 from akowe.models.invoice import Invoice
 from akowe.models.income import Income

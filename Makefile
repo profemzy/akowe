@@ -9,7 +9,7 @@ clean:
 	rm -rf *.egg-info
 
 test:
-	pytest -v
+	python test_basic.py
 
 lint:
 	flake8 .
