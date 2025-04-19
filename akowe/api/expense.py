@@ -1,7 +1,6 @@
 import os
 from datetime import datetime
 from decimal import Decimal
-import json
 
 from flask import Blueprint, request, render_template, redirect, url_for, flash, current_app, jsonify
 from werkzeug.utils import secure_filename

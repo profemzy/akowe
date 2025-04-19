@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container mt-4">
     <h1 class="mb-4">Import Transactions</h1>
-    
+
     <div class="row">
         <div class="col-md-12">
             <div class="card mb-4">
@@ -28,8 +28,9 @@
                         <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
                             <h5 class="card-title">Import All Transactions</h5>
                             <p class="card-text">Upload a CSV file containing both income and expense transactions.</p>
-                            
+
                             <form action="{{ url_for('import.import_all_transactions') }}" method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <div class="mb-3">
                                     <label for="allFile" class="form-label">Select CSV file</label>
                                     <input type="file" class="form-control" id="allFile" name="file" accept=".csv" required>
@@ -38,7 +39,7 @@
                                     <button type="submit" class="btn btn-primary">Import All Transactions</button>
                                 </div>
                             </form>
-                            
+
                             <div class="alert alert-info">
                                 <h6>CSV Format Requirements:</h6>
                                 <p>The file should have a "type" column with values "income" or "expense" to distinguish between transaction types.</p>
@@ -52,13 +53,14 @@
                                 <p><a href="/static/sample_combined.csv" download>Download Sample CSV</a></p>
                             </div>
                         </div>
-                        
+
                         <!-- Income Tab -->
                         <div class="tab-pane fade" id="income" role="tabpanel" aria-labelledby="income-tab">
                             <h5 class="card-title">Import Income Transactions</h5>
                             <p class="card-text">Upload a CSV file containing only income transactions.</p>
-                            
+
                             <form action="{{ url_for('import.import_income') }}" method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <div class="mb-3">
                                     <label for="incomeFile" class="form-label">Select CSV file</label>
                                     <input type="file" class="form-control" id="incomeFile" name="file" accept=".csv" required>
@@ -67,7 +69,7 @@
                                     <button type="submit" class="btn btn-success">Import Income</button>
                                 </div>
                             </form>
-                            
+
                             <div class="alert alert-info">
                                 <h6>CSV Format Requirements:</h6>
                                 <p>Required columns:</p>
@@ -81,13 +83,14 @@
                                 <p><a href="/static/sample_income.csv" download>Download Sample CSV</a></p>
                             </div>
                         </div>
-                        
+
                         <!-- Expense Tab -->
                         <div class="tab-pane fade" id="expense" role="tabpanel" aria-labelledby="expense-tab">
                             <h5 class="card-title">Import Expense Transactions</h5>
                             <p class="card-text">Upload a CSV file containing only expense transactions.</p>
-                            
+
                             <form action="{{ url_for('import.import_expense') }}" method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <div class="mb-3">
                                     <label for="expenseFile" class="form-label">Select CSV file</label>
                                     <input type="file" class="form-control" id="expenseFile" name="file" accept=".csv" required>
@@ -96,7 +99,7 @@
                                     <button type="submit" class="btn btn-danger">Import Expenses</button>
                                 </div>
                             </form>
-                            
+
                             <div class="alert alert-info">
                                 <h6>CSV Format Requirements:</h6>
                                 <p>Required columns:</p>

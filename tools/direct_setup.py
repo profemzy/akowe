@@ -4,8 +4,6 @@ Direct database setup script that doesn't rely on Alembic.
 This creates all tables directly using SQLAlchemy create_all().
 """
 
-import os
-import sys
 from sqlalchemy import text
 
 from akowe.akowe import create_app

@@ -17,21 +17,22 @@
         <div class="card">
             <div class="card-body">
                 <form method="post" action="{{ url_for('expense.new') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="mb-3">
                         <label for="date" class="form-label">Date</label>
                         <input type="date" class="form-control" id="date" name="date" required>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="title" class="form-label">Title</label>
                         <input type="text" class="form-control" id="title" name="title" required>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="amount" class="form-label">Amount ($)</label>
                         <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0" required>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="vendor" class="form-label">Vendor</label>
                         <input type="text" class="form-control" id="vendor" name="vendor">
@@ -39,7 +40,7 @@
                             <i class="fas fa-robot me-1"></i> Get AI Category Suggestions
                         </button>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="category" class="form-label">Category</label>
                         <select class="form-select" id="category" name="category" required>
@@ -53,7 +54,7 @@
                             <div id="suggestion-buttons"></div>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="payment_method" class="form-label">Payment Method</label>
                         <select class="form-select" id="payment_method" name="payment_method" required>
@@ -63,7 +64,7 @@
                             {% endfor %}
                         </select>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="status" class="form-label">Status</label>
                         <select class="form-select" id="status" name="status" required>
@@ -73,13 +74,13 @@
                             {% endfor %}
                         </select>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="receipt" class="form-label">Receipt Image</label>
                         <input type="file" class="form-control" id="receipt" name="receipt" accept="image/jpeg,image/png,image/gif,application/pdf">
                         <div class="form-text">Upload a receipt image (JPEG, PNG, GIF) or PDF (max 5MB)</div>
                     </div>
-                    
+
                     <div class="text-end">
                         <button type="submit" class="btn btn-primary">Save Expense</button>
                         <a href="{{ url_for('expense.index') }}" class="btn btn-secondary">Cancel</a>
@@ -88,7 +89,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-lg-4">
         <!-- Tax implications card will appear here when a category is selected or suggested -->
         <div id="tax-info-card" class="card mb-3 d-none">
@@ -102,13 +103,13 @@
                 <h6 id="tax-cra-category" class="mb-2">CRA Category: <span></span></h6>
                 <p id="tax-deduction-rate" class="mb-2">Deduction Rate: <span></span></p>
                 <p id="tax-special-rules" class="mb-2">Special Rules: <span></span></p>
-                
+
                 <div id="tax-documentation-required" class="alert alert-warning mt-3 d-none">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     <strong>Documentation Required:</strong>
                     <span id="tax-documentation-note"></span>
                 </div>
-                
+
                 <div id="tax-cca-class" class="alert alert-info mt-3 d-none">
                     <i class="fas fa-info-circle me-2"></i>
                     <strong>CCA Class:</strong>
@@ -116,7 +117,7 @@
                 </div>
             </div>
         </div>
-    
+
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Expense Entry Help</h5>
@@ -145,22 +146,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const suggestionDiv = document.getElementById('category-suggestions');
     const suggestionButtons = document.getElementById('suggestion-buttons');
     const taxInfoCard = document.getElementById('tax-info-card');
-    
+
     // Function to get tax implications when a category is selected
     function updateTaxInfo(category) {
         if (!category) return;
-        
+
         fetch(`/expense/tax-implications/${category}`)
             .then(response => response.json())
             .then(data => {
                 // Show the tax info card
                 taxInfoCard.classList.remove('d-none');
-                
+
                 // Update fields
                 document.querySelector('#tax-cra-category span').textContent = data.cra_category;
                 document.querySelector('#tax-deduction-rate span').textContent = data.deduction_rate;
                 document.querySelector('#tax-special-rules span').textContent = data.special_rules;
-                
+
                 // Documentation required alert
                 const docRequired = document.getElementById('tax-documentation-required');
                 if (data.documentation_required) {
@@ -169,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     docRequired.classList.add('d-none');
                 }
-                
+
                 // CCA class info
                 const ccaClass = document.getElementById('tax-cca-class');
                 if (data.cca_class) {
@@ -181,31 +182,32 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => console.error('Error fetching tax info:', error));
     }
-    
+
     // Listen for category select changes
     categorySelect.addEventListener('change', function() {
         updateTaxInfo(this.value);
     });
-    
+
     // Get AI suggestions when the button is clicked
     suggestButton.addEventListener('click', function() {
         const title = titleInput.value.trim();
         const vendor = vendorInput.value.trim();
-        
+
         if (!title) {
             alert('Please enter an expense title first');
             return;
         }
-        
+
         // Show loading state
         suggestButton.disabled = true;
         suggestButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Getting suggestions...';
-        
+
         // Call the API
         fetch('/expense/suggest-category', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
             },
             body: JSON.stringify({ title, vendor }),
         })
@@ -214,11 +216,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Reset button
             suggestButton.disabled = false;
             suggestButton.innerHTML = '<i class="fas fa-robot me-1"></i> Get AI Category Suggestions';
-            
+
             // Show suggestions
             suggestionDiv.classList.remove('d-none');
             suggestionButtons.innerHTML = '';
-            
+
             // Create buttons for each suggestion
             data.suggestions.forEach(suggestion => {
                 const btn = document.createElement('button');
@@ -226,23 +228,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 btn.className = `btn btn-outline-success me-2 mb-2`;
                 btn.innerHTML = `${suggestion.display_name} <span class="badge bg-secondary">${suggestion.confidence}%</span>`;
                 btn.setAttribute('data-category', suggestion.category);
-                
+
                 // When a suggestion is clicked, select it in the dropdown
                 btn.addEventListener('click', function() {
                     const category = this.getAttribute('data-category');
                     categorySelect.value = category;
-                    
+
                     // Trigger the change event
                     const event = new Event('change');
                     categorySelect.dispatchEvent(event);
-                    
+
                     // Update tax information
                     updateTaxInfo(category);
                 });
-                
+
                 suggestionButtons.appendChild(btn);
             });
-            
+
             // Show tax implications for the top suggestion
             if (data.suggestions.length > 0) {
                 updateTaxInfo(data.suggestions[0].category);

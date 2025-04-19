@@ -13,7 +13,7 @@
             <a href="{{ url_for('invoice.print_invoice', id=invoice.id) }}" class="btn btn-sm btn-outline-secondary" target="_blank">
                 <i class="fas fa-print"></i> Print
             </a>
-            
+
             {% if invoice.status == 'draft' %}
             <a href="{{ url_for('invoice.edit', id=invoice.id) }}" class="btn btn-sm btn-outline-primary">
                 <i class="fas fa-edit"></i> Edit
@@ -51,7 +51,7 @@
                         <strong>Client:</strong> {{ invoice.client_ref.name if invoice.client_ref else "Unknown Client" }}
                     </div>
                 </div>
-                
+
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <strong>Issue Date:</strong> {{ invoice.issue_date|format_date }}
@@ -60,7 +60,7 @@
                         <strong>Due Date:</strong> {{ invoice.due_date|format_date }}
                     </div>
                 </div>
-                
+
                 {% if invoice.status == 'paid' and invoice.paid_date %}
                 <div class="row mb-3">
                     <div class="col-md-6">
@@ -70,7 +70,7 @@
                         <strong>Payment Method:</strong> {{ invoice.payment_method|default('Not specified') }}
                     </div>
                 </div>
-                
+
                 {% if invoice.payment_reference %}
                 <div class="row mb-3">
                     <div class="col-12">
@@ -79,7 +79,7 @@
                 </div>
                 {% endif %}
                 {% endif %}
-                
+
                 {% if invoice.notes %}
                 <div class="row mb-3">
                     <div class="col-12">
@@ -90,7 +90,7 @@
                 {% endif %}
             </div>
         </div>
-        
+
         <!-- Timesheet Entries -->
         <div class="card">
             <div class="card-header">
@@ -146,7 +146,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <!-- Invoice Summary -->
         <div class="card mb-4">
@@ -172,7 +172,7 @@
                         <span class="fw-bold fs-5">${{ '{:,.2f}'.format(invoice.total) }}</span>
                     </div>
                 </div>
-                
+
                 {% if invoice.status == 'paid' %}
                 <div class="alert alert-success">
                     <i class="fas fa-check-circle me-1"></i> This invoice has been paid.
@@ -192,7 +192,7 @@
                 {% endif %}
             </div>
         </div>
-        
+
         <!-- Timeline -->
         <div class="card">
             <div class="card-header">
@@ -207,7 +207,7 @@
                             <small class="text-muted">{{ invoice.created_at|format_datetime }}</small>
                         </div>
                     </li>
-                    
+
                     {% if invoice.status != 'draft' %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
@@ -217,7 +217,7 @@
                         </div>
                     </li>
                     {% endif %}
-                    
+
                     {% if invoice.status == 'paid' %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
@@ -248,6 +248,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <form method="post" action="{{ url_for('invoice.mark_sent', id=invoice.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <button type="submit" class="btn btn-primary">Mark as Sent</button>
                 </form>
             </div>
@@ -264,9 +265,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form method="post" action="{{ url_for('invoice.mark_paid', id=invoice.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-body">
                     <p>Please enter payment details:</p>
-                    
+
                     <div class="mb-3">
                         <label for="payment_method" class="form-label">Payment Method</label>
                         <select class="form-select" id="payment_method" name="payment_method" required>
@@ -278,7 +280,7 @@
                             <option value="other">Other</option>
                         </select>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="payment_reference" class="form-label">Payment Reference (Optional)</label>
                         <input type="text" class="form-control" id="payment_reference" name="payment_reference" placeholder="e.g., Transaction ID, Check Number">

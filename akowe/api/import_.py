@@ -1,8 +1,9 @@
 """Import API for financial data."""
 
 import os
+
 from flask import Blueprint, request, render_template, redirect, url_for, flash, current_app
-from flask_login import login_required, current_user
+from flask_login import login_required
 from werkzeug.utils import secure_filename
 
 from akowe.services.import_service import ImportService

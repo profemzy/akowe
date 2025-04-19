@@ -44,7 +44,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <div class="card-header bg-danger text-white">
@@ -86,7 +86,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <div class="card-header bg-success text-white">
@@ -112,7 +112,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="card-title">About Export Data</h5>
@@ -131,7 +131,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Import Tab -->
     <div class="tab-pane fade" id="import-tab-pane" role="tabpanel" aria-labelledby="import-tab" tabindex="0">
         <div class="row">
@@ -143,6 +143,7 @@
                     <div class="card-body">
                         <p>Import income records from a CSV file.</p>
                         <form action="{{ url_for('income.import_csv') }}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                             <div class="mb-3">
                                 <label for="income-csv" class="form-label">Select CSV File</label>
                                 <input type="file" class="form-control" id="income-csv" name="file" accept=".csv" required>
@@ -155,7 +156,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <div class="card-header bg-danger text-white">
@@ -164,6 +165,7 @@
                     <div class="card-body">
                         <p>Import expense records from a CSV file.</p>
                         <form action="{{ url_for('expense.import_csv') }}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                             <div class="mb-3">
                                 <label for="expense-csv" class="form-label">Select CSV File</label>
                                 <input type="file" class="form-control" id="expense-csv" name="file" accept=".csv" required>
@@ -176,7 +178,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <div class="card-header bg-success text-white">
@@ -185,6 +187,7 @@
                     <div class="card-body">
                         <p>Import all transactions from a combined export file.</p>
                         <form action="{{ url_for('import.import_all_transactions') }}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                             <div class="mb-3">
                                 <label for="transactions-csv" class="form-label">Select CSV File</label>
                                 <input type="file" class="form-control" id="transactions-csv" name="file" accept=".csv" required>
@@ -198,7 +201,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="card-title">About Import Data</h5>

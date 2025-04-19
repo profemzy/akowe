@@ -41,6 +41,7 @@ The project includes a Makefile with common tasks:
 make install  # Install dependencies
 make setup    # Initialize the database
 make run      # Run the application
+make seed     # Seed database with sample data (excluding transactions) and generate transaction CSV files
 make test     # Run tests
 make lint     # Run linting (flake8)
 make format   # Format code (black)
@@ -100,6 +101,21 @@ Akowe can be easily deployed to production using Docker and Docker Compose with 
 2. The application will be available at http://localhost:5000
 
 3. PgAdmin (database management) will be available at http://localhost:5050
+
+4. To seed the database with sample data (excluding transactions) and generate transaction CSV files:
+   ```
+   docker compose exec web seed
+   ```
+
+   Alternatively, you can run the seed command in a new container:
+   ```
+   docker compose run --rm web seed
+   ```
+
+   This will:
+   - Create sample clients, projects, invoices, and timesheet entries
+   - Generate sample CSV files for expense and income transactions in the data directory
+   - The CSV files can then be imported through the application's import interface
 
 ### Production Deployment
 

@@ -18,36 +18,45 @@
             --warning-color: #f72585;
             --info-color: #4895ef;
             --light-accent: #e2eafc;
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --card-bg: #ffffff;
+            --sidebar-bg: #ffffff;
+            --main-bg: #ffffff;
+            --border-color: rgba(0, 0, 0, 0.125);
+            --table-header-bg: #e2eafc;
+            --hover-bg: rgba(67, 97, 238, 0.05);
         }
-        
+
         body {
             padding-top: 56px;
-            background-color: #f8f9fa;
-            color: var(--dark-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-        
+
         .navbar {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         .navbar-brand {
             font-weight: 700;
             font-size: 1.5rem;
             color: white !important;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
         }
-        
+
         .nav-link {
             font-weight: 500;
             color: rgba(255, 255, 255, 0.9) !important;
             transition: color 0.2s ease;
         }
-        
+
         .nav-link:hover {
             color: white !important;
         }
-        
+
         .sidebar {
             position: fixed;
             top: 56px;
@@ -56,9 +65,10 @@
             z-index: 100;
             padding: 48px 0 0;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-            background-color: white;
+            background-color: var(--sidebar-bg);
+            transition: background-color 0.3s ease;
         }
-        
+
         .sidebar-sticky {
             position: relative;
             top: 0;
@@ -67,30 +77,31 @@
             overflow-x: hidden;
             overflow-y: auto;
         }
-        
+
         .sidebar .nav-link {
-            color: var(--dark-color) !important;
+            color: var(--text-color) !important;
             padding: 0.75rem 1.25rem;
             border-left: 3px solid transparent;
+            transition: color 0.3s ease, background-color 0.3s ease, border-left 0.3s ease;
         }
-        
+
         .sidebar .nav-link:hover {
             color: var(--primary-color) !important;
-            background-color: var(--light-accent);
+            background-color: var(--hover-bg);
             border-left: 3px solid var(--primary-color);
         }
-        
+
         .sidebar .nav-link.active {
             color: var(--primary-color) !important;
-            background-color: var(--light-accent);
+            background-color: var(--hover-bg);
             border-left: 3px solid var(--primary-color);
         }
-        
+
         .sidebar .nav-link i {
             margin-right: 8px;
             color: var(--accent-color);
         }
-        
+
         .sidebar-heading {
             font-size: 0.85rem;
             font-weight: 600;
@@ -98,113 +109,117 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
+
         /* Sidebar dropdown styles */
         .sidebar .nav-link[data-bs-toggle="collapse"] {
             position: relative;
         }
-        
+
         .sidebar .nav-link[data-bs-toggle="collapse"] .fa-chevron-down {
             transition: transform 0.3s ease;
         }
-        
+
         .sidebar .nav-link[aria-expanded="true"] .fa-chevron-down {
             transform: rotate(180deg);
         }
-        
+
         .sidebar .collapse .nav-link {
             font-size: 0.9rem;
             padding: 0.5rem 1rem;
             transition: all 0.2s ease;
         }
-        
+
         .sidebar .collapse .nav-link:hover {
-            background-color: rgba(67, 97, 238, 0.05);
+            background-color: var(--hover-bg);
         }
-        
+
         .sidebar .collapse .nav-link.active {
-            background-color: rgba(67, 97, 238, 0.1);
+            background-color: var(--hover-bg);
             color: var(--primary-color) !important;
             font-weight: 500;
         }
-        
+
+
         main {
             padding-top: 1.5rem;
-            background-color: white;
+            background-color: var(--main-bg);
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             margin-top: 20px;
             margin-bottom: 20px;
             padding: 25px;
+            transition: background-color 0.3s ease;
         }
-        
+
         .card {
             border-radius: 10px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
             border: none;
-            transition: box-shadow 0.2s ease;
+            background-color: var(--card-bg);
+            transition: box-shadow 0.2s ease, background-color 0.3s ease;
         }
-        
+
         .card:hover {
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
         }
-        
+
         .card-header {
             background-color: var(--light-accent);
             border-bottom: none;
             font-weight: 600;
             color: var(--primary-color);
         }
-        
+
         .btn-primary {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
         }
-        
+
         .btn-primary:hover {
             background-color: var(--secondary-color);
             border-color: var(--secondary-color);
         }
-        
+
         .btn-success {
             background-color: var(--success-color);
             border-color: var(--success-color);
         }
-        
+
         .alert {
             border-radius: 8px;
         }
-        
+
         .table {
             border-radius: 8px;
             overflow: hidden;
         }
-        
+
         .table thead th {
-            background-color: var(--light-accent);
+            background-color: var(--table-header-bg);
             color: var(--primary-color);
             font-weight: 600;
             border-bottom: none;
+            transition: background-color 0.3s ease;
         }
-        
+
         .badge {
             padding: 0.5em 0.8em;
             font-weight: 500;
             border-radius: 6px;
         }
-        
+
         .badge.bg-success {
             background-color: var(--success-color) !important;
         }
-        
+
         .badge.bg-warning {
             background-color: #ffbe0b !important;
         }
-        
+
         .badge.bg-danger {
             background-color: var(--warning-color) !important;
         }
-        
+
         .footer {
             background-color: var(--dark-color);
             color: white;
@@ -309,7 +324,7 @@
                                 <i class="fas fa-file-invoice-dollar"></i> Tax Dashboard
                             </a>
                         </li>
-                        
+
                         <!-- Timesheet Section -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint and request.endpoint.startswith('timesheet.') %}active{% endif %}" 
@@ -340,7 +355,7 @@
                                 </ul>
                             </div>
                         </li>
-                        
+
                         <!-- Client Section -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint and request.endpoint.startswith('client.') %}active{% endif %}" 
@@ -366,7 +381,7 @@
                                 </ul>
                             </div>
                         </li>
-                        
+
                         <!-- Project Section -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint and request.endpoint.startswith('project.') %}active{% endif %}" 
@@ -392,7 +407,7 @@
                                 </ul>
                             </div>
                         </li>
-                        
+
                         <!-- Invoice Section -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint and request.endpoint.startswith('invoice.') %}active{% endif %}" 
@@ -418,7 +433,7 @@
                                 </ul>
                             </div>
                         </li>
-                        
+
                         <!-- Income Section -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint and request.endpoint.startswith('income.') %}active{% endif %}" 
@@ -449,7 +464,7 @@
                                 </ul>
                             </div>
                         </li>
-                        
+
                         <!-- Expense Section -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint and request.endpoint.startswith('expense.') %}active{% endif %}" 
@@ -485,7 +500,7 @@
                                 </ul>
                             </div>
                         </li>
-                        
+
                         <!-- Reports Section -->
                         <li class="nav-item mt-4">
                             <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mb-1">
@@ -516,7 +531,7 @@
                                 </ul>
                             </div>
                         </li>
-                        
+
                         {% if current_user.is_admin %}
                         <!-- Admin Section -->
                         <li class="nav-item mt-4">
@@ -572,6 +587,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
     {% block scripts %}{% endblock %}
 </body>
 </html>

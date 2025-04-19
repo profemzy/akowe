@@ -2,11 +2,13 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: akowe-postgres
+    env_file:
+      - .env
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER:-akowe_user}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-akowe_password}
-      POSTGRES_DB: ${DB_NAME:-akowe}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data

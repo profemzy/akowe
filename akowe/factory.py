@@ -1,10 +1,10 @@
-from flask import Flask, redirect, url_for, request, jsonify
-from flask_migrate import Migrate
-from flask_login import LoginManager, current_user
-from dotenv import load_dotenv
 import os
-import pytz
 from datetime import datetime
+
+from dotenv import load_dotenv
+from flask import Flask, redirect, url_for, request, jsonify
+from flask_login import LoginManager, current_user
+from flask_migrate import Migrate
 
 from akowe.models import db
 from akowe.utils.timezone_initializer import init_timezone

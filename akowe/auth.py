@@ -1,11 +1,12 @@
+from datetime import datetime
+from urllib.parse import urlparse
+
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, login_required, current_user
-from urllib.parse import urlparse
-from datetime import datetime, timedelta
 
+from akowe.forms import LoginForm, PasswordChangeForm
 from akowe.models import db
 from akowe.models.user import User
-from akowe.forms import LoginForm, PasswordChangeForm
 
 bp = Blueprint("auth", __name__)
 
