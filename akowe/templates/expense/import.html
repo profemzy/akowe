@@ -17,11 +17,12 @@
         <div class="card">
             <div class="card-body">
                 <form method="post" action="{{ url_for('expense.import_csv') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="mb-3">
                         <label for="file" class="form-label">CSV File</label>
                         <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
                     </div>
-                    
+
                     <div class="text-end">
                         <button type="submit" class="btn btn-primary">Import File</button>
                         <a href="{{ url_for('expense.index') }}" class="btn btn-secondary">Cancel</a>
@@ -30,7 +31,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-lg-4">
         <div class="card">
             <div class="card-header">

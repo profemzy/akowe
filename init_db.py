@@ -3,6 +3,7 @@
 import os
 import sys
 from decimal import Decimal
+from dotenv import load_dotenv
 
 from flask import Flask
 from sqlalchemy import inspect, text
@@ -11,6 +12,9 @@ from sqlalchemy.exc import SQLAlchemyError, ProgrammingError
 from akowe.models import db
 from akowe.models.user import User
 
+# Load environment variables from .env file
+load_dotenv()
+
 
 def init_db():
     """Initialize the database schema."""
@@ -18,11 +22,11 @@ def init_db():
     app = Flask(__name__)
 
     # Get database configuration from environment
-    db_user = os.environ.get("DB_USER", "akowe_user")
-    db_password = os.environ.get("DB_PASSWORD", "akowe_password")
-    db_host = os.environ.get("DB_HOST", "localhost")
-    db_port = os.environ.get("DB_PORT", "5432")
-    db_name = os.environ.get("DB_NAME", "akowe")
+    db_user = os.environ.get("DB_USER")
+    db_password = os.environ.get("DB_PASSWORD")
+    db_host = os.environ.get("DB_HOST")
+    db_port = os.environ.get("DB_PORT")
+    db_name = os.environ.get("DB_NAME")
 
     # Configure database
     app.config["SQLALCHEMY_DATABASE_URI"] = (
@@ -73,11 +77,11 @@ def create_admin():
     app = Flask(__name__)
 
     # Get database configuration from environment
-    db_user = os.environ.get("DB_USER", "akowe_user")
-    db_password = os.environ.get("DB_PASSWORD", "akowe_password")
-    db_host = os.environ.get("DB_HOST", "localhost")
-    db_port = os.environ.get("DB_PORT", "5432")
-    db_name = os.environ.get("DB_NAME", "akowe")
+    db_user = os.environ.get("DB_USER")
+    db_password = os.environ.get("DB_PASSWORD")
+    db_host = os.environ.get("DB_HOST")
+    db_port = os.environ.get("DB_PORT")
+    db_name = os.environ.get("DB_NAME")
 
     # Configure database
     app.config["SQLALCHEMY_DATABASE_URI"] = (
@@ -97,10 +101,10 @@ def create_admin():
                 return True
 
             # Get admin details from environment
-            admin_email = os.environ.get("ADMIN_EMAIL", "admin@example.com")
+            admin_email = os.environ.get("ADMIN_EMAIL")
             admin_password = os.environ.get("ADMIN_PASSWORD")
-            admin_first_name = os.environ.get("ADMIN_FIRST_NAME", "Admin")
-            admin_last_name = os.environ.get("ADMIN_LAST_NAME", "User")
+            admin_first_name = os.environ.get("ADMIN_FIRST_NAME")
+            admin_last_name = os.environ.get("ADMIN_LAST_NAME")
 
             # Get hourly rate from environment or use default
             default_hourly_rate = os.environ.get("DEFAULT_HOURLY_RATE", "0.00")

@@ -67,20 +67,61 @@ with app.app_context():
 # Check if database is already set up
 check_db() {
   python -c "
+import os
 from akowe.akowe import create_app
 from akowe.models import db
 from akowe.models.user import User
+import psycopg2
 
-app = create_app()
-with app.app_context():
-    try:
-        # Try to query users table
-        user_count = User.query.count()
-        print(f'Database already set up with {user_count} users')
-        exit(0)  # Success - tables exist
-    except Exception as e:
-        print(f'Database not set up: {str(e)}')
-        exit(1)  # Failure - tables don't exist
+# First check if the database exists
+db_user = os.environ.get('DB_USER')
+db_password = os.environ.get('DB_PASSWORD')
+db_host = os.environ.get('DB_HOST')
+db_port = os.environ.get('DB_PORT')
+db_name = os.environ.get('DB_NAME')
+
+try:
+    # Try to connect to the postgres database to check if our target database exists
+    conn = psycopg2.connect(
+        dbname='postgres',
+        user=db_user,
+        password=db_password,
+        host=db_host,
+        port=db_port
+    )
+    conn.autocommit = True
+    cursor = conn.cursor()
+
+    # Check if the database exists
+    cursor.execute(f\"\"\"
+        SELECT 1 FROM pg_database WHERE datname = '{db_name}'
+    \"\"\")
+    exists = cursor.fetchone()
+
+    if not exists:
+        print(f'Database {db_name} does not exist, creating it...')
+        # Create the database
+        cursor.execute(f'CREATE DATABASE {db_name}')
+        print(f'Database {db_name} created successfully')
+
+    cursor.close()
+    conn.close()
+
+    # Now try to connect to the application database and check if tables exist
+    app = create_app()
+    with app.app_context():
+        try:
+            # Try to query users table
+            user_count = User.query.count()
+            print(f'Database already set up with {user_count} users')
+            exit(0)  # Success - tables exist
+        except Exception as e:
+            # If we get here, the database exists but tables don't
+            print(f'Database exists but tables not set up: {str(e)}')
+            exit(1)  # Failure - tables don't exist
+except Exception as e:
+    print(f'Error checking database: {str(e)}')
+    exit(1)  # Failure - couldn't check database
   "
 }
 
