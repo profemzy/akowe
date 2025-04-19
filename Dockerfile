@@ -43,6 +43,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /app/instance /app/data
 
+# Create seed command wrapper
+RUN echo '#!/bin/bash\n/app/docker-entrypoint.sh seed' > /usr/local/bin/seed && \
+    chmod +x /usr/local/bin/seed
+
 # Copy wheels from builder stage and install
 COPY --from=builder /app/wheels /wheels
 RUN pip install --no-cache-dir /wheels/* \
@@ -51,6 +55,7 @@ RUN pip install --no-cache-dir /wheels/* \
 # Copy only necessary files
 COPY app.py docker-entrypoint.sh init_db.py run_migrations.py ./
 COPY akowe/ ./akowe/
+COPY tools/ ./tools/
 
 # Copy migrations and make sure directories exist
 COPY migrations/ ./migrations/

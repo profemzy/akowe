@@ -1,4 +1,4 @@
-.PHONY: clean test lint format check install
+.PHONY: clean test lint format check install seed
 
 clean:
 	rm -rf __pycache__
@@ -27,3 +27,6 @@ run:
 
 setup:
 	python direct_setup.py
+
+seed:
+	python tools/seed_db.py

@@ -110,6 +110,23 @@ elif [ "$1" = "init" ]; then
   wait_for_postgres
   initialize_db_fresh
   echo "Initialization complete."
+elif [ "$1" = "seed" ]; then
+  wait_for_postgres
+
+  # Check if database is set up
+  if check_db; then
+    echo "Running database seed script..."
+    python tools/seed_db.py
+    if [ $? -eq 0 ]; then
+      echo "Database seeding completed successfully!"
+    else
+      echo "Database seeding failed!"
+      exit 1
+    fi
+  else
+    echo "Database not set up. Please run 'init' command first."
+    exit 1
+  fi
 else
   exec "$@"
 fi
