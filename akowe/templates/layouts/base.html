@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,27 +18,14 @@
             --warning-color: #f72585;
             --info-color: #4895ef;
             --light-accent: #e2eafc;
-
-            /* Light mode (default) */
             --bg-color: #f8f9fa;
             --text-color: #212529;
             --card-bg: #ffffff;
             --sidebar-bg: #ffffff;
             --main-bg: #ffffff;
             --border-color: rgba(0, 0, 0, 0.125);
-            --table-header-bg: var(--light-accent);
+            --table-header-bg: #e2eafc;
             --hover-bg: rgba(67, 97, 238, 0.05);
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #121212;
-            --text-color: #e0e0e0;
-            --card-bg: #1e1e1e;
-            --sidebar-bg: #1e1e1e;
-            --main-bg: #1e1e1e;
-            --border-color: rgba(255, 255, 255, 0.125);
-            --table-header-bg: #2c2c2c;
-            --hover-bg: rgba(67, 97, 238, 0.15);
         }
 
         body {
@@ -152,23 +139,6 @@
             font-weight: 500;
         }
 
-        /* Dark mode styles for dropdown menus */
-        [data-theme="dark"] .dropdown-menu {
-            background-color: var(--card-bg);
-            border-color: var(--border-color);
-        }
-
-        [data-theme="dark"] .dropdown-item {
-            color: var(--text-color);
-        }
-
-        [data-theme="dark"] .dropdown-item:hover {
-            background-color: var(--hover-bg);
-        }
-
-        [data-theme="dark"] .dropdown-divider {
-            border-top-color: var(--border-color);
-        }
 
         main {
             padding-top: 1.5rem;
@@ -320,11 +290,6 @@
                     {% endif %}
                 </ul>
                 <ul class="navbar-nav">
-                    <li class="nav-item me-3">
-                        <button id="theme-toggle" class="btn btn-sm btn-outline-light mt-1" title="Toggle Dark Mode">
-                            <i class="fas fa-moon"></i>
-                        </button>
-                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-user-circle me-1"></i> {{ current_user.get_full_name() }}
@@ -623,44 +588,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        // Theme toggle functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const themeToggleBtn = document.getElementById('theme-toggle');
-            const htmlElement = document.documentElement;
-
-            // Check if user has previously set a theme preference
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                htmlElement.setAttribute('data-theme', savedTheme);
-                updateThemeIcon(savedTheme);
-            }
-
-            // Toggle theme when button is clicked
-            themeToggleBtn.addEventListener('click', function() {
-                const currentTheme = htmlElement.getAttribute('data-theme');
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-                htmlElement.setAttribute('data-theme', newTheme);
-                localStorage.setItem('theme', newTheme);
-                updateThemeIcon(newTheme);
-            });
-
-            // Update the icon based on current theme
-            function updateThemeIcon(theme) {
-                const icon = themeToggleBtn.querySelector('i');
-                if (theme === 'dark') {
-                    icon.classList.remove('fa-moon');
-                    icon.classList.add('fa-sun');
-                    themeToggleBtn.setAttribute('title', 'Switch to Light Mode');
-                } else {
-                    icon.classList.remove('fa-sun');
-                    icon.classList.add('fa-moon');
-                    themeToggleBtn.setAttribute('title', 'Switch to Dark Mode');
-                }
-            }
-        });
-    </script>
 
     {% block scripts %}{% endblock %}
 </body>
