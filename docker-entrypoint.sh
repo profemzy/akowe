@@ -1,6 +1,15 @@
 #!/bin/bash
 set -e
 
+# Ensure /app/instance and /app/data exist and are writable by the 'app' user
+mkdir -p /app/instance
+chown app:app /app/instance || true
+chmod 775 /app/instance || true
+
+mkdir -p /app/data
+chown app:app /app/data || true
+chmod 775 /app/data || true
+
 # Function to wait for PostgreSQL to be ready
 wait_for_postgres() {
   echo "Waiting for PostgreSQL..."
