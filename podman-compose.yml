@@ -1,0 +1,62 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: akowe-postgres
+    environment:
+      - POSTGRES_USER=${DB_USER:-akowe_user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-akowe_password}
+      - POSTGRES_DB=${DB_NAME:-akowe}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data:z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-akowe_user} -d ${DB_NAME:-akowe}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: akowe:latest
+    container_name: akowe-web
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+    volumes:
+      - ./instance:/app/instance:z
+      - ./data:/app/data:z
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: akowe-pgadmin
+    depends_on:
+      - postgres
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@example.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
+      - PGADMIN_CONFIG_SERVER_MODE=False
+    volumes:
+      - ./pgadmin_data:/var/lib/pgadmin:z
+    ports:
+      - "5050:80"
+    restart: unless-stopped
