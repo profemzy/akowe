@@ -24,7 +24,7 @@ var/
 venv/
 ENV/
 .env
-
+pgadmin_data/
 # Flask
 instance/
 .webassets-cache
