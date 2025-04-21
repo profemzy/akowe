@@ -36,9 +36,11 @@ def token_required(f):
             current_app.logger.info(f"Auth header: {auth_header}")
             if auth_header.startswith("Bearer "):
                 token = auth_header.split(" ")[1]
-                current_app.logger.info(f"Token extracted: {token[:10]}...")
+                current_app.logger.info(f"Token extracted with Bearer prefix: {token[:10]}...")
             else:
-                current_app.logger.warning(f"Auth header does not start with 'Bearer ': {auth_header}")
+                # Handle case where token is sent without "Bearer " prefix
+                token = auth_header
+                current_app.logger.info(f"Token extracted without Bearer prefix: {token[:10]}...")
 
         if not token:
             current_app.logger.warning("No token found in request")

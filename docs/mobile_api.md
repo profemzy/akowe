@@ -2,6 +2,18 @@
 
 This document provides comprehensive documentation for the enhanced Akowe Financial Tracker REST API, which can be used to build mobile applications or integrate with other systems.
 
+## Important URL Format Notes
+
+⚠️ **TRAILING SLASHES ARE REQUIRED**: All API endpoints must include a trailing slash (/) at the end of the URL path. Without the trailing slash, the server will respond with a 308 Permanent Redirect, which can lead to redirect loops or authentication issues.
+
+For example:
+- Correct: `https://akowe.ops.infotitans.ca/api/timesheets/`
+- Incorrect: `https://akowe.ops.infotitans.ca/api/timesheets`
+
+The only exceptions are endpoints that already end with a specific identifier or action, such as:
+- `/api/expenses/{id}`
+- `/api/invoices/{id}/mark-paid`
+
 ## Authentication
 
 The API uses JSON Web Tokens (JWT) for authentication.
@@ -43,17 +55,19 @@ Include the JWT token in the Authorization header for all subsequent requests:
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-⚠️ **IMPORTANT**: The "Bearer " prefix is required before the token. Without this prefix, the authentication will fail with a "Authentication required" message.
+The API supports two formats for the Authorization header:
 
-Incorrect:
+1. With the "Bearer " prefix (recommended):
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+2. Without the "Bearer " prefix (for backward compatibility):
 ```
 Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-Correct:
-```
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
+Both formats are supported, but using the "Bearer " prefix is recommended as it follows the OAuth 2.0 standard.
 
 ## User Endpoints
 
