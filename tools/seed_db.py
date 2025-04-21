@@ -81,6 +81,7 @@ EXPENSE_VENDORS = [
     "Uber", "Lyft", "Marriott", "Hilton", "Starbucks", "Subway"
 ]
 
+
 def init_db():
     """Initialize the database schema."""
     # Create a Flask app with database configuration
@@ -111,6 +112,7 @@ def init_db():
         except SQLAlchemyError as e:
             print(f"Database error: {str(e)}")
             return None
+
 
 def create_admin(app):
     """Create admin user from environment variables."""
@@ -156,6 +158,7 @@ def create_admin(app):
             print(f"Database error creating admin: {str(e)}")
             return None
 
+
 def seed_clients(app, admin_user):
     """Seed client data."""
     with app.app_context():
@@ -185,6 +188,7 @@ def seed_clients(app, admin_user):
             db.session.rollback()
             print(f"Database error seeding clients: {str(e)}")
             return []
+
 
 def seed_projects(app, admin_user, clients):
     """Seed project data."""
@@ -219,6 +223,7 @@ def seed_projects(app, admin_user, clients):
             db.session.rollback()
             print(f"Database error seeding projects: {str(e)}")
             return []
+
 
 def seed_invoices(app, admin_user, clients, projects):
     """Seed invoice data."""
@@ -269,6 +274,7 @@ def seed_invoices(app, admin_user, clients, projects):
             db.session.rollback()
             print(f"Database error seeding invoices: {str(e)}")
             return []
+
 
 def seed_timesheets(app, admin_user, clients, projects, invoices):
     """Seed timesheet data."""
@@ -356,6 +362,7 @@ def seed_timesheets(app, admin_user, clients, projects, invoices):
             print(f"Database error seeding timesheets: {str(e)}")
             return []
 
+
 def generate_expense_csv(clients, projects, admin_user):
     """Generate sample expense CSV file."""
     try:
@@ -395,6 +402,7 @@ def generate_expense_csv(clients, projects, admin_user):
     except Exception as e:
         print(f"Error generating expense CSV: {str(e)}")
         return None
+
 
 def generate_income_csv(clients, projects, admin_user):
     """Generate sample income CSV file."""
@@ -443,6 +451,7 @@ def generate_income_csv(clients, projects, admin_user):
     except Exception as e:
         print(f"Error generating income CSV: {str(e)}")
         return None
+
 
 def seed_database():
     """Main function to seed the database and generate sample CSV files."""
@@ -504,6 +513,7 @@ def seed_database():
     print("2. Upload the CSV files to import the sample transactions")
 
     return True
+
 
 if __name__ == "__main__":
     success = seed_database()

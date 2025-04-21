@@ -36,13 +36,13 @@ def run_migrations():
 
     # Run each migration
     for i, migration in enumerate(migrations):
-        logger.info(f"Running migration {i+1}/{len(migrations)}: {migration['name']}")
+        logger.info(f"Running migration {i + 1}/{len(migrations)}: {migration['name']}")
         try:
             migration["function"]()
             success_count += 1
-            logger.info(f"Migration {i+1}/{len(migrations)} completed successfully")
+            logger.info(f"Migration {i + 1}/{len(migrations)} completed successfully")
         except Exception as e:
-            logger.error(f"Migration {i+1}/{len(migrations)} failed: {str(e)}")
+            logger.error(f"Migration {i + 1}/{len(migrations)} failed: {str(e)}")
             # Continue with next migration even if one fails
 
     # Report results

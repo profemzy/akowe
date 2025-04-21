@@ -243,7 +243,7 @@ class TaxPredictionService:
                 amount_in_bracket = remaining_income
                 tax_in_bracket = amount_in_bracket * bracket["rate"]
                 brackets_info.append({
-                    "bracket": f"Over ${cls.FEDERAL_TAX_BRACKETS[i-1]['max']:,.2f}",
+                    "bracket": f"Over ${cls.FEDERAL_TAX_BRACKETS[i - 1]['max']:,.2f}",
                     "rate": f"{float(bracket['rate']) * 100:.1f}%",
                     "amount_in_bracket": amount_in_bracket,
                     "tax_in_bracket": tax_in_bracket,

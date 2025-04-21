@@ -19,6 +19,7 @@ from akowe.models.invoice import Invoice
 from akowe.models.expense import Expense
 from akowe.models.income import Income
 
+
 def create_app():
     """Create a Flask app with database configuration."""
     app = Flask(__name__)
@@ -40,6 +41,7 @@ def create_app():
     db.init_app(app)
 
     return app
+
 
 def seed_database():
     """Seed the database with demo data."""
@@ -183,6 +185,7 @@ def seed_database():
             db.session.rollback()
             print(f"Database error: {str(e)}")
             return False
+
 
 if __name__ == "__main__":
     success = seed_database()
