@@ -35,6 +35,7 @@ sudo podman run -d --pod akowe-pod \
   --env-file .env \
   --env DB_HOST=localhost \
   --env DB_PORT=5432 \
+  --env DATABASE_URL=postgresql://akowe_user:akowe_password@localhost:5432/akowe \
   --volume ./instance:/app/instance:z \
   --volume ./data:/app/data:z \
   akowe:latest
