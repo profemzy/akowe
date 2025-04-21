@@ -10,6 +10,7 @@ clean:
 
 test:
 	python -m tests.test_basic
+	python -m pytest tests/test_mobile_api.py -v
 
 lint:
 	flake8 .

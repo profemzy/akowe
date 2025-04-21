@@ -150,12 +150,31 @@ def create_app(test_config=None):
     app.register_blueprint(client_bp)
     app.register_blueprint(project_bp)
 
-    # Register mobile API blueprint
+    # Register mobile API blueprints
     from akowe.api.mobile_api import bp as mobile_api_bp
+    from akowe.api.mobile_timesheet_api import bp as mobile_timesheet_bp
+    from akowe.api.mobile_client_api import bp as mobile_client_bp
+    from akowe.api.mobile_project_api import bp as mobile_project_bp
+    from akowe.api.mobile_invoice_api import bp as mobile_invoice_bp
+    from akowe.api.mobile_tax_api import bp as mobile_tax_bp
+    from akowe.test_api import bp as test_api_bp
+
     app.register_blueprint(mobile_api_bp)
+    app.register_blueprint(mobile_timesheet_bp)
+    app.register_blueprint(mobile_client_bp)
+    app.register_blueprint(mobile_project_bp)
+    app.register_blueprint(mobile_invoice_bp)
+    app.register_blueprint(mobile_tax_bp)
+    app.register_blueprint(test_api_bp)
 
     # Exempt mobile API endpoints from CSRF protection
     csrf.exempt(mobile_api_bp)
+    csrf.exempt(mobile_timesheet_bp)
+    csrf.exempt(mobile_client_bp)
+    csrf.exempt(mobile_project_bp)
+    csrf.exempt(mobile_invoice_bp)
+    csrf.exempt(mobile_tax_bp)
+    csrf.exempt(test_api_bp)
 
     # Initialize timezone settings
     from akowe.utils.timezone_initializer import init_timezone
@@ -199,10 +218,19 @@ def create_app(test_config=None):
     @app.before_request
     def check_authentication():
         # Define public endpoints that don't require authentication
-        public_endpoints = ["auth.login", "auth.logout", "static", "ping", "api.login"]
+        public_endpoints = ["auth.login", "auth.logout", "static", "ping", "api.login", "api.test_endpoint", "test_api.hello"]
+        
+        # Skip authentication check for mobile API endpoints that use token_required decorator
+        mobile_api_prefixes = [
+            "api.", "mobile_timesheet.", "mobile_client.", "mobile_project.", "mobile_invoice.", "mobile_tax."
+        ]
+        
         if not request.endpoint:
             return None
-
+            
+        app.logger.info(f"Request endpoint: {request.endpoint} (type: {type(request.endpoint)})")
+        app.logger.info(f"Request headers: {request.headers}")
+            
         # Check if the endpoint is public
         is_public = False
         for ep in public_endpoints:
@@ -210,21 +238,32 @@ def create_app(test_config=None):
                 isinstance(request.endpoint, str) and request.endpoint.startswith(ep + ".")
             ):
                 is_public = True
+                app.logger.info(f"Endpoint {request.endpoint} is public")
                 break
-
-        # If it's a public endpoint, no need to check authentication
-        if is_public:
+                
+        # Check if the endpoint is a mobile API endpoint with its own token authentication
+        is_mobile_api = False
+        for prefix in mobile_api_prefixes:
+            if isinstance(request.endpoint, str) and request.endpoint.startswith(prefix):
+                is_mobile_api = True
+                app.logger.info(f"Endpoint {request.endpoint} is a mobile API endpoint")
+                break
+                
+        # If it's a public endpoint or mobile API endpoint, no need to check authentication
+        if is_public or is_mobile_api:
+            app.logger.info(f"Skipping authentication check for {request.endpoint}")
             return None
-
+            
         # Check if this is an API request
         is_api_request = (
             request.endpoint
             and isinstance(request.endpoint, str)
             and request.endpoint.startswith("api.")
         )
-
+        
         # Handle authentication for non-public endpoints
         if not current_user.is_authenticated:
+            app.logger.warning(f"User not authenticated for {request.endpoint}")
             if is_api_request:
                 # Return JSON response for API endpoints
                 return jsonify({"message": "Authentication required"}), 401

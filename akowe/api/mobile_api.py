@@ -33,28 +33,42 @@ def token_required(f):
         # Check if token is in headers
         if "Authorization" in request.headers:
             auth_header = request.headers["Authorization"]
+            current_app.logger.info(f"Auth header: {auth_header}")
             if auth_header.startswith("Bearer "):
                 token = auth_header.split(" ")[1]
+                current_app.logger.info(f"Token extracted: {token[:10]}...")
+            else:
+                current_app.logger.warning(f"Auth header does not start with 'Bearer ': {auth_header}")
 
         if not token:
+            current_app.logger.warning("No token found in request")
             return jsonify({"message": "Authentication token is missing"}), 401
 
         try:
             # Decode token
             secret_key = current_app.config.get("SECRET_KEY", "dev")
+            current_app.logger.info(f"Using secret key: {secret_key[:5]}...")
             data = jwt.decode(token, secret_key, algorithms=["HS256"])
+            current_app.logger.info(f"Token decoded successfully: {data}")
             current_user = User.query.get(data["user_id"])
 
             if not current_user:
+                current_app.logger.warning(f"User not found for ID: {data['user_id']}")
                 return jsonify({"message": "User not found"}), 401
 
             # Store user in g object for use in route functions
             g.current_user = current_user
+            current_app.logger.info(f"User authenticated: {current_user.username}")
 
         except jwt.ExpiredSignatureError:
+            current_app.logger.warning("Token has expired")
             return jsonify({"message": "Token has expired"}), 401
-        except jwt.InvalidTokenError:
+        except jwt.InvalidTokenError as e:
+            current_app.logger.warning(f"Invalid token: {str(e)}")
             return jsonify({"message": "Invalid token"}), 401
+        except Exception as e:
+            current_app.logger.error(f"Unexpected error in token validation: {str(e)}")
+            return jsonify({"message": "Authentication error"}), 401
 
         return f(*args, **kwargs)
 
@@ -869,3 +883,10 @@ def get_statuses():
     from akowe.api.expense import STATUSES
 
     return jsonify({"statuses": STATUSES})
+
+
+# Test endpoint
+@bp.route("/test", methods=["GET"])
+def test_endpoint():
+    current_app.logger.info("Test endpoint accessed")
+    return jsonify({"message": "Test endpoint works!"})
