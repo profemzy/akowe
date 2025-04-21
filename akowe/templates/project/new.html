@@ -22,11 +22,12 @@
             </div>
             <div class="card-body">
                 <form method="post" action="{{ url_for('project.new') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="mb-3">
                         <label for="name" class="form-label">Project Name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="name" name="name" required>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="client_id" class="form-label">Client <span class="text-danger">*</span></label>
                         <select class="form-select" id="client_id" name="client_id" required>
@@ -41,7 +42,7 @@
                             </a>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="hourly_rate" class="form-label">Default Hourly Rate</label>
                         <div class="input-group">
@@ -50,7 +51,7 @@
                         </div>
                         <div class="form-text">Leave blank to use client or user default rate</div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="status" class="form-label">Status</label>
                         <select class="form-select" id="status" name="status">
@@ -59,12 +60,12 @@
                             <option value="archived">Archived</option>
                         </select>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
                         <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                     </div>
-                    
+
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="{{ url_for('project.index') }}" class="btn btn-outline-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary">Create Project</button>
