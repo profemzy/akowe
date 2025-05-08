@@ -12,7 +12,7 @@ from akowe.models.client import Client
 from akowe.models.timesheet import Timesheet
 from akowe.models.income import Income
 from akowe.api.mobile_api import token_required
-from akowe.api.invoice import generate_invoice_number
+from akowe.app.invoice import generate_invoice_number
 
 bp = Blueprint("mobile_invoice", __name__, url_prefix="/api/invoices")
 

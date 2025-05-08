@@ -866,7 +866,7 @@ def export_incomes():
 @bp.route("/references/categories", methods=["GET"])
 @token_required
 def get_categories():
-    from akowe.api.expense import CATEGORIES
+    from akowe.app.expense import CATEGORIES
 
     return jsonify({"categories": CATEGORIES})
 
@@ -874,7 +874,7 @@ def get_categories():
 @bp.route("/references/payment-methods", methods=["GET"])
 @token_required
 def get_payment_methods():
-    from akowe.api.expense import PAYMENT_METHODS
+    from akowe.app.expense import PAYMENT_METHODS
 
     return jsonify({"payment_methods": PAYMENT_METHODS})
 
@@ -882,7 +882,7 @@ def get_payment_methods():
 @bp.route("/references/statuses", methods=["GET"])
 @token_required
 def get_statuses():
-    from akowe.api.expense import STATUSES
+    from akowe.app.expense import STATUSES
 
     return jsonify({"statuses": STATUSES})
 

@@ -13,7 +13,7 @@ from akowe.models.income import Income
 from akowe.api.mobile_api import token_required
 from akowe.services.tax_prediction_service import TaxPredictionService
 from akowe.services.tax_recommendation_service import TaxRecommendationService
-from akowe.api.tax_dashboard import CRA_TAX_CATEGORIES, GST_HST_RATES, TAX_QUARTERS, CCA_CLASSES
+from akowe.app.tax_dashboard import CRA_TAX_CATEGORIES, GST_HST_RATES, TAX_QUARTERS, CCA_CLASSES
 
 bp = Blueprint("mobile_tax", __name__, url_prefix="/api/tax")
 

@@ -68,15 +68,15 @@ def create_app(test_config=None):
     app.register_blueprint(export_bp)
     app.register_blueprint(import_bp)
     # Register tax dashboard blueprint
-    from akowe.api.tax_dashboard import bp as tax_dashboard_bp
+    from akowe.app.tax_dashboard import bp as tax_dashboard_bp
 
     app.register_blueprint(tax_dashboard_bp)
 
     # Register timesheet, invoice, client, and project blueprints
-    from akowe.api.timesheet import bp as timesheet_bp
-    from akowe.api.invoice import bp as invoice_bp
-    from akowe.api.client import bp as client_bp
-    from akowe.api.project import bp as project_bp
+    from akowe.app.timesheet import bp as timesheet_bp
+    from akowe.app.invoice import bp as invoice_bp
+    from akowe.app.client import bp as client_bp
+    from akowe.app.project import bp as project_bp
 
     app.register_blueprint(timesheet_bp)
     app.register_blueprint(invoice_bp)
