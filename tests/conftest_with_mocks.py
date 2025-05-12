@@ -11,16 +11,15 @@ from unittest.mock import patch
 from flask import render_template_string
 
 # Add the project root directory to sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
 
-# Load create_app directly from the file
-spec = importlib.util.spec_from_file_location(
-    "akowe_app", 
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "akowe", "akowe.py"))
-)
-akowe_module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(akowe_module)
-create_app = akowe_module.create_app
+# Patch the import system to handle akowe.* imports
+from tests.patch_imports import patch_imports
+patch_imports()
+
+# Now we can safely import from akowe.akowe
+from akowe.akowe import create_app
 
 # Template mocking setup
 TEMPLATE_MOCKS = {
@@ -161,11 +160,15 @@ def auth(client, test_user):
         def __init__(self, test_user):
             self.test_user = test_user
 
-        def login(self, username="test", password="password"):
-            return client.post("/login", data={"username": username, "password": password})
+        def login(self, username="test", password="password", remember=False):
+            return client.post("/login", data={
+                "username": username,
+                "password": password,
+                "remember_me": remember
+            }, follow_redirects=True)
 
         def logout(self):
-            return client.get("/logout")
+            return client.get("/logout", follow_redirects=True)
 
     return AuthActions(test_user)
 

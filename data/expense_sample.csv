@@ -1,0 +1,22 @@
+date,title,amount,category,payment_method,status,vendor,user_id
+2025-04-05,Expense for meals,400.71,Office Supplies,Credit Card,reimbursed,Uber,1
+2025-04-25,Expense for utilities,80.77,Utilities,Bank Transfer,paid,Hilton,1
+2025-03-23,Expense for software,377.08,Professional Services,Cash,paid,Lyft,1
+2025-04-29,Expense for travel,308.71,Office Supplies,Debit Card,reimbursed,Amazon,1
+2025-05-02,Expense for miscellaneous,274.94,Hardware,Cash,reimbursed,Amazon,1
+2025-04-08,Expense for miscellaneous,303.88,Travel,Debit Card,paid,Dell,1
+2025-04-07,Expense for office supplies,322.74,Marketing,Cash,paid,Adobe,1
+2025-04-04,Expense for utilities,125.19,Travel,Check,reimbursed,Dell,1
+2025-05-02,Expense for software,393.51,Professional Services,Cash,pending,Dell,1
+2025-03-15,Expense for software,164.23,Rent,Cash,paid,Lyft,1
+2025-04-06,Expense for travel,462.7,Miscellaneous,Debit Card,paid,Apple,1
+2025-03-07,Expense for miscellaneous,220.19,Miscellaneous,PayPal,reimbursed,Dell,1
+2025-03-09,Expense for rent,167.04,Utilities,Check,pending,Office Depot,1
+2025-02-11,Expense for office supplies,237.25,Meals,PayPal,reimbursed,Uber,1
+2025-03-15,Expense for marketing,277.92,Miscellaneous,Bank Transfer,paid,Office Depot,1
+2025-03-06,Expense for office supplies,296.83,Meals,Check,paid,Lyft,1
+2025-04-14,Expense for rent,19.61,Marketing,Bank Transfer,reimbursed,Hilton,1
+2025-05-06,Expense for utilities,454.24,Utilities,Bank Transfer,reimbursed,Hilton,1
+2025-04-15,Expense for hardware,257.08,Utilities,Check,pending,Subway,1
+2025-03-18,Expense for utilities,379.03,Travel,Check,paid,Hilton,1
+2025-05-02,Expense for office supplies,96.15,Hardware,Credit Card,reimbursed,Dell,1

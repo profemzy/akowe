@@ -1,0 +1,17 @@
+date,amount,client,project,invoice,user_id,client_id,project_id
+2025-02-21,4912.77,Global Services Ltd,Website Redesign for Global Services Ltd,INV-3973,1,3,7
+2025-03-12,2734.45,Global Services Ltd,Mobile App Development for Global Services Ltd,,1,3,8
+2025-05-03,4142.51,Global Services Ltd,Website Redesign for Global Services Ltd,INV-7714,1,3,7
+2025-03-11,3502.56,Creative Solutions,Content Creation for Creative Solutions,INV-1141,1,4,9
+2025-05-08,2912.52,Creative Solutions,Content Creation for Creative Solutions,INV-5075,1,4,9
+2025-04-17,1078.05,Global Services Ltd,Database Migration for Global Services Ltd,,1,3,6
+2025-04-16,4395.74,TechStart Inc,Database Migration for TechStart Inc,INV-2179,1,2,4
+2025-03-02,4812.26,Acme Corp,Website Redesign for Acme Corp,INV-4580,1,1,1
+2025-04-23,4556.33,Creative Solutions,Security Audit for Creative Solutions,,1,4,10
+2025-04-07,1223.43,TechStart Inc,Database Migration for TechStart Inc,INV-5873,1,2,4
+2025-03-03,3323.4,Acme Corp,Website Redesign for Acme Corp,,1,1,1
+2025-02-25,1056.61,TechStart Inc,Database Migration for TechStart Inc,,1,2,5
+2025-02-14,1453.88,TechStart Inc,Website Redesign for TechStart Inc,INV-3994,1,2,3
+2025-03-14,507.35,TechStart Inc,Database Migration for TechStart Inc,INV-6879,1,2,4
+2025-03-12,2318.89,Creative Solutions,Security Audit for Creative Solutions,INV-1992,1,4,10
+2025-02-08,952.16,TechStart Inc,Database Migration for TechStart Inc,INV-5141,1,2,5

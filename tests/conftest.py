@@ -8,14 +8,16 @@ import pytest
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 
-# Load create_app directly from the file
-spec = importlib.util.spec_from_file_location(
-    "akowe_app", 
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "akowe", "akowe.py"))
-)
-akowe_module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(akowe_module)
-create_app = akowe_module.create_app
+# Add app root to path to ensure imports work correctly
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
+
+# Patch the import system to handle akowe.* imports
+from tests.patch_imports import patch_imports
+patch_imports()
+
+# Now we can safely import from akowe.akowe
+from akowe.akowe import create_app
 
 
 @pytest.fixture

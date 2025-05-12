@@ -60,7 +60,11 @@ def create_app(test_config=None):
 
     app.register_blueprint(admin.bp)
     # Register main blueprints
-    from akowe.api import income_bp, expense_bp, dashboard_bp, export_bp, import_bp
+    from akowe.app.income import bp as income_bp
+    from akowe.app.expense import bp as expense_bp
+    from akowe.app.dashboard import bp as dashboard_bp
+    from akowe.app.export import bp as export_bp
+    from akowe.app.import_ import bp as import_bp
 
     app.register_blueprint(income_bp)
     app.register_blueprint(expense_bp)

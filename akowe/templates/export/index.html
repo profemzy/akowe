@@ -9,10 +9,10 @@
 
 <ul class="nav nav-tabs mb-4" id="dataManagementTabs" role="tablist">
     <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="export-tab" data-bs-toggle="tab" data-bs-target="#export-tab-pane" type="button" role="tab" aria-controls="export-tab-pane" aria-selected="true">Export</button>
+        <button class="nav-link active bg-primary text-white fw-bold" id="export-tab" data-bs-toggle="tab" data-bs-target="#export-tab-pane" type="button" role="tab" aria-controls="export-tab-pane" aria-selected="true">Export</button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" id="import-tab" data-bs-toggle="tab" data-bs-target="#import-tab-pane" type="button" role="tab" aria-controls="import-tab-pane" aria-selected="false">Import</button>
+        <button class="nav-link bg-dark text-white fw-bold" id="import-tab" data-bs-toggle="tab" data-bs-target="#import-tab-pane" type="button" role="tab" aria-controls="import-tab-pane" aria-selected="false">Import</button>
     </li>
 </ul>
 
@@ -113,6 +113,311 @@
             </div>
         </div>
 
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="card-title mb-0">Export for Tax Preparation</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Export your financial data in formats compatible with popular Canadian tax preparation software.</p>
+
+                        <!-- Tax Type Selection Tabs -->
+                        <ul class="nav nav-tabs mb-4" id="taxTypeTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active bg-primary text-white fw-bold" id="self-employed-tax-tab" data-bs-toggle="tab"
+                                    data-bs-target="#self-employed-tax-tab-pane" type="button" role="tab"
+                                    aria-controls="self-employed-tax-tab-pane" aria-selected="true">
+                                    Self-Employed (T2125)
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link bg-dark text-white fw-bold" id="corporate-tax-tab" data-bs-toggle="tab"
+                                    data-bs-target="#corporate-tax-tab-pane" type="button" role="tab"
+                                    aria-controls="corporate-tax-tab-pane" aria-selected="false">
+                                    Corporate (T2)
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="taxTypeTabsContent">
+                            <!-- Self-Employed Tax Tab Content -->
+                            <div class="tab-pane fade show active" id="self-employed-tax-tab-pane" role="tabpanel"
+                                aria-labelledby="self-employed-tax-tab" tabindex="0">
+
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-header bg-primary text-white">
+                                                <h5 class="card-title mb-0">CRA T2125 Format</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <p>Export in a format optimized for completing the CRA T2125 form (Statement of Business Activities).</p>
+                                                <form action="{{ url_for('export.export_t2125') }}" method="get">
+                                                    <div class="mb-3">
+                                                        <label for="t2125-year" class="form-label">Tax Year (required)</label>
+                                                        <select class="form-select" id="t2125-year" name="year" required>
+                                                            {% for year in range(2020, 2031) %}
+                                                            <option value="{{ year }}">{{ year }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="t2125-province" class="form-label">Province (for GST/HST calculation)</label>
+                                                        <select class="form-select" id="t2125-province" name="province">
+                                                            <option value="Alberta">Alberta</option>
+                                                            <option value="British Columbia">British Columbia</option>
+                                                            <option value="Manitoba">Manitoba</option>
+                                                            <option value="New Brunswick">New Brunswick</option>
+                                                            <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
+                                                            <option value="Northwest Territories">Northwest Territories</option>
+                                                            <option value="Nova Scotia">Nova Scotia</option>
+                                                            <option value="Nunavut">Nunavut</option>
+                                                            <option value="Ontario" selected>Ontario</option>
+                                                            <option value="Prince Edward Island">Prince Edward Island</option>
+                                                            <option value="Quebec">Quebec</option>
+                                                            <option value="Saskatchewan">Saskatchewan</option>
+                                                            <option value="Yukon">Yukon</option>
+                                                        </select>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="fas fa-file-export"></i> Export for T2125
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-header bg-info text-white">
+                                                <h5 class="card-title mb-0">TurboTax Format</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <p>Export in a format optimized for importing into TurboTax.</p>
+                                                <form action="{{ url_for('export.export_turbotax') }}" method="get">
+                                                    <div class="mb-3">
+                                                        <label for="turbotax-year" class="form-label">Tax Year (required)</label>
+                                                        <select class="form-select" id="turbotax-year" name="year" required>
+                                                            {% for year in range(2020, 2031) %}
+                                                            <option value="{{ year }}">{{ year }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="turbotax-province" class="form-label">Province (for GST/HST calculation)</label>
+                                                        <select class="form-select" id="turbotax-province" name="province">
+                                                            <option value="Alberta">Alberta</option>
+                                                            <option value="British Columbia">British Columbia</option>
+                                                            <option value="Manitoba">Manitoba</option>
+                                                            <option value="New Brunswick">New Brunswick</option>
+                                                            <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
+                                                            <option value="Northwest Territories">Northwest Territories</option>
+                                                            <option value="Nova Scotia">Nova Scotia</option>
+                                                            <option value="Nunavut">Nunavut</option>
+                                                            <option value="Ontario" selected>Ontario</option>
+                                                            <option value="Prince Edward Island">Prince Edward Island</option>
+                                                            <option value="Quebec">Quebec</option>
+                                                            <option value="Saskatchewan">Saskatchewan</option>
+                                                            <option value="Yukon">Yukon</option>
+                                                        </select>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-info text-white">
+                                                        <i class="fas fa-file-export"></i> Export for TurboTax
+                                                    </button>
+                                                </form>
+                                                <div class="mt-3">
+                                                    <small class="text-muted">Best compatible with TurboTax Desktop versions. For TurboTax Online, manual data entry may be required.</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-header bg-success text-white">
+                                                <h5 class="card-title mb-0">Wealthsimple Tax Format</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <p>Export in a format optimized for importing into Wealthsimple Tax (formerly SimpleTax).</p>
+                                                <form action="{{ url_for('export.export_wealthsimple') }}" method="get">
+                                                    <div class="mb-3">
+                                                        <label for="wealthsimple-year" class="form-label">Tax Year (required)</label>
+                                                        <select class="form-select" id="wealthsimple-year" name="year" required>
+                                                            {% for year in range(2020, 2031) %}
+                                                            <option value="{{ year }}">{{ year }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="wealthsimple-province" class="form-label">Province (for GST/HST calculation)</label>
+                                                        <select class="form-select" id="wealthsimple-province" name="province">
+                                                            <option value="Alberta">Alberta</option>
+                                                            <option value="British Columbia">British Columbia</option>
+                                                            <option value="Manitoba">Manitoba</option>
+                                                            <option value="New Brunswick">New Brunswick</option>
+                                                            <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
+                                                            <option value="Northwest Territories">Northwest Territories</option>
+                                                            <option value="Nova Scotia">Nova Scotia</option>
+                                                            <option value="Nunavut">Nunavut</option>
+                                                            <option value="Ontario" selected>Ontario</option>
+                                                            <option value="Prince Edward Island">Prince Edward Island</option>
+                                                            <option value="Quebec">Quebec</option>
+                                                            <option value="Saskatchewan">Saskatchewan</option>
+                                                            <option value="Yukon">Yukon</option>
+                                                        </select>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-success">
+                                                        <i class="fas fa-file-export"></i> Export for Wealthsimple Tax
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Corporate Tax Tab Content -->
+                            <div class="tab-pane fade" id="corporate-tax-tab-pane" role="tabpanel"
+                                aria-labelledby="corporate-tax-tab" tabindex="0">
+
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-header bg-primary text-white">
+                                                <h5 class="card-title mb-0">T2 GIFI Format</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <p>Export in GIFI (General Index of Financial Information) format for corporate T2 tax returns.</p>
+                                                <form action="{{ url_for('export.export_t2_gifi') }}" method="get">
+                                                    <div class="mb-3">
+                                                        <label for="t2-gifi-year" class="form-label">Tax Year (required)</label>
+                                                        <select class="form-select" id="t2-gifi-year" name="year" required>
+                                                            {% for year in range(2020, 2031) %}
+                                                            <option value="{{ year }}">{{ year }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="t2-gifi-province" class="form-label">Province (for GST/HST calculation)</label>
+                                                        <select class="form-select" id="t2-gifi-province" name="province">
+                                                            <option value="Alberta">Alberta</option>
+                                                            <option value="British Columbia">British Columbia</option>
+                                                            <option value="Manitoba">Manitoba</option>
+                                                            <option value="New Brunswick">New Brunswick</option>
+                                                            <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
+                                                            <option value="Northwest Territories">Northwest Territories</option>
+                                                            <option value="Nova Scotia">Nova Scotia</option>
+                                                            <option value="Nunavut">Nunavut</option>
+                                                            <option value="Ontario" selected>Ontario</option>
+                                                            <option value="Prince Edward Island">Prince Edward Island</option>
+                                                            <option value="Quebec">Quebec</option>
+                                                            <option value="Saskatchewan">Saskatchewan</option>
+                                                            <option value="Yukon">Yukon</option>
+                                                        </select>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="fas fa-file-export"></i> Export GIFI for T2
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-header bg-info text-white">
+                                                <h5 class="card-title mb-0">T2 Schedule 8 Format</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <p>Export in Capital Cost Allowance (CCA) Schedule 8 format for T2 corporate tax returns.</p>
+                                                <form action="{{ url_for('export.export_t2_schedule8') }}" method="get">
+                                                    <div class="mb-3">
+                                                        <label for="t2-schedule8-year" class="form-label">Tax Year (required)</label>
+                                                        <select class="form-select" id="t2-schedule8-year" name="year" required>
+                                                            {% for year in range(2020, 2031) %}
+                                                            <option value="{{ year }}">{{ year }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="t2-schedule8-province" class="form-label">Province (for GST/HST calculation)</label>
+                                                        <select class="form-select" id="t2-schedule8-province" name="province">
+                                                            <option value="Alberta">Alberta</option>
+                                                            <option value="British Columbia">British Columbia</option>
+                                                            <option value="Manitoba">Manitoba</option>
+                                                            <option value="New Brunswick">New Brunswick</option>
+                                                            <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
+                                                            <option value="Northwest Territories">Northwest Territories</option>
+                                                            <option value="Nova Scotia">Nova Scotia</option>
+                                                            <option value="Nunavut">Nunavut</option>
+                                                            <option value="Ontario" selected>Ontario</option>
+                                                            <option value="Prince Edward Island">Prince Edward Island</option>
+                                                            <option value="Quebec">Quebec</option>
+                                                            <option value="Saskatchewan">Saskatchewan</option>
+                                                            <option value="Yukon">Yukon</option>
+                                                        </select>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-info text-white">
+                                                        <i class="fas fa-file-export"></i> Export Schedule 8 for T2
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-header bg-success text-white">
+                                                <h5 class="card-title mb-0">Corporate TurboTax Format</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <p>Export in a format optimized for importing into TurboTax Business/Corporate edition.</p>
+                                                <form action="{{ url_for('export.export_corporate_turbotax') }}" method="get">
+                                                    <div class="mb-3">
+                                                        <label for="corporate-turbotax-year" class="form-label">Tax Year (required)</label>
+                                                        <select class="form-select" id="corporate-turbotax-year" name="year" required>
+                                                            {% for year in range(2020, 2031) %}
+                                                            <option value="{{ year }}">{{ year }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="corporate-turbotax-province" class="form-label">Province (for GST/HST calculation)</label>
+                                                        <select class="form-select" id="corporate-turbotax-province" name="province">
+                                                            <option value="Alberta">Alberta</option>
+                                                            <option value="British Columbia">British Columbia</option>
+                                                            <option value="Manitoba">Manitoba</option>
+                                                            <option value="New Brunswick">New Brunswick</option>
+                                                            <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
+                                                            <option value="Northwest Territories">Northwest Territories</option>
+                                                            <option value="Nova Scotia">Nova Scotia</option>
+                                                            <option value="Nunavut">Nunavut</option>
+                                                            <option value="Ontario" selected>Ontario</option>
+                                                            <option value="Prince Edward Island">Prince Edward Island</option>
+                                                            <option value="Quebec">Quebec</option>
+                                                            <option value="Saskatchewan">Saskatchewan</option>
+                                                            <option value="Yukon">Yukon</option>
+                                                        </select>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-success">
+                                                        <i class="fas fa-file-export"></i> Export for Corporate TurboTax
+                                                    </button>
+                                                </form>
+                                                <div class="mt-3">
+                                                    <small class="text-muted">For use with TurboTax Business or other T2 corporate tax software.</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="card-title">About Export Data</h5>
@@ -124,6 +429,7 @@
                     <li>Sharing with your accountant or tax preparer</li>
                     <li>Creating custom reports or analyses</li>
                     <li>Backing up your financial data</li>
+                    <li><strong>Direct import into Canadian tax preparation software</strong> (new!)</li>
                 </ul>
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle"></i> All dates are in ISO 8601 format (YYYY-MM-DD) and monetary amounts include two decimal places.

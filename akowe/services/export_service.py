@@ -1,16 +1,99 @@
-"""Service for exporting financial data to CSV."""
+"""Service for exporting financial data to CSV and tax preparation formats."""
 
 import csv
 import io
+import json
 from datetime import datetime
-from typing import Tuple
+from typing import Tuple, Dict, List, Optional, Union
+from decimal import Decimal
 
 from akowe.models.expense import Expense
 from akowe.models.income import Income
+from akowe.app.tax_dashboard import CRA_TAX_CATEGORIES, GST_HST_RATES
 
 
 class ExportService:
-    """Service for exporting financial data to CSV."""
+    """Service for exporting financial data to CSV and tax preparation formats."""
+
+    # CRA category mappings from internal categories to T2125 form fields
+    CRA_CATEGORY_MAPPING = {
+        "advertising": "Advertising",
+        "meals_entertainment": "Meals and entertainment",
+        "bad_debts": "Bad debts",
+        "insurance": "Insurance",
+        "interest": "Interest",
+        "bank_charges": "Bank charges",
+        "business_tax": "Business taxes, fees, licenses, dues",
+        "office_supplies": "Office expenses",
+        "supplies": "Supplies",
+        "professional_fees": "Professional fees",
+        "legal": "Legal, accounting, and other professional fees",
+        "accounting": "Professional fees",
+        "rent": "Rent",
+        "repairs": "Maintenance and repairs",
+        "maintenance": "Maintenance and repairs",
+        "salaries": "Salaries, wages, and benefits",
+        "travel": "Travel",
+        "utilities": "Utilities",
+        "telephone": "Utilities",
+        "internet": "Utilities",
+        "vehicle": "Motor vehicle expenses",
+        "fuel": "Motor vehicle expenses",
+        "home_office": "Home office expenses",
+        "hardware": "Computer, equipment, and phone costs",
+        "software": "Computer, equipment, and phone costs",
+        "subscription": "Subscriptions",
+        "training": "Other expenses",
+        "memberships": "Business taxes, fees, licenses, dues",
+        "other": "Other expenses",
+        # Map other categories to appropriate T2125 fields
+    }
+
+    # Map Akowe categories to TurboTax categories
+    TURBOTAX_CATEGORY_MAPPING = {
+        "advertising": "Advertising",
+        "meals_entertainment": "Meals and entertainment",
+        "insurance": "Insurance",
+        "interest": "Interest",
+        "bank_charges": "Business expenses: Bank charges",
+        "office_supplies": "Office expenses",
+        "supplies": "Supplies",
+        "professional_fees": "Professional fees",
+        "rent": "Rent",
+        "repairs": "Repairs and maintenance",
+        "maintenance": "Repairs and maintenance",
+        "travel": "Travel expenses",
+        "utilities": "Utilities",
+        "vehicle": "Motor vehicle expenses",
+        "home_office": "Business-use-of-home expenses",
+        "hardware": "Equipment under $500",
+        "software": "Software expenses",
+        "other": "Other business expenses",
+        # Add more mappings as needed
+    }
+
+    # Map Akowe categories to Wealthsimple Tax categories
+    WEALTHSIMPLE_CATEGORY_MAPPING = {
+        "advertising": "Advertising",
+        "meals_entertainment": "Meals and entertainment",
+        "insurance": "Insurance",
+        "interest": "Interest",
+        "bank_charges": "Bank charges",
+        "office_supplies": "Office expenses",
+        "supplies": "Supplies",
+        "professional_fees": "Professional fees",
+        "rent": "Rent",
+        "repairs": "Repairs and maintenance",
+        "maintenance": "Repairs and maintenance",
+        "travel": "Travel",
+        "utilities": "Utilities",
+        "vehicle": "Motor vehicle expenses",
+        "home_office": "Business-use-of-home expenses",
+        "hardware": "Capital equipment",
+        "software": "Software",
+        "other": "Other expenses",
+        # Add more mappings as needed
+    }
 
     @staticmethod
     def export_income_csv(year: int = None) -> Tuple[io.BytesIO, str]:

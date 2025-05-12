@@ -158,30 +158,84 @@ class TaxRecommendationService:
 
     # CRA Tax categories mapping (from tax_dashboard.py)
     CRA_TAX_CATEGORIES = {
-        "office_supplies": "Office Expenses",
+        # Capital expenses
         "hardware": "Capital Cost Allowance (CCA)",
         "software": "Capital Cost Allowance (CCA)",
+        "computer_equipment": "Capital Cost Allowance (CCA)",
+        "furniture": "Capital Cost Allowance (CCA)",
+        "vehicle": "Capital Cost Allowance (CCA)",
+
+        # Operating expenses
+        "advertising": "Advertising and Promotion",
+        "meals_entertainment": "Meals and Entertainment (50% deductible)",
+        "bad_debts": "Bad Debts",
+        "insurance": "Insurance",
+        "interest": "Interest and Bank Charges",
+        "bank_charges": "Interest and Bank Charges",
+        "business_tax": "Taxes, Licenses and Dues",
+        "office_supplies": "Office Expenses",
+        "supplies": "Supplies",
+        "professional_fees": "Professional Fees",
+        "legal": "Professional Fees",
+        "accounting": "Professional Fees",
         "rent": "Rent",
-        "utilities": "Utilities",
+        "repairs": "Maintenance and Repairs",
+        "maintenance": "Maintenance and Repairs",
+        "salaries": "Salaries, Wages and Benefits",
         "travel": "Travel Expenses",
+        "utilities": "Utilities",
+        "telephone": "Telephone and Internet",
+        "internet": "Telephone and Internet",
+        "fuel": "Motor Vehicle Expenses",
+        "vehicle_expenses": "Motor Vehicle Expenses",
+        "home_office": "Business-use-of-home Expenses",
+        "subscription": "Subscriptions",
+        "training": "Training and Education",
+        "memberships": "Membership Dues",
+        "marketing": "Advertising and Promotion",
         "food": "Meals and Entertainment (50% deductible)",
         "entertainment": "Meals and Entertainment (50% deductible)",
-        "professional_services": "Professional Fees",
-        "marketing": "Advertising and Promotion",
-        "maintenance": "Maintenance and Repairs",
         "taxes": "Taxes, Licenses and Dues",
-        "insurance": "Insurance",
+        "licenses": "Taxes, Licenses and Dues",
+        "dues": "Taxes, Licenses and Dues",
+        "professional_services": "Professional Fees",
         "other": "Other Expenses",
     }
 
     # Special tax rules by category
     TAX_RULES = {
+        # Meals and entertainment
         "food": "50% deductible for business meals",
         "entertainment": "50% deductible for business entertainment",
-        "hardware": "May be eligible for Capital Cost Allowance (CCA) deduction",
-        "software": "May be 100% deductible in year of purchase if under $500",
+        "meals_entertainment": "50% deductible for business meals and entertainment",
+
+        # Capital expenses
+        "hardware": "Eligible for CCA Class 50 (55% rate) for computer equipment",
+        "computer_equipment": "Eligible for CCA Class 50 (55% rate) for computer equipment",
+        "software": "May be 100% deductible in year of purchase if under $500, otherwise Class 12",
+        "furniture": "Eligible for CCA Class 8 (20% rate) for office furniture",
+        "vehicle": "Eligible for CCA Class 10 (30% rate) for vehicles",
+
+        # Home and travel
         "travel": "Must be primarily for business purposes to be deductible",
         "home_office": "Deductible based on percentage of home used for business",
+
+        # Vehicle expenses
+        "vehicle_expenses": "Requires a log of business vs. personal kilometers",
+        "fuel": "Deductible proportion based on business use percentage",
+
+        # Professional services
+        "professional_fees": "Fully deductible if related to business operations",
+        "legal": "Legal fees for business operations are fully deductible",
+        "accounting": "Accounting fees for business operations are fully deductible",
+
+        # Other operating expenses
+        "advertising": "Fully deductible if related to business in Canada",
+        "bad_debts": "Deductible only if previously included in income",
+        "interest": "Fully deductible if loan is used for business purposes",
+        "training": "Fully deductible if related to current business operations",
+        "telephone": "Business portion is deductible, basic service partially deductible",
+        "internet": "Business portion is deductible based on usage",
     }
 
     @classmethod
