@@ -47,7 +47,7 @@ cd akowe
 
 # Deploy with HTTPS
 ./init-letsencrypt.sh
-docker-compose -f docker-compose.staging.yml up -d
+docker compose -f docker-compose.staging.yml up -d
 ```
 
 The `init-letsencrypt.sh` script will:
@@ -60,8 +60,8 @@ The `init-letsencrypt.sh` script will:
 ### 3. Verify Deployment
 
 1. Access the application at https://akowe-demo.infotitans.ca
-2. Check container status with `docker-compose -f docker-compose.staging.yml ps`
-3. View logs with `docker-compose -f docker-compose.staging.yml logs -f`
+2. Check container status with `docker compose -f docker-compose.staging.yml ps`
+3. View logs with `docker compose -f docker-compose.staging.yml logs -f`
 
 ### 4. Maintenance
 
@@ -70,8 +70,8 @@ The `init-letsencrypt.sh` script will:
 Certificates will auto-renew via the certbot container. To manually renew:
 
 ```bash
-docker-compose -f docker-compose.staging.yml run --rm certbot renew
-docker-compose -f docker-compose.staging.yml exec nginx nginx -s reload
+docker compose -f docker-compose.staging.yml run --rm certbot renew
+docker compose -f docker-compose.staging.yml exec nginx nginx -s reload
 ```
 
 #### Database Backups
@@ -79,7 +79,7 @@ docker-compose -f docker-compose.staging.yml exec nginx nginx -s reload
 Run periodic backups with:
 
 ```bash
-docker-compose -f docker-compose.staging.yml exec postgres pg_dump -U $DB_USER $DB_NAME > backup_$(date +%Y%m%d).sql
+docker compose -f docker-compose.staging.yml exec postgres pg_dump -U $DB_USER $DB_NAME > backup_$(date +%Y%m%d).sql
 ```
 
 #### Updating Application
@@ -88,22 +88,22 @@ To deploy updates:
 
 ```bash
 git pull
-docker-compose -f docker-compose.staging.yml build web
-docker-compose -f docker-compose.staging.yml up -d
+docker compose -f docker-compose.staging.yml build web
+docker compose -f docker-compose.staging.yml up -d
 ```
 
 ## Troubleshooting
 
 ### SSL Issues
-- Check Nginx logs: `docker-compose -f docker-compose.staging.yml logs nginx`
-- Check certbot logs: `docker-compose -f docker-compose.staging.yml logs certbot`
+- Check Nginx logs: `docker compose -f docker-compose.staging.yml logs nginx`
+- Check certbot logs: `docker compose -f docker-compose.staging.yml logs certbot`
 - Verify certificate paths in `nginx/conf.d/default.conf`
 
 ### Application Issues
-- Check application logs: `docker-compose -f docker-compose.staging.yml logs web`
+- Check application logs: `docker compose -f docker-compose.staging.yml logs web`
 - Verify environment variables are correctly set
-- Check database connection: `docker-compose -f docker-compose.staging.yml exec web python -c "from akowe.factory import create_app; app=create_app(); from flask import current_app; print('Database URI:', current_app.config['SQLALCHEMY_DATABASE_URI'])"`
+- Check database connection: `docker compose -f docker-compose.staging.yml exec web python -c "from akowe.factory import create_app; app=create_app(); from flask import current_app; print('Database URI:', current_app.config['SQLALCHEMY_DATABASE_URI'])"`
 
 ### Database Issues
-- Check database logs: `docker-compose -f docker-compose.staging.yml logs postgres`
-- Connect to database: `docker-compose -f docker-compose.staging.yml exec postgres psql -U $DB_USER -d $DB_NAME`
+- Check database logs: `docker compose -f docker-compose.staging.yml logs postgres`
+- Connect to database: `docker compose -f docker-compose.staging.yml exec postgres psql -U $DB_USER -d $DB_NAME`

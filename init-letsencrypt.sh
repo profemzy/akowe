@@ -16,16 +16,16 @@ openssl req -x509 -nodes -newkey rsa:4096 -days 1 \
   -subj "/CN=akowe-demo.infotitans.ca"
 
 # Start nginx service only
-docker-compose -f docker-compose.staging.yml up -d nginx
+docker compose -f docker-compose.staging.yml up -d nginx
 
 # Request certificate
-docker-compose -f docker-compose.staging.yml run --rm certbot certonly \
+docker compose -f docker-compose.staging.yml run --rm certbot certonly \
   --webroot --webroot-path=/var/www/acme \
   --email femioladele@infotitans.com --agree-tos --no-eff-email \
   --force-renewal -d akowe-demo.infotitans.ca
 
 # Reload nginx to use the new certificate
-docker-compose -f docker-compose.staging.yml exec nginx nginx -s reload
+docker compose -f docker-compose.staging.yml exec nginx nginx -s reload
 
 echo "Setup completed!"
-echo "Now start the complete stack with: docker-compose -f docker-compose.staging.yml up -d"
+echo "Now start the complete stack with: docker compose -f docker-compose.staging.yml up -d"
