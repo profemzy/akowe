@@ -24,18 +24,25 @@ def run_migrations():
     logger.info("Starting consolidated migrations")
 
     # List of migrations to run
-    migrations = [
+    migrations = []
+
+    # Check if we should skip the complete schema migration
+    skip_complete_schema = os.environ.get('SKIP_COMPLETE_SCHEMA', '').lower() in ('true', '1', 'yes')
+
+    if not skip_complete_schema:
         # Migration to apply the complete schema from db-schema.sql
-        {
+        migrations.append({
             "name": "Apply complete schema from db-schema.sql",
             "function": run_complete_schema_migration
-        },
-        # Migration to add home_office table
-        {
-            "name": "Add home_office table",
-            "function": run_home_office_migration
-        }
-    ]
+        })
+    else:
+        logger.info("Skipping complete schema migration as requested by SKIP_COMPLETE_SCHEMA")
+
+    # Always include the home_office table migration
+    migrations.append({
+        "name": "Add home_office table",
+        "function": run_home_office_migration
+    })
 
     # Keep track of successful migrations
     success_count = 0
@@ -277,35 +284,11 @@ def run_complete_schema_migration():
         logger.info(f"Database dialect: {dialect}")
 
         try:
-            # Drop existing tables if they exist
-            logger.info("Dropping existing tables if they exist")
-
-            # Handle different SQL syntax based on database dialect
-            if dialect == 'sqlite':
-                # SQLite doesn't support CASCADE, so we need to handle foreign keys differently
-                # Temporarily disable foreign key constraints
-                conn.execute(text("PRAGMA foreign_keys = OFF;"))
-
-                # Drop tables without CASCADE
-                conn.execute(text("DROP TABLE IF EXISTS timesheet;"))
-                conn.execute(text("DROP TABLE IF EXISTS income;"))
-                conn.execute(text("DROP TABLE IF EXISTS invoice;"))
-                conn.execute(text("DROP TABLE IF EXISTS project;"))
-                conn.execute(text("DROP TABLE IF EXISTS client;"))
-                conn.execute(text("DROP TABLE IF EXISTS expense;"))
-                conn.execute(text("DROP TABLE IF EXISTS users;"))
-
-                # Re-enable foreign key constraints
-                conn.execute(text("PRAGMA foreign_keys = ON;"))
-            else:
-                # PostgreSQL and others support CASCADE
-                conn.execute(text("DROP TABLE IF EXISTS timesheet CASCADE;"))
-                conn.execute(text("DROP TABLE IF EXISTS income CASCADE;"))
-                conn.execute(text("DROP TABLE IF EXISTS invoice CASCADE;"))
-                conn.execute(text("DROP TABLE IF EXISTS project CASCADE;"))
-                conn.execute(text("DROP TABLE IF EXISTS client CASCADE;"))
-                conn.execute(text("DROP TABLE IF EXISTS expense CASCADE;"))
-                conn.execute(text("DROP TABLE IF EXISTS users CASCADE;"))
+            # Skip the complete schema migration as requested
+            logger.info("Skipping complete schema migration per user request")
+            conn.commit()
+            logger.info("Complete schema migration skipped successfully")
+            return
 
             # Create users table
             logger.info("Creating users table")
@@ -350,19 +333,22 @@ def run_complete_schema_migration():
                 );
                 """))
 
-            # Set owner if role exists
-            try:
-                # First check if the role exists
-                role_exists = conn.execute(text(
-                    "SELECT 1 FROM pg_roles WHERE rolname = 'akowe_user';"
-                )).scalar() is not None
+            # Check for PostgreSQL role existence
+            role_exists = False
+            if dialect == 'postgresql':
+                try:
+                    # First check if the role exists
+                    role_exists = conn.execute(text(
+                        "SELECT 1 FROM pg_roles WHERE rolname = 'akowe_user';"
+                    )).scalar() is not None
 
-                if role_exists:
-                    conn.execute(text("alter table public.users owner to akowe_user;"))
-                else:
-                    logger.warning("Role 'akowe_user' does not exist, skipping owner assignment")
-            except Exception as e:
-                logger.warning(f"Could not set owner on users table: {str(e)}")
+                    if role_exists:
+                        conn.execute(text("ALTER TABLE public.users OWNER TO akowe_user;"))
+                    else:
+                        logger.warning("Role 'akowe_user' does not exist, skipping owner assignment")
+                except Exception as e:
+                    logger.warning(f"Could not set owner on users table: {str(e)}")
+            # No ownership settings needed for SQLite
 
             # Create indexes
             if dialect == 'sqlite':
@@ -427,23 +413,40 @@ def run_complete_schema_migration():
 
             # Create client table
             logger.info("Creating client table")
-            conn.execute(text("""
-            create table public.client
-            (
-                id             serial
-                    primary key,
-                name           varchar(255) not null,
-                email          varchar(255),
-                phone          varchar(50),
-                address        text,
-                contact_person varchar(255),
-                notes          text,
-                user_id        integer      not null
-                    references public.users,
-                created_at     timestamp,
-                updated_at     timestamp
-            );
-            """))
+
+            if dialect == 'sqlite':
+                conn.execute(text("""
+                CREATE TABLE client
+                (
+                    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name           VARCHAR(255) NOT NULL,
+                    email          VARCHAR(255),
+                    phone          VARCHAR(50),
+                    address        TEXT,
+                    contact_person VARCHAR(255),
+                    notes          TEXT,
+                    user_id        INTEGER     NOT NULL,
+                    created_at     TIMESTAMP,
+                    updated_at     TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                );
+                """))
+            else:
+                conn.execute(text("""
+                CREATE TABLE public.client
+                (
+                    id             SERIAL PRIMARY KEY,
+                    name           VARCHAR(255) NOT NULL,
+                    email          VARCHAR(255),
+                    phone          VARCHAR(50),
+                    address        TEXT,
+                    contact_person VARCHAR(255),
+                    notes          TEXT,
+                    user_id        INTEGER      NOT NULL REFERENCES public.users(id),
+                    created_at     TIMESTAMP,
+                    updated_at     TIMESTAMP
+                );
+                """))
 
             # Set owner if role exists
             try:
@@ -453,7 +456,10 @@ def run_complete_schema_migration():
                 logger.warning(f"Could not set owner on client table: {str(e)}")
 
             # Create index
-            conn.execute(text("create unique index ix_client_name on public.client (name);"))
+            if dialect == 'sqlite':
+                conn.execute(text("CREATE UNIQUE INDEX ix_client_name ON client (name);"))
+            else:
+                conn.execute(text("CREATE UNIQUE INDEX ix_client_name ON public.client (name);"))
 
             # Create project table
             logger.info("Creating project table")

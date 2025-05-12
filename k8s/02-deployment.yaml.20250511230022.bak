@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: akowe
-        image: wackopsprodacr.azurecr.io/akowe:v1.0.32
+        image: wackopsprodacr.azurecr.io/akowe:v1.0.30
         imagePullPolicy: Always
         ports:
         - containerPort: 5000

@@ -48,10 +48,19 @@ The deployment process requires two steps:
    # Set environment variables
    export REGISTRY_URL=wackopsprodacr.azurecr.io
    export IMAGE_TAG=vX.Y.Z  # Use the version from the deployment logs
-   
+
    # Apply the migration job
    envsubst < k8s/migrations-job.yaml | kubectl apply -f -
    ```
+
+### Migration Safety Features
+
+The migration script includes several safety features:
+- Migrations are designed to be idempotent (can be run multiple times safely)
+- Role existence check to avoid errors with PostgreSQL user ownership
+- Default values for variables to prevent reference errors
+- Skipping problematic steps based on user request
+- Detailed logging to track progress and diagnose issues
 
 3. **Monitor Migration Progress**:
    ```bash

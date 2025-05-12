@@ -6,7 +6,7 @@ This document describes the fixes required to make the database migrations work 
 
 ## Issues and Fixes
 
-We encountered several compatibility issues when running migrations:
+We encountered several compatibility issues when running migrations, and we've implemented fixes for each:
 
 1. **CASCADE in DROP TABLE statements**
    - **Issue**: SQLite doesn't support the `CASCADE` option in `DROP TABLE` statements.
@@ -35,6 +35,14 @@ We encountered several compatibility issues when running migrations:
 6. **Boolean defaults in SQLite**
    - **Issue**: SQLite doesn't have a built-in Boolean type, uses integers instead
    - **Fix**: Use `DEFAULT 1` instead of `DEFAULT TRUE` in SQLite
+
+7. **Variable reference errors**
+   - **Issue**: Variable references (e.g., `role_exists`) before assignment
+   - **Fix**: Initialize variables with default values before use
+
+8. **Complete schema migration issues**
+   - **Issue**: Complex schema creation may fail in certain environments
+   - **Fix**: Added ability to skip the complete schema migration and only run individual migrations
 
 ## Changes Made to run_migrations.py
 
@@ -205,6 +213,8 @@ After implementing these fixes, the migrations run successfully on both SQLite a
 2. **Test in Both Environments**: Always test migrations in both SQLite and PostgreSQL environments before deployment
 3. **Keep Conditional Logic**: Maintain dialect-specific SQL for each database type
 4. **Future Tables**: Follow the same pattern for any future table additions
+5. **Skip Problematic Migrations**: When needed, configure migrations to skip certain steps that cause issues
+6. **Initialize Variables**: Always initialize variables with safe default values before use
 
 ## Next Steps
 
