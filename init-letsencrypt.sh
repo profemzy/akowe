@@ -21,7 +21,7 @@ docker-compose -f docker-compose.staging.yml up -d nginx
 # Request certificate
 docker-compose -f docker-compose.staging.yml run --rm certbot certonly \
   --webroot --webroot-path=/var/www/acme \
-  --email admin@infotitans.ca --agree-tos --no-eff-email \
+  --email femioladele@infotitans.com --agree-tos --no-eff-email \
   --force-renewal -d akowe-demo.infotitans.ca
 
 # Reload nginx to use the new certificate

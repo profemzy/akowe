@@ -88,7 +88,7 @@ services:
       - ./nginx/acme:/var/www/acme
     depends_on:
       - nginx
-    command: certonly --webroot --webroot-path=/var/www/acme --email admin@infotitans.ca --agree-tos --no-eff-email -d akowe-demo.infotitans.ca
+    command: certonly --webroot --webroot-path=/var/www/acme --email femioladele@infotitans.com --agree-tos --no-eff-email -d akowe-demo.infotitans.ca
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 volumes:
