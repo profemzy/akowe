@@ -9,23 +9,42 @@ fi
 mkdir -p ./nginx/ssl/live/akowe-demo.infotitans.ca
 mkdir -p ./nginx/acme
 
-# Set up dummy certificate for Nginx to start
-openssl req -x509 -nodes -newkey rsa:4096 -days 1 \
-  -keyout ./nginx/ssl/live/akowe-demo.infotitans.ca/privkey.pem \
-  -out ./nginx/ssl/live/akowe-demo.infotitans.ca/fullchain.pem \
-  -subj "/CN=akowe-demo.infotitans.ca"
+# First, start with HTTP-only configuration and get certificates
+echo "Starting initial HTTP-only setup..."
+docker compose -f docker-compose.staging.yml up -d nginx web
 
-# Start nginx service only
-docker compose -f docker-compose.staging.yml up -d nginx
+echo "Waiting for services to start..."
+sleep 10
 
 # Request certificate
+echo "Requesting Let's Encrypt certificate..."
 docker compose -f docker-compose.staging.yml run --rm certbot certonly \
   --webroot --webroot-path=/var/www/acme \
   --email femioladele@infotitans.com --agree-tos --no-eff-email \
   --force-renewal -d akowe-demo.infotitans.ca
 
-# Reload nginx to use the new certificate
-docker compose -f docker-compose.staging.yml exec nginx nginx -s reload
+# Check if certificate was obtained successfully
+if [ -f "./nginx/ssl/live/akowe-demo.infotitans.ca/fullchain.pem" ]; then
+  echo "Certificate obtained successfully! Configuring HTTPS..."
+
+  # Replace the Nginx configuration with HTTPS config
+  cp ./nginx/https.conf.template ./nginx/conf.d/default.conf
+
+  # Reload Nginx to apply new config
+  docker compose -f docker-compose.staging.yml exec nginx nginx -s reload
+
+  echo "HTTPS configured successfully!"
+else
+  echo "Certificate acquisition failed. Check the Certbot logs for more details."
+  echo "Continuing with HTTP only for now. You can try again later."
+fi
+
+# Start the complete stack
+echo "Starting the complete application stack..."
+docker compose -f docker-compose.staging.yml up -d
 
 echo "Setup completed!"
-echo "Now start the complete stack with: docker compose -f docker-compose.staging.yml up -d"
+echo "Access your application at https://akowe-demo.infotitans.ca"
+echo ""
+echo "If HTTPS is not working, check the certbot logs with:"
+echo "docker compose -f docker-compose.staging.yml logs certbot"
