@@ -72,24 +72,12 @@ services:
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/ssl:/etc/nginx/ssl
-      - ./nginx/acme:/etc/nginx/acme
-      - ./nginx/www:/var/www/html
+      - ./nginx/acme:/var/www/acme
     ports:
       - "80:80"
       - "443:443"
     networks:
       - akowe-network
-
-  certbot:
-    image: certbot/certbot
-    container_name: akowe-certbot
-    volumes:
-      - ./nginx/ssl:/etc/letsencrypt
-      - ./nginx/acme:/var/www/acme
-    depends_on:
-      - nginx
-    command: certonly --webroot --webroot-path=/var/www/acme --email femioladele@infotitans.com --agree-tos --no-eff-email -d akowe-demo.infotitans.ca
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 volumes:
   postgres_data:
