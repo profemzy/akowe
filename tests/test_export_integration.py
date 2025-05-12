@@ -106,6 +106,7 @@ def test_expense_model_integration(app, test_user):
                 payment_method="credit_card",
                 status="paid",
                 vendor="Test Vendor",
+                receipt_url="https://example.com/receipts/test1.pdf",
                 user_id=test_user.id
             ),
             # $226 includes 13% HST ($26)
@@ -117,6 +118,7 @@ def test_expense_model_integration(app, test_user):
                 payment_method="credit_card",
                 status="paid",
                 vendor="Test Vendor",
+                receipt_url="https://example.com/receipts/test2.pdf",
                 user_id=test_user.id
             ),
         ]
@@ -160,6 +162,171 @@ def test_expense_model_integration(app, test_user):
             # Clean up test data
             for expense in test_expenses:
                 db.session.delete(expense)
+            db.session.commit()
+
+
+def test_expense_receipt_url_export(app, test_user):
+    """Test that receipt URLs are included in expense exports."""
+    with app.app_context():
+        from akowe.models import db
+        from akowe.services.export_service import ExportService
+
+        # Create test expense records with receipt URLs
+        test_expenses = [
+            Expense(
+                date=date(2025, 6, 1),
+                title="Test Receipt Export 1",
+                amount=Decimal("100.00"),
+                category="office_supplies",
+                payment_method="credit_card",
+                status="paid",
+                vendor="Receipt Test Vendor",
+                receipt_url="https://example.com/receipts/export_test1.pdf",
+                user_id=test_user.id
+            ),
+            Expense(
+                date=date(2025, 6, 15),
+                title="Test Receipt Export 2",
+                amount=Decimal("200.00"),
+                category="software",
+                payment_method="credit_card",
+                status="paid",
+                vendor="Receipt Test Vendor",
+                receipt_url="https://example.com/receipts/export_test2.pdf",
+                user_id=test_user.id
+            ),
+        ]
+
+        for expense in test_expenses:
+            db.session.add(expense)
+
+        db.session.commit()
+
+        try:
+            # Export data for 2025
+            buffer, _ = ExportService.export_expense_csv(2025)
+
+            # Parse CSV content
+            buffer.seek(0)
+            reader = csv.reader(io.StringIO(buffer.getvalue().decode('utf-8')))
+            rows = list(reader)
+
+            # Check header row (first row)
+            headers = rows[0]
+            assert "receipt_url" in headers, "receipt_url header not found in expense export"
+            receipt_url_index = headers.index("receipt_url")
+
+            # Find our test expenses
+            test_expense_rows = []
+            for row in rows[1:]:  # Skip header
+                if "Test Receipt Export" in row[1]:
+                    test_expense_rows.append(row)
+
+            # Should find both test expenses
+            assert len(test_expense_rows) == 2, f"Expected 2 test expenses, found {len(test_expense_rows)}"
+
+            # Verify receipt URLs are included
+            for row in test_expense_rows:
+                receipt_url = row[receipt_url_index]
+                assert "https://example.com/receipts/export_test" in receipt_url, f"Receipt URL not found in {row}"
+
+                # Check specific file
+                if "Test Receipt Export 1" in row[1]:
+                    assert receipt_url == "https://example.com/receipts/export_test1.pdf"
+                elif "Test Receipt Export 2" in row[1]:
+                    assert receipt_url == "https://example.com/receipts/export_test2.pdf"
+
+        finally:
+            # Clean up test data
+            for expense in test_expenses:
+                db.session.delete(expense)
+            db.session.commit()
+
+
+def test_all_transactions_receipt_url_export(app, test_user):
+    """Test that receipt URLs are included in all transactions exports."""
+    with app.app_context():
+        from akowe.models import db
+        from akowe.services.export_service import ExportService
+
+        # Create test expense records with receipt URLs
+        test_expenses = [
+            Expense(
+                date=date(2025, 7, 1),
+                title="All Transactions Test 1",
+                amount=Decimal("100.00"),
+                category="office_supplies",
+                payment_method="credit_card",
+                status="paid",
+                vendor="All Transactions Vendor",
+                receipt_url="https://example.com/receipts/all_transactions1.pdf",
+                user_id=test_user.id
+            ),
+        ]
+
+        # Create test income records
+        test_incomes = [
+            Income(
+                date=date(2025, 7, 15),
+                amount=Decimal("500.00"),
+                client="All Transactions Client",
+                project="All Transactions Project",
+                invoice="ALL-TRANS-001",
+                user_id=test_user.id
+            ),
+        ]
+
+        for expense in test_expenses:
+            db.session.add(expense)
+
+        for income in test_incomes:
+            db.session.add(income)
+
+        db.session.commit()
+
+        try:
+            # Export all transactions data for 2025
+            buffer, _ = ExportService.export_all_transactions_csv(2025)
+
+            # Parse CSV content
+            buffer.seek(0)
+            reader = csv.reader(io.StringIO(buffer.getvalue().decode('utf-8')))
+            rows = list(reader)
+
+            # Check header row (first row)
+            headers = [h.lower() for h in rows[0]]
+            receipt_url_header = "receipt url"
+            assert receipt_url_header in headers, f"{receipt_url_header} header not found in all transactions export: {headers}"
+            receipt_url_index = headers.index(receipt_url_header)
+
+            # Find our test records
+            expense_row = None
+            income_row = None
+
+            for row in rows[1:]:  # Skip header
+                if "All Transactions Test 1" in row[2]:  # Description column
+                    expense_row = row
+                elif "All Transactions Project" in row[2]:  # Description column
+                    income_row = row
+
+            # Verify we found our test records
+            assert expense_row is not None, "Test expense record not found in export"
+            assert income_row is not None, "Test income record not found in export"
+
+            # Verify receipt URL is included for expense
+            assert expense_row[receipt_url_index] == "https://example.com/receipts/all_transactions1.pdf", \
+                   f"Receipt URL not correctly included for expense: {expense_row[receipt_url_index]}"
+
+            # Income should have empty receipt URL
+            assert income_row[receipt_url_index] == "", \
+                   f"Income record should have empty receipt URL, got: {income_row[receipt_url_index]}"
+
+        finally:
+            # Clean up test data
+            for expense in test_expenses:
+                db.session.delete(expense)
+            for income in test_incomes:
+                db.session.delete(income)
             db.session.commit()
 
 

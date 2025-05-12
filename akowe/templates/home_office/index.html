@@ -1,0 +1,115 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Home Office Calculator{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Home Office Expense Calculator</h1>
+            
+            <!-- Home Office Claims List -->
+            {% if home_office_claims %}
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Your Home Office Claims</h5>
+                    <a href="{{ url_for('home_office.new') }}" class="btn btn-primary btn-sm">New Claim</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tax Year</th>
+                                    <th>Office Area</th>
+                                    <th>Business Use %</th>
+                                    <th>Calculation Method</th>
+                                    <th>Total Deduction</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for claim in home_office_claims %}
+                                <tr>
+                                    <td>{{ claim.tax_year }}</td>
+                                    <td>{{ claim.office_area }} {{ claim.area_unit }}</td>
+                                    <td>{{ claim.business_use_percentage }}%</td>
+                                    <td>{{ claim.calculation_method|capitalize }}</td>
+                                    <td>${{ claim.total_deduction|float|round(2) }}</td>
+                                    <td>
+                                        <a href="{{ url_for('home_office.view', id=claim.id) }}" class="btn btn-sm btn-info">View</a>
+                                        <a href="{{ url_for('home_office.edit', id=claim.id) }}" class="btn btn-sm btn-secondary">Edit</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <p class="mb-3">You haven't created any home office expense claims yet.</p>
+                    <a href="{{ url_for('home_office.new') }}" class="btn btn-primary">Create New Claim</a>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Information Panel -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">About Home Office Expenses</h5>
+                </div>
+                <div class="card-body">
+                    <h6>What Home Office Expenses Can You Claim?</h6>
+                    <p>If you work from home, you may be able to deduct certain expenses as home office deductions on your tax return. This calculator helps you determine your eligible deduction amount using either the percentage of home or simplified method.</p>
+                    
+                    <h6>Calculation Methods</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">Percentage of Home Method</div>
+                                <div class="card-body">
+                                    <p>Calculate deductions based on the percentage of your home used for business. Expenses that can be partially deducted include:</p>
+                                    <ul>
+                                        <li>Rent</li>
+                                        <li>Mortgage interest</li>
+                                        <li>Property taxes</li>
+                                        <li>Utilities</li>
+                                        <li>Home insurance</li>
+                                        <li>Maintenance</li>
+                                        <li>Internet and phone</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header bg-light">Simplified Method</div>
+                                <div class="card-body">
+                                    <p>Canada: $2.00 per square foot (up to 400 sq ft)</p>
+                                    <p>United States: $5.00 per square foot (up to 300 sq ft)</p>
+                                    <p>The simplified method is easier to calculate but may result in a smaller deduction for some taxpayers.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h6>Eligibility Requirements</h6>
+                    <p>To be eligible for home office deductions:</p>
+                    <ul>
+                        <li>Your home office must be used regularly and exclusively for business</li>
+                        <li>It must be your principal place of business, or where you regularly meet clients</li>
+                        <li>For employees, home office expenses are generally not deductible unless required by your employer</li>
+                    </ul>
+                    
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> This calculator provides an estimate of your potential deduction. Always consult with a tax professional for advice specific to your situation.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

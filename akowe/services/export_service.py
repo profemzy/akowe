@@ -161,7 +161,7 @@ class ExportService:
 
         # Write header row
         writer.writerow(
-            ["date", "title", "amount", "category", "payment_method", "status", "vendor"]
+            ["date", "title", "amount", "category", "payment_method", "status", "vendor", "receipt_url"]
         )
 
         # Query expense records, optionally filtered by year and category
@@ -185,6 +185,7 @@ class ExportService:
                     expense.payment_method,
                     expense.status,
                     expense.vendor or "",
+                    expense.receipt_url or "",
                 ]
             )
 
@@ -218,14 +219,15 @@ class ExportService:
         # Write header row
         writer.writerow(
             [
-                "date",
-                "type",
-                "description",
-                "amount",
-                "category",
-                "payment_method",
-                "status",
-                "reference",
+                "Date",
+                "Type",
+                "Description",
+                "Amount",
+                "Category",
+                "Payment Method",
+                "Status",
+                "Reference",
+                "Receipt URL",
             ]
         )
 
@@ -259,6 +261,7 @@ class ExportService:
                     "payment_method": "",
                     "status": "received",
                     "reference": income.invoice or "",
+                    "receipt_url": "",
                 }
             )
 
@@ -273,6 +276,7 @@ class ExportService:
                     "payment_method": expense.payment_method,
                     "status": expense.status,
                     "reference": expense.vendor or "",
+                    "receipt_url": expense.receipt_url or "",
                 }
             )
 
@@ -291,6 +295,7 @@ class ExportService:
                     transaction["payment_method"],
                     transaction["status"],
                     transaction["reference"],
+                    transaction["receipt_url"],
                 ]
             )
 

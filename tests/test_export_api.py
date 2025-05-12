@@ -70,7 +70,7 @@ def test_export_expense_endpoint(client, auth, sample_expense):
     
     # Check header row (case-insensitive comparison)
     actual_headers = [h.lower() for h in rows[0]]
-    expected_headers = ["date", "title", "amount", "category", "payment_method", "status", "vendor"]
+    expected_headers = ["date", "title", "amount", "category", "payment_method", "status", "vendor", "receipt_url"]
     assert actual_headers == expected_headers
     
     # Check that we have the expected number of rows (header + data)

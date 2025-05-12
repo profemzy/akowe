@@ -1,0 +1,238 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Home Office Claim Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Home Office Claim Details</h1>
+                <div>
+                    <a href="{{ url_for('home_office.edit', id=claim.id) }}" class="btn btn-outline-primary me-2">Edit</a>
+                    <a href="{{ url_for('home_office.index') }}" class="btn btn-outline-secondary">Back to List</a>
+                </div>
+            </div>
+            
+            <!-- Summary Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Summary for Tax Year {{ claim.tax_year }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless mb-0">
+                                <tr>
+                                    <th scope="row" style="width: 40%;">Calculation Method:</th>
+                                    <td>{{ claim.calculation_method|capitalize }}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Total Home Area:</th>
+                                    <td>{{ claim.total_home_area }} {{ claim.area_unit|replace('_', ' ') }}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Office Area:</th>
+                                    <td>{{ claim.office_area }} {{ claim.area_unit|replace('_', ' ') }}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Business Use:</th>
+                                    <td>{{ claim.business_use_percentage }}%</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100 bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted mb-3">Total Deduction</h6>
+                                    <h2 class="display-4 mb-0">${{ claim.total_deduction|float|round(2) }}</h2>
+                                    {% if claim.calculation_method == 'simplified' %}
+                                    <small class="text-muted d-block mt-2">Using simplified rate of ${{ claim.simplified_rate|float }} per {{ 'sq ft' if claim.area_unit == 'sq_ft' else 'sq m' }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if claim.calculation_method == 'percentage' %}
+            <!-- Expense Breakdown -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Expense Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Expense Type</th>
+                                            <th class="text-end">Total Amount</th>
+                                            <th class="text-end">Business Percentage</th>
+                                            <th class="text-end">Deductible Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if claim.rent > 0 %}
+                                        <tr>
+                                            <td>Rent</td>
+                                            <td class="text-end">${{ claim.rent|float|round(2) }}</td>
+                                            <td class="text-end">{{ claim.business_use_percentage }}%</td>
+                                            <td class="text-end">${{ details.deductible.rent|round(2) }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        
+                                        {% if claim.mortgage_interest > 0 %}
+                                        <tr>
+                                            <td>Mortgage Interest</td>
+                                            <td class="text-end">${{ claim.mortgage_interest|float|round(2) }}</td>
+                                            <td class="text-end">{{ claim.business_use_percentage }}%</td>
+                                            <td class="text-end">${{ details.deductible.mortgage_interest|round(2) }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        
+                                        {% if claim.property_tax > 0 %}
+                                        <tr>
+                                            <td>Property Tax</td>
+                                            <td class="text-end">${{ claim.property_tax|float|round(2) }}</td>
+                                            <td class="text-end">{{ claim.business_use_percentage }}%</td>
+                                            <td class="text-end">${{ details.deductible.property_tax|round(2) }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        
+                                        {% if claim.home_insurance > 0 %}
+                                        <tr>
+                                            <td>Home Insurance</td>
+                                            <td class="text-end">${{ claim.home_insurance|float|round(2) }}</td>
+                                            <td class="text-end">{{ claim.business_use_percentage }}%</td>
+                                            <td class="text-end">${{ details.deductible.home_insurance|round(2) }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        
+                                        {% if claim.utilities > 0 %}
+                                        <tr>
+                                            <td>Utilities</td>
+                                            <td class="text-end">${{ claim.utilities|float|round(2) }}</td>
+                                            <td class="text-end">{{ claim.business_use_percentage }}%</td>
+                                            <td class="text-end">${{ details.deductible.utilities|round(2) }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        
+                                        {% if claim.maintenance > 0 %}
+                                        <tr>
+                                            <td>Maintenance</td>
+                                            <td class="text-end">${{ claim.maintenance|float|round(2) }}</td>
+                                            <td class="text-end">{{ claim.business_use_percentage }}%</td>
+                                            <td class="text-end">${{ details.deductible.maintenance|round(2) }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        
+                                        {% if claim.internet > 0 %}
+                                        <tr>
+                                            <td>Internet</td>
+                                            <td class="text-end">${{ claim.internet|float|round(2) }}</td>
+                                            <td class="text-end">{{ claim.business_use_percentage }}%</td>
+                                            <td class="text-end">${{ details.deductible.internet|round(2) }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        
+                                        {% if claim.phone > 0 %}
+                                        <tr>
+                                            <td>Phone</td>
+                                            <td class="text-end">${{ claim.phone|float|round(2) }}</td>
+                                            <td class="text-end">{{ claim.business_use_percentage }}%</td>
+                                            <td class="text-end">${{ details.deductible.phone|round(2) }}</td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="table-active fw-bold">
+                                            <td>Total</td>
+                                            <td class="text-end">${{ 
+                                                (claim.rent + claim.mortgage_interest + claim.property_tax + 
+                                                claim.home_insurance + claim.utilities + claim.maintenance + 
+                                                claim.internet + claim.phone)|float|round(2) 
+                                            }}</td>
+                                            <td class="text-end">{{ claim.business_use_percentage }}%</td>
+                                            <td class="text-end">${{ claim.total_deduction|float|round(2) }}</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Simplified Method Calculation -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Simplified Method Calculation</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Description</th>
+                                        <th class="text-end">Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Office Area</td>
+                                        <td class="text-end">{{ claim.office_area }} {{ claim.area_unit|replace('_', ' ') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Rate per {{ claim.area_unit|replace('_', ' ') }}</td>
+                                        <td class="text-end">${{ claim.simplified_rate|float }}</td>
+                                    </tr>
+                                    <tr class="table-active fw-bold">
+                                        <td>Total Deduction</td>
+                                        <td class="text-end">${{ claim.total_deduction|float|round(2) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Tax Reporting Info -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Tax Reporting Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>For Self-Employed (Business Income)</h6>
+                            <ul>
+                                <li><strong>Canada:</strong> Report on Form T2125 Statement of Business Activities</li>
+                                <li><strong>USA:</strong> Report on Schedule C of Form 1040</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Documentation to Keep</h6>
+                            <ul>
+                                <li>Floor plan showing home office area</li>
+                                <li>All receipts for expenses claimed</li>
+                                <li>Photos of your home office</li>
+                                <li>Records of business use</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning mt-3">
+                        <strong>Disclaimer:</strong> This calculation is for estimation purposes only. Tax laws change frequently. Always consult with a qualified tax professional before claiming home office deductions.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

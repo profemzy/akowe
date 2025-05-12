@@ -252,6 +252,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('home_office.index') }}">
+                            <i class="fas fa-home me-1"></i>Home Office
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('timesheet.index') }}">
                             <i class="fas fa-clock me-1"></i>Timesheets
                         </a>
@@ -323,6 +328,30 @@
                             <a class="nav-link {% if request.endpoint == 'tax_dashboard.index' %}active{% endif %}" href="{{ url_for('tax_dashboard.index') }}">
                                 <i class="fas fa-file-invoice-dollar"></i> Tax Dashboard
                             </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint and request.endpoint.startswith('home_office.') %}active{% endif %}"
+                               data-bs-toggle="collapse" href="#homeOfficeSubmenu" role="button"
+                               aria-expanded="{% if request.endpoint and request.endpoint.startswith('home_office.') %}true{% else %}false{% endif %}"
+                               aria-controls="homeOfficeSubmenu">
+                                <i class="fas fa-home"></i>
+                                <span>Home Office</span>
+                                <i class="fas fa-chevron-down ms-1 float-end"></i>
+                            </a>
+                            <div class="collapse {% if request.endpoint and request.endpoint.startswith('home_office.') %}show{% endif %}" id="homeOfficeSubmenu">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'home_office.index' %}active{% endif %}" href="{{ url_for('home_office.index') }}">
+                                            <i class="fas fa-list"></i> View All
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {% if request.endpoint == 'home_office.new' %}active{% endif %}" href="{{ url_for('home_office.new') }}">
+                                            <i class="fas fa-plus"></i> New Claim
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </li>
 
                         <!-- Timesheet Section -->

@@ -4,6 +4,7 @@ This script runs all required database migrations in the proper sequence.
 """
 import logging
 import sys
+from decimal import Decimal
 
 from sqlalchemy import text
 
@@ -28,6 +29,11 @@ def run_migrations():
         {
             "name": "Apply complete schema from db-schema.sql",
             "function": run_complete_schema_migration
+        },
+        # Migration to add home_office table
+        {
+            "name": "Add home_office table",
+            "function": run_home_office_migration
         }
     ]
 
@@ -273,68 +279,151 @@ def run_complete_schema_migration():
         try:
             # Drop existing tables if they exist
             logger.info("Dropping existing tables if they exist")
-            conn.execute(text("DROP TABLE IF EXISTS timesheet CASCADE;"))
-            conn.execute(text("DROP TABLE IF EXISTS income CASCADE;"))
-            conn.execute(text("DROP TABLE IF EXISTS invoice CASCADE;"))
-            conn.execute(text("DROP TABLE IF EXISTS project CASCADE;"))
-            conn.execute(text("DROP TABLE IF EXISTS client CASCADE;"))
-            conn.execute(text("DROP TABLE IF EXISTS expense CASCADE;"))
-            conn.execute(text("DROP TABLE IF EXISTS users CASCADE;"))
+
+            # Handle different SQL syntax based on database dialect
+            if dialect == 'sqlite':
+                # SQLite doesn't support CASCADE, so we need to handle foreign keys differently
+                # Temporarily disable foreign key constraints
+                conn.execute(text("PRAGMA foreign_keys = OFF;"))
+
+                # Drop tables without CASCADE
+                conn.execute(text("DROP TABLE IF EXISTS timesheet;"))
+                conn.execute(text("DROP TABLE IF EXISTS income;"))
+                conn.execute(text("DROP TABLE IF EXISTS invoice;"))
+                conn.execute(text("DROP TABLE IF EXISTS project;"))
+                conn.execute(text("DROP TABLE IF EXISTS client;"))
+                conn.execute(text("DROP TABLE IF EXISTS expense;"))
+                conn.execute(text("DROP TABLE IF EXISTS users;"))
+
+                # Re-enable foreign key constraints
+                conn.execute(text("PRAGMA foreign_keys = ON;"))
+            else:
+                # PostgreSQL and others support CASCADE
+                conn.execute(text("DROP TABLE IF EXISTS timesheet CASCADE;"))
+                conn.execute(text("DROP TABLE IF EXISTS income CASCADE;"))
+                conn.execute(text("DROP TABLE IF EXISTS invoice CASCADE;"))
+                conn.execute(text("DROP TABLE IF EXISTS project CASCADE;"))
+                conn.execute(text("DROP TABLE IF EXISTS client CASCADE;"))
+                conn.execute(text("DROP TABLE IF EXISTS expense CASCADE;"))
+                conn.execute(text("DROP TABLE IF EXISTS users CASCADE;"))
 
             # Create users table
             logger.info("Creating users table")
-            conn.execute(text("""
-            create table public.users
-            (
-                id            serial
-                    primary key,
-                username      varchar(64)  not null,
-                email         varchar(120) not null,
-                password_hash varchar(256) not null,
-                first_name    varchar(64),
-                last_name     varchar(64),
-                hourly_rate   numeric(10, 2),
-                is_admin      boolean,
-                is_active     boolean,
-                created_at    timestamp,
-                updated_at    timestamp,
-                last_login    timestamp
-            );
-            """))
 
-            # Set owner
-            conn.execute(text("alter table public.users owner to akowe_user;"))
+            if dialect == 'sqlite':
+                # SQLite version without schema name and using INTEGER for id instead of serial
+                conn.execute(text("""
+                CREATE TABLE users
+                (
+                    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username      VARCHAR(64)  NOT NULL,
+                    email         VARCHAR(120) NOT NULL,
+                    password_hash VARCHAR(256) NOT NULL,
+                    first_name    VARCHAR(64),
+                    last_name     VARCHAR(64),
+                    hourly_rate   NUMERIC(10, 2),
+                    is_admin      BOOLEAN,
+                    is_active     BOOLEAN,
+                    created_at    TIMESTAMP,
+                    updated_at    TIMESTAMP,
+                    last_login    TIMESTAMP
+                );
+                """))
+            else:
+                # PostgreSQL version with schema name and serial type
+                conn.execute(text("""
+                CREATE TABLE public.users
+                (
+                    id            SERIAL
+                        PRIMARY KEY,
+                    username      VARCHAR(64)  NOT NULL,
+                    email         VARCHAR(120) NOT NULL,
+                    password_hash VARCHAR(256) NOT NULL,
+                    first_name    VARCHAR(64),
+                    last_name     VARCHAR(64),
+                    hourly_rate   NUMERIC(10, 2),
+                    is_admin      BOOLEAN,
+                    is_active     BOOLEAN,
+                    created_at    TIMESTAMP,
+                    updated_at    TIMESTAMP,
+                    last_login    TIMESTAMP
+                );
+                """))
+
+            # Set owner if role exists
+            try:
+                # First check if the role exists
+                role_exists = conn.execute(text(
+                    "SELECT 1 FROM pg_roles WHERE rolname = 'akowe_user';"
+                )).scalar() is not None
+
+                if role_exists:
+                    conn.execute(text("alter table public.users owner to akowe_user;"))
+                else:
+                    logger.warning("Role 'akowe_user' does not exist, skipping owner assignment")
+            except Exception as e:
+                logger.warning(f"Could not set owner on users table: {str(e)}")
 
             # Create indexes
-            conn.execute(text("create unique index ix_users_username on public.users (username);"))
-            conn.execute(text("create unique index ix_users_email on public.users (email);"))
+            if dialect == 'sqlite':
+                conn.execute(text("CREATE UNIQUE INDEX ix_users_username ON users (username);"))
+                conn.execute(text("CREATE UNIQUE INDEX ix_users_email ON users (email);"))
+            else:
+                conn.execute(text("CREATE UNIQUE INDEX ix_users_username ON public.users (username);"))
+                conn.execute(text("CREATE UNIQUE INDEX ix_users_email ON public.users (email);"))
 
             # Create expense table
             logger.info("Creating expense table")
-            conn.execute(text("""
-            create table public.expense
-            (
-                id                serial
-                    primary key,
-                date              date           not null,
-                title             varchar(255)   not null,
-                amount            numeric(10, 2) not null,
-                category          varchar(100)   not null,
-                payment_method    varchar(50)    not null,
-                status            varchar(20)    not null,
-                vendor            varchar(255),
-                receipt_blob_name varchar(255),
-                receipt_url       varchar(1024),
-                created_at        timestamp,
-                updated_at        timestamp,
-                user_id           integer
-                    constraint fk_expense_user
-                        references public.users
-            );
-            """))
 
-            # Set owner
-            conn.execute(text("alter table public.expense owner to akowe_user;"))
+            if dialect == 'sqlite':
+                conn.execute(text("""
+                CREATE TABLE expense
+                (
+                    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+                    date              DATE           NOT NULL,
+                    title             VARCHAR(255)   NOT NULL,
+                    amount            NUMERIC(10, 2) NOT NULL,
+                    category          VARCHAR(100)   NOT NULL,
+                    payment_method    VARCHAR(50)    NOT NULL,
+                    status            VARCHAR(20)    NOT NULL,
+                    vendor            VARCHAR(255),
+                    receipt_blob_name VARCHAR(255),
+                    receipt_url       VARCHAR(1024),
+                    created_at        TIMESTAMP,
+                    updated_at        TIMESTAMP,
+                    user_id           INTEGER,
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                );
+                """))
+            else:
+                conn.execute(text("""
+                CREATE TABLE public.expense
+                (
+                    id                SERIAL
+                        PRIMARY KEY,
+                    date              DATE           NOT NULL,
+                    title             VARCHAR(255)   NOT NULL,
+                    amount            NUMERIC(10, 2) NOT NULL,
+                    category          VARCHAR(100)   NOT NULL,
+                    payment_method    VARCHAR(50)    NOT NULL,
+                    status            VARCHAR(20)    NOT NULL,
+                    vendor            VARCHAR(255),
+                    receipt_blob_name VARCHAR(255),
+                    receipt_url       VARCHAR(1024),
+                    created_at        TIMESTAMP,
+                    updated_at        TIMESTAMP,
+                    user_id           INTEGER
+                        CONSTRAINT fk_expense_user
+                            REFERENCES public.users
+                );
+                """))
+
+            # Set owner if role exists
+            try:
+                if role_exists:
+                    conn.execute(text("alter table public.expense owner to akowe_user;"))
+            except Exception as e:
+                logger.warning(f"Could not set owner on expense table: {str(e)}")
 
             # Create client table
             logger.info("Creating client table")
@@ -356,8 +445,12 @@ def run_complete_schema_migration():
             );
             """))
 
-            # Set owner
-            conn.execute(text("alter table public.client owner to akowe_user;"))
+            # Set owner if role exists
+            try:
+                if role_exists:
+                    conn.execute(text("alter table public.client owner to akowe_user;"))
+            except Exception as e:
+                logger.warning(f"Could not set owner on client table: {str(e)}")
 
             # Create index
             conn.execute(text("create unique index ix_client_name on public.client (name);"))
@@ -382,8 +475,12 @@ def run_complete_schema_migration():
             );
             """))
 
-            # Set owner
-            conn.execute(text("alter table public.project owner to akowe_user;"))
+            # Set owner if role exists
+            try:
+                if role_exists:
+                    conn.execute(text("alter table public.project owner to akowe_user;"))
+            except Exception as e:
+                logger.warning(f"Could not set owner on project table: {str(e)}")
 
             # Create index
             conn.execute(text("create index ix_project_name on public.project (name);"))
@@ -419,8 +516,12 @@ def run_complete_schema_migration():
             );
             """))
 
-            # Set owner
-            conn.execute(text("alter table public.invoice owner to akowe_user;"))
+            # Set owner if role exists
+            try:
+                if role_exists:
+                    conn.execute(text("alter table public.invoice owner to akowe_user;"))
+            except Exception as e:
+                logger.warning(f"Could not set owner on invoice table: {str(e)}")
 
             # Create income table
             logger.info("Creating income table")
@@ -447,8 +548,12 @@ def run_complete_schema_migration():
             );
             """))
 
-            # Set owner
-            conn.execute(text("alter table public.income owner to akowe_user;"))
+            # Set owner if role exists
+            try:
+                if role_exists:
+                    conn.execute(text("alter table public.income owner to akowe_user;"))
+            except Exception as e:
+                logger.warning(f"Could not set owner on income table: {str(e)}")
 
             # Create timesheet table
             logger.info("Creating timesheet table")
@@ -475,8 +580,12 @@ def run_complete_schema_migration():
             );
             """))
 
-            # Set owner
-            conn.execute(text("alter table public.timesheet owner to akowe_user;"))
+            # Set owner if role exists
+            try:
+                if role_exists:
+                    conn.execute(text("alter table public.timesheet owner to akowe_user;"))
+            except Exception as e:
+                logger.warning(f"Could not set owner on timesheet table: {str(e)}")
 
             conn.commit()
             logger.info("Complete schema migration executed successfully")
@@ -485,6 +594,135 @@ def run_complete_schema_migration():
         except Exception as e:
             logger.error(f"Complete schema migration failed: {str(e)}")
             raise Exception(f"Complete schema migration failed: {str(e)}")
+
+
+def run_home_office_migration():
+    """Create the home_office table if it doesn't exist."""
+    app = create_app()
+    with app.app_context():
+        logger.info("Starting home_office table migration")
+
+        # Create connection
+        conn = db.engine.connect()
+
+        # Detect database dialect
+        dialect = db.engine.dialect.name
+        logger.info(f"Database dialect: {dialect}")
+
+        try:
+            # Check if the table exists
+            table_exists = False
+
+            try:
+                if dialect == 'postgresql':
+                    result = conn.execute(text(
+                        "SELECT 1 FROM information_schema.tables "
+                        + "WHERE table_schema = 'public' AND table_name = 'home_office';"
+                    ))
+                    table_exists = result.scalar() is not None
+                else:
+                    # For SQLite
+                    result = conn.execute(text(
+                        "SELECT name FROM sqlite_master WHERE type='table' AND name='home_office';"
+                    ))
+                    table_exists = result.scalar() is not None
+            except Exception as e:
+                logger.warning(f"Could not check if home_office table exists: {str(e)}")
+
+            if table_exists:
+                logger.info("home_office table already exists, skipping creation")
+                return
+
+            # Create the home_office table
+            logger.info("Creating home_office table")
+
+            if dialect == 'sqlite':
+                create_sql = """
+                CREATE TABLE home_office (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tax_year INTEGER NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    total_home_area NUMERIC(10, 2) NOT NULL,
+                    office_area NUMERIC(10, 2) NOT NULL,
+                    area_unit VARCHAR(20) DEFAULT 'sq_ft',
+                    rent NUMERIC(10, 2) DEFAULT 0.00,
+                    mortgage_interest NUMERIC(10, 2) DEFAULT 0.00,
+                    property_tax NUMERIC(10, 2) DEFAULT 0.00,
+                    home_insurance NUMERIC(10, 2) DEFAULT 0.00,
+                    utilities NUMERIC(10, 2) DEFAULT 0.00,
+                    maintenance NUMERIC(10, 2) DEFAULT 0.00,
+                    internet NUMERIC(10, 2) DEFAULT 0.00,
+                    phone NUMERIC(10, 2) DEFAULT 0.00,
+                    business_use_percentage NUMERIC(5, 2) DEFAULT 0.00,
+                    is_primary_income BOOLEAN DEFAULT 1,
+                    hours_per_week INTEGER DEFAULT 0,
+                    calculation_method VARCHAR(20) DEFAULT 'percentage',
+                    simplified_rate NUMERIC(10, 2) DEFAULT 0.00,
+                    total_deduction NUMERIC(10, 2) DEFAULT 0.00,
+                    created_at TIMESTAMP DEFAULT (datetime('now')),
+                    updated_at TIMESTAMP DEFAULT (datetime('now')),
+                    FOREIGN KEY (user_id) REFERENCES users (id)
+                );
+                """
+            else:
+                create_sql = """
+                CREATE TABLE public.home_office (
+                    id SERIAL PRIMARY KEY,
+                    tax_year INTEGER NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    total_home_area NUMERIC(10, 2) NOT NULL,
+                    office_area NUMERIC(10, 2) NOT NULL,
+                    area_unit VARCHAR(20) DEFAULT 'sq_ft',
+                    rent NUMERIC(10, 2) DEFAULT 0.00,
+                    mortgage_interest NUMERIC(10, 2) DEFAULT 0.00,
+                    property_tax NUMERIC(10, 2) DEFAULT 0.00,
+                    home_insurance NUMERIC(10, 2) DEFAULT 0.00,
+                    utilities NUMERIC(10, 2) DEFAULT 0.00,
+                    maintenance NUMERIC(10, 2) DEFAULT 0.00,
+                    internet NUMERIC(10, 2) DEFAULT 0.00,
+                    phone NUMERIC(10, 2) DEFAULT 0.00,
+                    business_use_percentage NUMERIC(5, 2) DEFAULT 0.00,
+                    is_primary_income BOOLEAN DEFAULT TRUE,
+                    hours_per_week INTEGER DEFAULT 0,
+                    calculation_method VARCHAR(20) DEFAULT 'percentage',
+                    simplified_rate NUMERIC(10, 2) DEFAULT 0.00,
+                    total_deduction NUMERIC(10, 2) DEFAULT 0.00,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES public.users (id)
+                );
+                """
+
+            # This code is no longer needed since we're generating dialect-specific SQL
+            # Keeping it commented for reference
+            # if dialect == 'sqlite':
+            #     create_sql = create_sql.replace('SERIAL', 'INTEGER')
+            #     create_sql = create_sql.replace('DEFAULT CURRENT_TIMESTAMP', 'DEFAULT (datetime(\'now\'))')
+
+            conn.execute(text(create_sql))
+
+            if dialect == 'postgresql':
+                # Set owner for PostgreSQL if the role exists
+                try:
+                    # First check if the role exists
+                    role_exists = conn.execute(text(
+                        "SELECT 1 FROM pg_roles WHERE rolname = 'akowe_user';"
+                    )).scalar() is not None
+
+                    if role_exists:
+                        conn.execute(text("ALTER TABLE public.home_office OWNER TO akowe_user;"))
+                    else:
+                        logger.warning("Role 'akowe_user' does not exist, skipping owner assignment")
+                except Exception as e:
+                    logger.warning(f"Could not set owner on home_office table: {str(e)}")
+
+            conn.commit()
+            logger.info("home_office table created successfully")
+            return
+
+        except Exception as e:
+            logger.error(f"home_office table migration failed: {str(e)}")
+            raise Exception(f"home_office table migration failed: {str(e)}")
 
 
 if __name__ == "__main__":

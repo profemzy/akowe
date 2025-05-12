@@ -1,0 +1,286 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}New Home Office Claim{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+    .method-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .method-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .method-card.selected {
+        border: 2px solid #007bff;
+        background-color: #f8f9ff;
+    }
+    .card-header-tabs .nav-link {
+        color: #495057;
+    }
+    .card-header-tabs .nav-link.active {
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">New Home Office Claim</h1>
+            
+            <form method="post" action="{{ url_for('home_office.create') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="calculation_method" id="calculation_method" value="percentage">
+                
+                <!-- Step 1: Basic Information -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Basic Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="tax_year" class="form-label">Tax Year</label>
+                                <select class="form-select" id="tax_year" name="tax_year" required>
+                                    <option value="">Select Tax Year</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2024" selected>2024</option>
+                                    <option value="2023">2023</option>
+                                    <option value="2022">2022</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="country_code" class="form-label">Country</label>
+                                <select class="form-select" id="country_code" name="country_code" required>
+                                    <option value="CA" selected>Canada</option>
+                                    <option value="US">United States</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Calculation Method -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Select Calculation Method</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <div id="percentage-method" class="card method-card h-100 selected" onclick="selectMethod('percentage')">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Percentage of Home Method</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Use this method if you want to deduct a percentage of your actual home expenses.</p>
+                                        <ul>
+                                            <li>Best for larger home offices</li>
+                                            <li>Requires tracking all home expenses</li>
+                                            <li>May provide larger deduction</li>
+                                            <li>More detailed record-keeping required</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div id="simplified-method" class="card method-card h-100" onclick="selectMethod('simplified')">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Simplified Method</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Use this method for a simple flat-rate deduction based on your office area.</p>
+                                        <ul>
+                                            <li>Canada: $2.00 per square foot (max 400 sq ft)</li>
+                                            <li>US: $5.00 per square foot (max 300 sq ft)</li>
+                                            <li>Minimal record-keeping required</li>
+                                            <li>Cannot deduct mortgage interest or depreciation</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Home Information -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Home Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="area_unit" class="form-label">Area Unit</label>
+                                <select class="form-select" id="area_unit" name="area_unit" required>
+                                    <option value="sq_ft" selected>Square Feet</option>
+                                    <option value="sq_m">Square Meters</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="total_home_area" class="form-label">Total Home Area</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="total_home_area" name="total_home_area" min="1" step="0.01" required>
+                                    <span class="input-group-text area-unit-text">sq ft</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="office_area" class="form-label">Home Office Area</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="office_area" name="office_area" min="1" step="0.01" required>
+                                    <span class="input-group-text area-unit-text">sq ft</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="is_primary_income" class="form-label">Primary Business?</label>
+                                <select class="form-select" id="is_primary_income" name="is_primary_income" required>
+                                    <option value="true" selected>Yes, this is my main business</option>
+                                    <option value="false">No, this is a side business</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="hours_per_week" class="form-label">Hours Worked Per Week in Home Office</label>
+                                <input type="number" class="form-control" id="hours_per_week" name="hours_per_week" min="0" max="168" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 4: Home Expenses (only for percentage method) -->
+                <div id="expense-section" class="card mb-4">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" id="expense-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active bg-primary text-white fw-bold" id="housing-tab" data-bs-toggle="tab" href="#housing" role="tab" aria-controls="housing" aria-selected="true">Housing</a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link bg-dark text-white fw-bold" id="utilities-tab" data-bs-toggle="tab" href="#utilities-content" role="tab" aria-controls="utilities-content" aria-selected="false">Utilities</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="expense-tab-content">
+                            <!-- Housing Expenses Tab -->
+                            <div class="tab-pane fade show active" id="housing" role="tabpanel" aria-labelledby="housing-tab">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="rent" class="form-label">Annual Rent</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="rent" name="rent" min="0" step="0.01" value="0">
+                                        </div>
+                                        <small class="text-muted">Leave at 0 if you own your home</small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="mortgage_interest" class="form-label">Annual Mortgage Interest</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="mortgage_interest" name="mortgage_interest" min="0" step="0.01" value="0">
+                                        </div>
+                                        <small class="text-muted">Principal payments are not deductible</small>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="property_tax" class="form-label">Annual Property Tax</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="property_tax" name="property_tax" min="0" step="0.01" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="home_insurance" class="form-label">Annual Home Insurance</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="home_insurance" name="home_insurance" min="0" step="0.01" value="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Utilities Tab -->
+                            <div class="tab-pane fade" id="utilities-content" role="tabpanel" aria-labelledby="utilities-tab">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="utilities" class="form-label">Annual Utilities (Electricity, Heat, Water)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="utilities" name="utilities" min="0" step="0.01" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="maintenance" class="form-label">Annual Maintenance & Repairs</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="maintenance" name="maintenance" min="0" step="0.01" value="0">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="internet" class="form-label">Annual Internet Expenses</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="internet" name="internet" min="0" step="0.01" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="phone" class="form-label">Annual Phone Expenses</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="phone" name="phone" min="0" step="0.01" value="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Submission Buttons -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{{ url_for('home_office.index') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Calculate & Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Handle calculation method selection
+    function selectMethod(method) {
+        // Update hidden input
+        document.getElementById('calculation_method').value = method;
+        
+        // Update UI for selected method
+        if (method === 'percentage') {
+            document.getElementById('percentage-method').classList.add('selected');
+            document.getElementById('simplified-method').classList.remove('selected');
+            document.getElementById('expense-section').style.display = 'block';
+        } else {
+            document.getElementById('simplified-method').classList.add('selected');
+            document.getElementById('percentage-method').classList.remove('selected');
+            document.getElementById('expense-section').style.display = 'none';
+        }
+    }
+    
+    // Update area unit text when selection changes
+    document.getElementById('area_unit').addEventListener('change', function() {
+        const unitText = this.value === 'sq_ft' ? 'sq ft' : 'sq m';
+        const unitElements = document.querySelectorAll('.area-unit-text');
+        unitElements.forEach(element => {
+            element.textContent = unitText;
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}
