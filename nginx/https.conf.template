@@ -26,8 +26,10 @@ server {
     ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
     ssl_session_timeout 1d;
     ssl_session_cache shared:SSL:50m;
-    ssl_stapling on;
-    ssl_stapling_verify on;
+
+    # SSL stapling (commented until proper certificates are available)
+    # ssl_stapling on;
+    # ssl_stapling_verify on;
     
     # HSTS (optional, comment out if not needed)
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
