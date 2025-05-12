@@ -1,4 +1,16 @@
-"""Service for exporting financial data in tax preparation formats."""
+"""Service for exporting financial data in tax preparation formats.
+
+IMPORTANT: This service assumes that all income amounts in the database INCLUDE
+applicable GST/HST/QST. When exporting for tax purposes, the service automatically
+calculates the tax portion based on the province's tax rates.
+
+For example, in Ontario with 13% HST:
+- If a client was invoiced $1,130 (including 13% HST)
+- The income record would store $1,130
+- The export would show $1,130 as income and $130 as HST collected
+
+This approach ensures accurate tax reporting for GST/HST remittance.
+"""
 
 import csv
 import io
@@ -254,13 +266,41 @@ class TaxExportService:
         ])
         
         for income in income_records:
-            # For income, we typically have only one CRA income type for self-employment
+            # For income, calculate GST/HST included in the total (13% in Ontario by default)
+            # The amount in the database is assumed to include taxes
+
+            # Calculate GST/HST included in the income amount
+            if is_quebec:
+                # For Quebec, calculate GST and QST separately
+                # GST is 5% of the pre-tax amount
+                # Formula: GST = Amount / (1 + GST + QST) * GST
+                gst_amount = (income.amount * gst_hst_rate) / (Decimal('1.0') + gst_hst_rate + (gst_hst_rate * qst_rate))
+                gst_amount = gst_amount.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+                # QST is calculated on the GST-included amount
+                qst_amount = ((income.amount - gst_amount) * qst_rate) / (Decimal('1.0') + qst_rate)
+                qst_amount = qst_amount.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+                tax_collected = gst_amount + qst_amount
+            else:
+                # For other provinces, GST/HST is included in the amount
+                # Formula: Tax = Amount - (Amount / (1 + Tax Rate))
+                pre_tax_amount = income.amount / (Decimal('1.0') + gst_hst_rate)
+                tax_collected = income.amount - pre_tax_amount
+                tax_collected = tax_collected.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+                # Ensure we always have a positive tax value for valid GST/HST rates
+                if tax_collected <= 0 and gst_hst_rate > 0:
+                    # Recalculate using a direct percentage approach as fallback
+                    tax_collected = income.amount * (gst_hst_rate / (Decimal('1.0') + gst_hst_rate))
+                    tax_collected = tax_collected.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
             writer.writerow([
                 income.date.strftime("%Y-%m-%d"),
                 f"{income.client} - {income.project}",
                 f"{income.amount:.2f}",
                 "Professional income",
-                "0.00",  # If GST/HST not tracked separately
+                f"{tax_collected:.2f}",  # GST/HST collected from clients
                 income.invoice or ""
             ])
         
@@ -363,13 +403,38 @@ class TaxExportService:
         
         # Write income data rows
         for income in income_records:
-            # For income we typically include a 0 tax value for Self-employed income
+            # Calculate GST/HST included in the income amount
+            if is_quebec:
+                # For Quebec, calculate GST and QST separately
+                # GST is 5% of the pre-tax amount
+                # Formula: GST = Amount / (1 + GST + QST) * GST
+                gst_amount = (income.amount * gst_hst_rate) / (Decimal('1.0') + gst_hst_rate + (gst_hst_rate * qst_rate))
+                gst_amount = gst_amount.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+                # QST is calculated on the GST-included amount
+                qst_amount = ((income.amount - gst_amount) * qst_rate) / (Decimal('1.0') + qst_rate)
+                qst_amount = qst_amount.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+                tax_collected = gst_amount + qst_amount
+            else:
+                # For other provinces, GST/HST is included in the amount
+                # Formula: Tax = Amount - (Amount / (1 + Tax Rate))
+                pre_tax_amount = income.amount / (Decimal('1.0') + gst_hst_rate)
+                tax_collected = income.amount - pre_tax_amount
+                tax_collected = tax_collected.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+                # Ensure we always have a positive tax value for valid GST/HST rates
+                if tax_collected <= 0 and gst_hst_rate > 0:
+                    # Recalculate using a direct percentage approach as fallback
+                    tax_collected = income.amount * (gst_hst_rate / (Decimal('1.0') + gst_hst_rate))
+                    tax_collected = tax_collected.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
             writer.writerow([
                 income.date.strftime("%Y-%m-%d"),
                 f"{income.client} - {income.project}",
                 f"{income.amount:.2f}",
                 "Income",
-                "0.00",  # No GST/HST/QST value for income by default
+                f"{tax_collected:.2f}",  # GST/HST collected for tax reporting
                 "T2125",
                 "Self-employment income"
             ])
@@ -471,13 +536,38 @@ class TaxExportService:
         
         # Write income data rows
         for income in income_records:
-            # For income we typically include a 0 tax value for Self-employed income
+            # Calculate GST/HST included in the income amount
+            if is_quebec:
+                # For Quebec, calculate GST and QST separately
+                # GST is 5% of the pre-tax amount
+                # Formula: GST = Amount / (1 + GST + QST) * GST
+                gst_amount = (income.amount * gst_hst_rate) / (Decimal('1.0') + gst_hst_rate + (gst_hst_rate * qst_rate))
+                gst_amount = gst_amount.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+                # QST is calculated on the GST-included amount
+                qst_amount = ((income.amount - gst_amount) * qst_rate) / (Decimal('1.0') + qst_rate)
+                qst_amount = qst_amount.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+                tax_collected = gst_amount + qst_amount
+            else:
+                # For other provinces, GST/HST is included in the amount
+                # Formula: Tax = Amount - (Amount / (1 + Tax Rate))
+                pre_tax_amount = income.amount / (Decimal('1.0') + gst_hst_rate)
+                tax_collected = income.amount - pre_tax_amount
+                tax_collected = tax_collected.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+                # Ensure we always have a positive tax value for valid GST/HST rates
+                if tax_collected <= 0 and gst_hst_rate > 0:
+                    # Recalculate using a direct percentage approach as fallback
+                    tax_collected = income.amount * (gst_hst_rate / (Decimal('1.0') + gst_hst_rate))
+                    tax_collected = tax_collected.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
             writer.writerow([
                 income.date.strftime("%Y-%m-%d"),
                 f"{income.client} - {income.project}",
                 f"{income.amount:.2f}",
                 "Self-employment",
-                "0.00",  # No GST/HST/QST value for income by default
+                f"{tax_collected:.2f}",  # GST/HST collected for tax reporting
                 "Income"
             ])
         

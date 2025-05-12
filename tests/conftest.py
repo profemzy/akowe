@@ -187,8 +187,8 @@ def sample_income(app, test_user):
         if client is None:
             client = Client(
                 name="SearchLabs",
-                contact_email="contact@searchlabs.com",
-                contact_name="John Doe",
+                email="contact@searchlabs.com",
+                contact_person="John Doe",
                 user_id=test_user.id
             )
             db.session.add(client)
@@ -295,18 +295,18 @@ def sample_timesheet(app, test_user):
         if not client1:
             client1 = Client(
                 name="SearchLabs",
-                contact_name="John Search",
-                contact_email="john@searchlabs.com",
+                contact_person="John Search",
+                email="john@searchlabs.com",
                 user_id=test_user.id
             )
             db.session.add(client1)
-            
+
         client2 = Client.query.filter_by(name="TechCorp").first()
         if not client2:
             client2 = Client(
                 name="TechCorp",
-                contact_name="Jane Tech",
-                contact_email="jane@techcorp.com",
+                contact_person="Jane Tech",
+                email="jane@techcorp.com",
                 user_id=test_user.id
             )
             db.session.add(client2)
@@ -416,8 +416,8 @@ def sample_invoice(app, test_user, sample_timesheet):
         if not client:
             client = Client(
                 name="SearchLabs",
-                contact_name="John Search",
-                contact_email="john@searchlabs.com",
+                contact_person="John Search",
+                email="john@searchlabs.com",
                 user_id=test_user.id
             )
             db.session.add(client)

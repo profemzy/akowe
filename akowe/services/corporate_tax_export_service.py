@@ -124,13 +124,25 @@ class CorporateTaxExportService:
         # Query income records for the year
         income_records = Income.query
         if year:
+            from_date = datetime(year, 1, 1)
+            to_date = datetime(year, 12, 31)
+            print(f"Querying income records between {from_date} and {to_date}")
             income_records = income_records.filter(
-                Income.date.between(datetime(year, 1, 1), datetime(year, 12, 31))
+                Income.date.between(from_date, to_date)
             )
+
+        # Debug the query
+        print(f"Income query: {income_records}")
+
+        # Get all records
         income_records = income_records.order_by(Income.date).all()
+
+        # Debug found records
+        print(f"Found {len(income_records)} income records: {income_records}")
         
-        # Write income data rows - no tax amount for revenue typically
+        # Write income data rows with GST/HST amounts
         total_revenue = Decimal('0.00')
+        total_revenue_tax = Decimal('0.00')
         for income in income_records:
             # Map to appropriate GIFI code or default to 8000
             gifi_code = cls.GIFI_CODE_MAPPING.get("professional_income", "8020")
@@ -138,25 +150,53 @@ class CorporateTaxExportService:
             
             # Add to total revenue
             total_revenue += income.amount
-            
+
+            # Calculate GST/HST included in the income amount
+            if is_quebec:
+                # For Quebec, calculate GST and QST separately
+                # GST is 5% of the pre-tax amount
+                gst_amount = (income.amount * gst_hst_rate) / (Decimal('1.0') + gst_hst_rate + (gst_hst_rate * qst_rate))
+                gst_amount = gst_amount.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+                # QST is calculated on the GST-included amount
+                qst_amount = ((income.amount - gst_amount) * qst_rate) / (Decimal('1.0') + qst_rate)
+                qst_amount = qst_amount.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+                tax_collected = gst_amount + qst_amount
+            else:
+                # For other provinces, GST/HST is included in the amount
+                # Formula: Tax = Amount - (Amount / (1 + Tax Rate))
+                pre_tax_amount = income.amount / (Decimal('1.0') + gst_hst_rate)
+                tax_collected = income.amount - pre_tax_amount
+                tax_collected = tax_collected.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+                # Ensure we always have a positive tax value for valid GST/HST rates
+                if tax_collected <= 0 and gst_hst_rate > 0:
+                    # Recalculate using a direct percentage approach as fallback
+                    tax_collected = income.amount * (gst_hst_rate / (Decimal('1.0') + gst_hst_rate))
+                    tax_collected = tax_collected.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+            # Add to total revenue tax
+            total_revenue_tax += tax_collected
+
             writer.writerow([
                 income.date.strftime("%Y-%m-%d"),
                 f"{income.client} - {income.project}",
                 f"{income.amount:.2f}",
                 gifi_code,
                 gifi_description,
-                "0.00",  # No GST/HST/QST typically for professional revenue
+                f"{tax_collected:.2f}",  # Include calculated GST/HST
                 income.invoice or ""
             ])
         
-        # Add Revenue Total
+        # Add Revenue Total with tax amount
         writer.writerow([
             "",
             "TOTAL REVENUE",
             f"{total_revenue:.2f}",
             "8299",
             "Total revenue",
-            "0.00",
+            f"{total_revenue_tax:.2f}",
             ""
         ])
         
@@ -452,23 +492,65 @@ class CorporateTaxExportService:
         # Add income data
         income_records = Income.query
         if year:
+            from_date = datetime(year, 1, 1)
+            to_date = datetime(year, 12, 31)
+            print(f"Querying income records between {from_date} and {to_date}")
             income_records = income_records.filter(
-                Income.date.between(datetime(year, 1, 1), datetime(year, 12, 31))
+                Income.date.between(from_date, to_date)
             )
+
+        # Debug the query
+        print(f"Income query: {income_records}")
+
+        # Get all records
         income_records = income_records.order_by(Income.date).all()
+
+        # Debug found records
+        print(f"Found {len(income_records)} income records: {income_records}")
         
+        # Initialize the tax total
+        total_revenue_tax = Decimal('0.00')
+
         # Write income data rows - with corporate revenue GIFI code
         for income in income_records:
             # For corporate income, use appropriate GIFI code
             gifi_code = cls.GIFI_CODE_MAPPING.get("professional_income", "8020")
             
+            # Calculate GST/HST included in the income amount
+            if is_quebec:
+                # For Quebec, calculate GST and QST separately
+                # GST is 5% of the pre-tax amount
+                gst_amount = (income.amount * gst_hst_rate) / (Decimal('1.0') + gst_hst_rate + (gst_hst_rate * qst_rate))
+                gst_amount = gst_amount.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+                # QST is calculated on the GST-included amount
+                qst_amount = ((income.amount - gst_amount) * qst_rate) / (Decimal('1.0') + qst_rate)
+                qst_amount = qst_amount.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+                tax_collected = gst_amount + qst_amount
+            else:
+                # For other provinces, GST/HST is included in the amount
+                # Formula: Tax = Amount - (Amount / (1 + Tax Rate))
+                pre_tax_amount = income.amount / (Decimal('1.0') + gst_hst_rate)
+                tax_collected = income.amount - pre_tax_amount
+                tax_collected = tax_collected.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+                # Ensure we always have a positive tax value for valid GST/HST rates
+                if tax_collected <= 0 and gst_hst_rate > 0:
+                    # Recalculate using a direct percentage approach as fallback
+                    tax_collected = income.amount * (gst_hst_rate / (Decimal('1.0') + gst_hst_rate))
+                    tax_collected = tax_collected.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+            # Add to total revenue tax
+            total_revenue_tax += tax_collected
+
             writer.writerow([
                 income.date.strftime("%Y-%m-%d"),
                 f"{income.client} - {income.project}",
                 f"{income.amount:.2f}",
                 "Professional Income",
                 gifi_code,
-                "0.00",  # No GST/HST/QST value for income by default
+                f"{tax_collected:.2f}",  # Include calculated GST/HST
                 "T2",
                 income.invoice or ""
             ])
