@@ -53,7 +53,8 @@ RUN pip install --no-cache-dir /wheels/* \
     && rm -rf /wheels
 
 # Copy only necessary files
-COPY app.py docker-entrypoint.sh init_db.py run_migrations.py ./
+COPY app.py ./
+COPY scripts/docker-entrypoint.sh scripts/init_db.py scripts/run_migrations.py ./scripts/
 COPY akowe/ ./akowe/
 COPY tools/ ./tools/
 
@@ -71,7 +72,7 @@ RUN mkdir -p /app/data
 RUN touch /app/data/.keep
 
 # Make the entrypoint script executable
-RUN chmod +x /app/docker-entrypoint.sh
+RUN chmod +x /app/scripts/docker-entrypoint.sh
 
 # Create non-root user for security
 RUN addgroup --system app && \
@@ -92,7 +93,7 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:5000/ping || exit 1
 
 # Set the entrypoint
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
+ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
 
 # Default command (configuration is handled in the entrypoint script)
 CMD ["gunicorn"]

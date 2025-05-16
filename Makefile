@@ -27,7 +27,7 @@ run:
 	python app.py
 
 setup:
-	python direct_setup.py
+	python scripts/direct_setup.py
 
 seed:
 	python tools/seed_db.py

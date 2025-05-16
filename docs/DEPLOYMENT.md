@@ -60,8 +60,8 @@ Be sure to set secure values for `DB_PASSWORD` and `SECRET_KEY`.
 ### 5. Run the Deployment Script
 
 ```bash
-chmod +x deploy.sh
-./deploy.sh
+chmod +x scripts/deploy.sh
+./scripts/deploy.sh
 ```
 
 This script will:
@@ -75,7 +75,7 @@ This script will:
 After DNS has propagated and your domain points to your server, you can enable HTTPS:
 
 ```bash
-./enable-https.sh
+./scripts/enable-https.sh
 ```
 
 This will:
@@ -87,7 +87,7 @@ This will:
 If Let's Encrypt fails, you can use self-signed certificates for testing:
 
 ```bash
-./use-self-signed.sh
+./scripts/use-self-signed.sh
 ```
 
 ## Maintenance
@@ -101,7 +101,7 @@ Let's Encrypt certificates expire after 90 days. Set up a cron job to renew them
 crontab -e
 
 # Add this line to run renewal monthly
-0 0 1 * * /path/to/akowe/renew-cert.sh >> /path/to/akowe/cert-renewal.log 2>&1
+0 0 1 * * /path/to/akowe/scripts/renew-cert.sh >> /path/to/akowe/cert-renewal.log 2>&1
 ```
 
 ### Backup Database
