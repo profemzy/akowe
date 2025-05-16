@@ -171,21 +171,21 @@ WEB_REPLICAS=4 docker compose -f docker-compose.prod.yml up -d
 
 ## Kubernetes Deployment
 
-For Kubernetes deployment, see the [k8s directory](./k8s/README.md).
+For Kubernetes deployment, see the [k8s directory](k8s/README.md).
 
 When deploying to Kubernetes, be sure to run the consolidated migration job before deploying the application to ensure the database schema is updated correctly. See the [Database Migrations Guide](k8s/DATABASE-MIGRATIONS.md) for detailed instructions. The migration job is defined in `k8s/migrations-job.yaml`.
 
 ## Receipt Upload
 
-Akowe now supports uploading and managing receipts for expense records. See the [detailed documentation](./docs/receipts.md) for setup and usage.
+Akowe now supports uploading and managing receipts for expense records. See the [detailed documentation](docs/receipts.md) for setup and usage.
 
 ## Timesheet System
 
-Track billable hours and generate invoices with the timesheet system. See the [timesheet documentation](./docs/timesheet.md) for usage details.
+Track billable hours and generate invoices with the timesheet system. See the [timesheet documentation](docs/timesheet.md) for usage details.
 
 ## Invoice System
 
-Create professional invoices from timesheet entries. See the [invoice documentation](./docs/invoice.md) for setup and workflow information.
+Create professional invoices from timesheet entries. See the [invoice documentation](docs/invoice.md) for setup and workflow information.
 
 ## AI-Powered Tax Features
 
@@ -218,7 +218,7 @@ Access these features:
 
 ## Mobile API
 
-Akowe includes a comprehensive REST API that can be used to build mobile applications or integrate with other systems. See the [API documentation](./docs/api.md) for details.
+Akowe includes a comprehensive REST API that can be used to build mobile applications or integrate with other systems. See the [API documentation](docs/api.md) for details.
 
 ## CSV Import Format
 
