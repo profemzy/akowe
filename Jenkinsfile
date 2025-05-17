@@ -131,16 +131,25 @@ pipeline {
             }
             steps {
                 withCredentials([
-                    usernamePassword(credentialsId: 'acr-credentials',
-                                     passwordVariable: 'ACR_PASSWORD',
-                                     usernameVariable: 'ACR_USERNAME')
+                    usernamePassword(credentialsId: 'azure-credentials',
+                                     passwordVariable: 'AZURE_SP_PASSWORD',
+                                     usernameVariable: 'AZURE_SP_ID'),
+                    string(credentialsId: 'azure-tenant-id', variable: 'AZURE_TENANT_ID')
                 ]) {
                     sh """
-                        echo \${ACR_PASSWORD} | docker login ${STAGING_REGISTRY} -u \${ACR_USERNAME} --password-stdin
+                        # Login to Azure
+                        az login --service-principal \\
+                            --username "\${AZURE_SP_ID}" \\
+                            --password="\${AZURE_SP_PASSWORD}" \\
+                            --tenant "\${AZURE_TENANT_ID}"
+                        
+                        # Login to ACR using Azure CLI
+                        az acr login --name stagingacr4yyprq
+                        
+                        # Build and push Docker image
                         docker build -t ${STAGING_REGISTRY}/${APP_NAME}:${env.BUILD_NUMBER} -t ${STAGING_REGISTRY}/${APP_NAME}:latest .
                         docker push ${STAGING_REGISTRY}/${APP_NAME}:${env.BUILD_NUMBER}
                         docker push ${STAGING_REGISTRY}/${APP_NAME}:latest
-                        docker logout ${STAGING_REGISTRY}
                     """
                 }
                 script {
@@ -166,7 +175,8 @@ pipeline {
                     string(credentialsId: 'azure-tenant-id', variable: 'AZURE_TENANT_ID')
                 ]) {
                     sh """
-                        az login --service-principal \\
+                        # Login to Azure if not already logged in
+                        az account show >/dev/null 2>&1 || az login --service-principal \\
                             --username "\${AZURE_SP_ID}" \\
                             --password="\${AZURE_SP_PASSWORD}" \\
                             --tenant "\${AZURE_TENANT_ID}"
@@ -204,16 +214,25 @@ pipeline {
             }
             steps {
                 withCredentials([
-                    usernamePassword(credentialsId: 'acr-credentials',
-                                     passwordVariable: 'ACR_PASSWORD',
-                                     usernameVariable: 'ACR_USERNAME')
+                    usernamePassword(credentialsId: 'azure-credentials',
+                                     passwordVariable: 'AZURE_SP_PASSWORD',
+                                     usernameVariable: 'AZURE_SP_ID'),
+                    string(credentialsId: 'azure-tenant-id', variable: 'AZURE_TENANT_ID')
                 ]) {
                     sh """
-                        echo \${ACR_PASSWORD} | docker login ${PROD_REGISTRY} -u \${ACR_USERNAME} --password-stdin
+                        # Login to Azure
+                        az login --service-principal \\
+                            --username "\${AZURE_SP_ID}" \\
+                            --password="\${AZURE_SP_PASSWORD}" \\
+                            --tenant "\${AZURE_TENANT_ID}"
+                        
+                        # Login to ACR using Azure CLI
+                        az acr login --name prodacrva1ng1
+                        
+                        # Build and push Docker image
                         docker build -t ${PROD_REGISTRY}/${APP_NAME}:${env.BUILD_NUMBER} -t ${PROD_REGISTRY}/${APP_NAME}:latest .
                         docker push ${PROD_REGISTRY}/${APP_NAME}:${env.BUILD_NUMBER}
                         docker push ${PROD_REGISTRY}/${APP_NAME}:latest
-                        docker logout ${PROD_REGISTRY}
                     """
                 }
                 script {
@@ -244,7 +263,8 @@ pipeline {
                     string(credentialsId: 'azure-tenant-id', variable: 'AZURE_TENANT_ID')
                 ]) {
                     sh """
-                        az login --service-principal \\
+                        # Login to Azure if not already logged in
+                        az account show >/dev/null 2>&1 || az login --service-principal \\
                             --username "\${AZURE_SP_ID}" \\
                             --password="\${AZURE_SP_PASSWORD}" \\
                             --tenant "\${AZURE_TENANT_ID}"
