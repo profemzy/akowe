@@ -39,7 +39,7 @@ pipeline {
     }
     
     parameters {
-        choice(name: 'DEPLOY_ENV', choices: ['staging', 'production', 'none'], description: 'Environment to deploy to')
+        choice(name: 'DEPLOY_ENV', choices: ['staging', 'production', 'both', 'none'], description: 'Environment to deploy to')
         booleanParam(name: 'SKIP_TESTS', defaultValue: false, description: 'Skip running tests')
         string(name: 'BRANCH_NAME_PARAM', defaultValue: '', description: 'Branch name (if not automatically detected)')
     }
@@ -124,6 +124,7 @@ pipeline {
             when {
                 expression { 
                     return params.DEPLOY_ENV == 'staging' || 
+                           params.DEPLOY_ENV == 'both' || 
                            env.EFFECTIVE_BRANCH_NAME == 'develop' || 
                            env.BRANCH_NAME == 'develop'
                 }
@@ -152,6 +153,7 @@ pipeline {
             when {
                 expression { 
                     return params.DEPLOY_ENV == 'staging' || 
+                           params.DEPLOY_ENV == 'both' || 
                            env.EFFECTIVE_BRANCH_NAME == 'develop' || 
                            env.BRANCH_NAME == 'develop'
                 }
@@ -195,8 +197,9 @@ pipeline {
             when {
                 expression { 
                     return params.DEPLOY_ENV == 'production' || 
-                           env.EFFECTIVE_BRANCH_NAME == 'master' || 
-                           env.BRANCH_NAME == 'master'
+                           params.DEPLOY_ENV == 'both' || 
+                           (env.EFFECTIVE_BRANCH_NAME == 'master' && params.DEPLOY_ENV != 'staging') || 
+                           (env.BRANCH_NAME == 'master' && params.DEPLOY_ENV != 'staging')
                 }
             }
             steps {
@@ -223,8 +226,9 @@ pipeline {
             when {
                 expression { 
                     return params.DEPLOY_ENV == 'production' || 
-                           env.EFFECTIVE_BRANCH_NAME == 'master' || 
-                           env.BRANCH_NAME == 'master'
+                           params.DEPLOY_ENV == 'both' || 
+                           (env.EFFECTIVE_BRANCH_NAME == 'master' && params.DEPLOY_ENV != 'staging') || 
+                           (env.BRANCH_NAME == 'master' && params.DEPLOY_ENV != 'staging')
                 }
             }
             steps {
@@ -270,14 +274,19 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 script {
-                    if (params.DEPLOY_ENV == 'staging' || env.EFFECTIVE_BRANCH_NAME == 'develop' || env.BRANCH_NAME == 'develop') {
+                    if (params.DEPLOY_ENV == 'staging' || params.DEPLOY_ENV == 'both' || 
+                        env.EFFECTIVE_BRANCH_NAME == 'develop' || env.BRANCH_NAME == 'develop') {
                         sh """
                             echo "Verifying staging deployment..."
                             kubectl get ingress -n ${NAMESPACE}
                             kubectl get pods -n ${NAMESPACE} -l app=akowe
                             curl -k -I https://akowe-demo.infotitans.ca/ping || echo "Ping endpoint not accessible"
                         """
-                    } else if (params.DEPLOY_ENV == 'production' || env.EFFECTIVE_BRANCH_NAME == 'master' || env.BRANCH_NAME == 'master') {
+                    }
+                    
+                    if (params.DEPLOY_ENV == 'production' || params.DEPLOY_ENV == 'both' || 
+                        (env.EFFECTIVE_BRANCH_NAME == 'master' && params.DEPLOY_ENV != 'staging') || 
+                        (env.BRANCH_NAME == 'master' && params.DEPLOY_ENV != 'staging')) {
                         sh """
                             echo "Verifying production deployment..."
                             kubectl get ingress -n ${NAMESPACE}
