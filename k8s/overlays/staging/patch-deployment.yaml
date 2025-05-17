@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: akowe
+  namespace: akowe
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: akowe
+        image: stagingacr4yyprq.azurecr.io/akowe:latest
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"

@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: akowe
+
+bases:
+  - ../../base
+
+patchesStrategicMerge:
+  - patch-config.yaml
+  - patch-deployment.yaml
+  - patch-ingress.yaml
+
+namePrefix: staging-

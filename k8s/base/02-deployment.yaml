@@ -1,8 +1,8 @@
-:apiVersion: apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: akowe
-  namespace: wackops
+  namespace: akowe
   labels:
     app: akowe
 spec:
@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: akowe
-        image: wackopsprodacr.azurecr.io/akowe:v1.0.32
+        image: akowe:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
@@ -77,7 +77,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: akowe-data-pvc
-  namespace: wackops
+  namespace: akowe
 spec:
   storageClassName: azurefile-csi 
   accessModes:
@@ -90,7 +90,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: akowe-instance-pvc
-  namespace: wackops
+  namespace: akowe
 spec:
   storageClassName: azurefile-csi 
   accessModes:

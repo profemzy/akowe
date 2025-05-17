@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: akowe-config
+  namespace: akowe
+  labels:
+    app: akowe
+data:
+  FLASK_APP: "app.py"
+  FLASK_ENV: "production"
+  DB_PORT: "5432"
+  DB_NAME: "akowe"
+  # Business settings
+  COMPANY_NAME: "InfoTitans"
+  DEFAULT_HOURLY_RATE: "120.00"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: akowe-secrets
+  namespace: akowe
+  labels:
+    app: akowe
+type: Opaque
+stringData:
+  SECRET_KEY: "Tr@Na5ti0e5ASt+!8B3+FRUJi+A!-DopRIfrOt74br9"
+  # Admin user settings
+  ADMIN_USERNAME: "profemzy"
+  ADMIN_EMAIL: "profemzy@gmail.com"
+  ADMIN_PASSWORD: "EbunOluwa22"
+  ADMIN_FIRST_NAME: "Femi"
+  ADMIN_LAST_NAME: "Oladele"

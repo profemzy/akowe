@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: akowe-ingress
+  namespace: akowe
+spec:
+  tls:
+  - hosts:
+    - akowe.infotitans.ca
+    secretName: akowe-tls-cert-le
+  rules:
+  - host: akowe.infotitans.ca
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: akowe
+            port:
+              number: 80

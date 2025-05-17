@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: akowe-config
+  namespace: akowe
+data:
+  DB_HOST: "staging-akowe-dbserver.postgres.database.azure.com"
+  FLASK_ENV: "staging"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: akowe-secrets
+  namespace: akowe
+stringData:
+  DB_USER: "stagingadmin"
+  DB_PASSWORD: "StageP@ss123"
