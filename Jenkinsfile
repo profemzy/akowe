@@ -35,15 +35,33 @@ pipeline {
     }
     
     triggers {
-        githubPush()
+        pollSCM('H/5 * * * *')
     }
     
     parameters {
+        choice(name: 'DEPLOY_ENV', choices: ['staging', 'production', 'both', 'none'], description: 'Environment to deploy to')
         booleanParam(name: 'SKIP_TESTS', defaultValue: false, description: 'Skip running tests')
-        booleanParam(name: 'DEPLOY_TO_PRODUCTION', defaultValue: false, description: 'Deploy to production (requires manual approval)')
+        string(name: 'BRANCH_NAME_PARAM', defaultValue: '', description: 'Branch name (if not automatically detected)')
     }
     
     stages {
+        stage('Debug Info') {
+            steps {
+                script {
+                    def effectiveBranchName = env.BRANCH_NAME ?: params.BRANCH_NAME_PARAM ?: 'unknown'
+                    echo "Building branch: ${effectiveBranchName}"
+                    echo "Deploy environment: ${params.DEPLOY_ENV}"
+                    echo "Skip tests: ${params.SKIP_TESTS}"
+                    
+                    // Show all environment variables for debugging
+                    sh 'env | sort'
+                    
+                    // Store effective branch name for later stages
+                    env.EFFECTIVE_BRANCH_NAME = effectiveBranchName
+                }
+            }
+        }
+        
         stage('Checkout') {
             steps {
                 checkout scm
@@ -104,7 +122,12 @@ pipeline {
         
         stage('Build & Push Docker Image - Staging') {
             when {
-                branch 'develop'
+                expression { 
+                    return params.DEPLOY_ENV == 'staging' || 
+                           params.DEPLOY_ENV == 'both' || 
+                           env.EFFECTIVE_BRANCH_NAME == 'develop' || 
+                           env.BRANCH_NAME == 'develop'
+                }
             }
             steps {
                 withCredentials([
@@ -128,7 +151,12 @@ pipeline {
         
         stage('Deploy to Staging') {
             when {
-                branch 'develop'
+                expression { 
+                    return params.DEPLOY_ENV == 'staging' || 
+                           params.DEPLOY_ENV == 'both' || 
+                           env.EFFECTIVE_BRANCH_NAME == 'develop' || 
+                           env.BRANCH_NAME == 'develop'
+                }
             }
             steps {
                 withCredentials([
@@ -167,7 +195,12 @@ pipeline {
         
         stage('Build & Push Docker Image - Production') {
             when {
-                branch 'master'
+                expression { 
+                    return params.DEPLOY_ENV == 'production' || 
+                           params.DEPLOY_ENV == 'both' || 
+                           (env.EFFECTIVE_BRANCH_NAME == 'master' && params.DEPLOY_ENV != 'staging') || 
+                           (env.BRANCH_NAME == 'master' && params.DEPLOY_ENV != 'staging')
+                }
             }
             steps {
                 withCredentials([
@@ -191,9 +224,11 @@ pipeline {
         
         stage('Deploy to Production') {
             when {
-                allOf {
-                    branch 'master'
-                    expression { return params.DEPLOY_TO_PRODUCTION }
+                expression { 
+                    return params.DEPLOY_ENV == 'production' || 
+                           params.DEPLOY_ENV == 'both' || 
+                           (env.EFFECTIVE_BRANCH_NAME == 'master' && params.DEPLOY_ENV != 'staging') || 
+                           (env.BRANCH_NAME == 'master' && params.DEPLOY_ENV != 'staging')
                 }
             }
             steps {
@@ -239,14 +274,19 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 script {
-                    if (env.BRANCH_NAME == 'develop') {
+                    if (params.DEPLOY_ENV == 'staging' || params.DEPLOY_ENV == 'both' || 
+                        env.EFFECTIVE_BRANCH_NAME == 'develop' || env.BRANCH_NAME == 'develop') {
                         sh """
                             echo "Verifying staging deployment..."
                             kubectl get ingress -n ${NAMESPACE}
                             kubectl get pods -n ${NAMESPACE} -l app=akowe
                             curl -k -I https://akowe-demo.infotitans.ca/ping || echo "Ping endpoint not accessible"
                         """
-                    } else if (env.BRANCH_NAME == 'master' && params.DEPLOY_TO_PRODUCTION) {
+                    }
+                    
+                    if (params.DEPLOY_ENV == 'production' || params.DEPLOY_ENV == 'both' || 
+                        (env.EFFECTIVE_BRANCH_NAME == 'master' && params.DEPLOY_ENV != 'staging') || 
+                        (env.BRANCH_NAME == 'master' && params.DEPLOY_ENV != 'staging')) {
                         sh """
                             echo "Verifying production deployment..."
                             kubectl get ingress -n ${NAMESPACE}
