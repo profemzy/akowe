@@ -35,12 +35,12 @@ pipeline {
     }
     
     triggers {
-        githubPush()
+        pollSCM('H/5 * * * *')
     }
     
     parameters {
+        choice(name: 'DEPLOY_ENV', choices: ['staging', 'production', 'none'], description: 'Environment to deploy to')
         booleanParam(name: 'SKIP_TESTS', defaultValue: false, description: 'Skip running tests')
-        booleanParam(name: 'DEPLOY_TO_PRODUCTION', defaultValue: false, description: 'Deploy to production (requires manual approval)')
     }
     
     stages {
@@ -104,7 +104,7 @@ pipeline {
         
         stage('Build & Push Docker Image - Staging') {
             when {
-                branch 'develop'
+                expression { return params.DEPLOY_ENV == 'staging' || env.BRANCH_NAME == 'develop' }
             }
             steps {
                 withCredentials([
@@ -128,7 +128,7 @@ pipeline {
         
         stage('Deploy to Staging') {
             when {
-                branch 'develop'
+                expression { return params.DEPLOY_ENV == 'staging' || env.BRANCH_NAME == 'develop' }
             }
             steps {
                 withCredentials([
@@ -167,7 +167,7 @@ pipeline {
         
         stage('Build & Push Docker Image - Production') {
             when {
-                branch 'master'
+                expression { return params.DEPLOY_ENV == 'production' || env.BRANCH_NAME == 'master' }
             }
             steps {
                 withCredentials([
@@ -191,10 +191,7 @@ pipeline {
         
         stage('Deploy to Production') {
             when {
-                allOf {
-                    branch 'master'
-                    expression { return params.DEPLOY_TO_PRODUCTION }
-                }
+                expression { return params.DEPLOY_ENV == 'production' || env.BRANCH_NAME == 'master' }
             }
             steps {
                 // Add a manual approval step before deploying to production
@@ -239,14 +236,14 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 script {
-                    if (env.BRANCH_NAME == 'develop') {
+                    if (params.DEPLOY_ENV == 'staging' || env.BRANCH_NAME == 'develop') {
                         sh """
                             echo "Verifying staging deployment..."
                             kubectl get ingress -n ${NAMESPACE}
                             kubectl get pods -n ${NAMESPACE} -l app=akowe
                             curl -k -I https://akowe-demo.infotitans.ca/ping || echo "Ping endpoint not accessible"
                         """
-                    } else if (env.BRANCH_NAME == 'master' && params.DEPLOY_TO_PRODUCTION) {
+                    } else if (params.DEPLOY_ENV == 'production' || env.BRANCH_NAME == 'master') {
                         sh """
                             echo "Verifying production deployment..."
                             kubectl get ingress -n ${NAMESPACE}
